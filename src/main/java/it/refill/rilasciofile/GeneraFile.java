@@ -89,7 +89,7 @@ public class GeneraFile {
         if (tipofile.equals("TCH")) { // LIST TRANSACTION CHANGE - DA INIZIO MESE A IERI      
             ArrayList<Ch_transaction> result = db.query_transaction_ch_new(data1, data2, br1);
             String base64;
-            if (result.size() > 0) {
+            if (!result.isEmpty()) {
                 String nomereport = "LIST TRANSACTION CHANGE DA " + data1 + " A " + data2 + ".xlsx";
                 File Output = new File(path + nomereport);
                 base64 = Excel.excel_transaction_listEVO(gf, Output, result);
@@ -109,7 +109,7 @@ public class GeneraFile {
         } else if (tipofile.equals("TNC")) { // LIST TRANSACTION NOCHANGE - DA INIZIO MESE A IERI      
             ArrayList<NC_transaction> result = db.query_NC_transaction_NEW(data1, data2, br1, "NO");
             String base64;
-            if (result.size() > 0) {
+            if (!result.isEmpty()) {
                 String nomereport = "LIST TRANSACTION NOCHANGE DA " + data1 + " A " + data2 + ".xlsx";
                 File Output = new File(path + nomereport);
                 base64 = Excel.excel_transactionnc_list(gf, Output, result);
@@ -130,7 +130,7 @@ public class GeneraFile {
             TillTransactionListBB_value pdfsell = db.list_SBTransactionList(br1, data1, data2, allenabledbr);
 
             if (pdfsell != null) {
-                ArrayList datifooter = new ArrayList();
+                ArrayList<String> datifooter = new ArrayList<>();
                 datifooter.add(pdfsell.getTransactionnumberresidentbuy());
                 datifooter.add(pdfsell.getTransactionnumbernonresidentbuy());
                 datifooter.add(pdfsell.getInternetbookingamountyes());
@@ -170,7 +170,7 @@ public class GeneraFile {
 
             TillTransactionListBB_value pdfsell = db.list_BBTransactionList_mod(br1, data1, data2, allenabledbr);
             if (pdfsell != null) {
-                ArrayList datifooter = new ArrayList();
+                ArrayList<String> datifooter = new ArrayList<>();
                 datifooter.add(pdfsell.getTransactionnumberresidentbuy());
                 datifooter.add(pdfsell.getTransactionnumbernonresidentbuy());
                 datifooter.add(pdfsell.getInternetbookingamountyes());
@@ -485,13 +485,13 @@ public class GeneraFile {
         gf.logger.log.warning("END");
     }
 
-    public static void main(String[] args) {
-//        GeneraFile gf = new GeneraFile();
-//        gf.rilasciafile(gf, args[0]);
-
-        ondemand("2019");
-
-    }
+//    public static void main(String[] args) {
+////        GeneraFile gf = new GeneraFile();
+////        gf.rilasciafile(gf, args[0]);
+//
+//        ondemand("2019");
+//
+//    }
 
     private boolean rilasciasftp(File file, String meseriferimento, String annoriferimento) {
         boolean ok = true;

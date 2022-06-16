@@ -65,7 +65,7 @@ public class OAM {
             String esito_rigaA = recordA(codicetrasm, anno, mese, tipoinvio, cfpi, denom, comune, provincia, tipologia, controllo, writer);
             if (esito_rigaA.equals("OK")) {
                 Db_Master dbm = new Db_Master();
-                System.out.println("macoam.OAM.creaFile() "+list_tran.size());
+                System.out.println("macoam.OAM.creaFile() " + list_tran.size());
                 for (int i = 0; i < list_tran.size(); i++) {
                     Ch_transaction tran = list_tran.get(i);
                     Client cl = dbm.query_Client_transaction(tran.getCod(), tran.getCl_cod());
@@ -83,7 +83,7 @@ public class OAM {
                         }
                     }
                 }
-                
+
                 dbm.closeDB();
                 String esitoZ = recordZ(progressivo, writer);
                 if (esitoZ.equals("OK")) {
@@ -114,8 +114,6 @@ public class OAM {
         return es;
         //return true;
     }
-
-    
 
     public static String recordA(String codicetrasm, String anno, String mese, String tipoinvio, String cfpi,
             String denom, String comune, String provincia, String tipologia, String controllo, PrintWriter writer) {
@@ -197,42 +195,46 @@ public class OAM {
         sizetocheck[21] = 10;
 
         String[] stringtocheck = new String[22];
+        try {
 
-        stringtocheck[0] = StringUtils.substring(cl.getCognome().trim(), 0, 30);
-        stringtocheck[1] = StringUtils.substring(cl.getNome().trim(), 0, 30);
-        stringtocheck[2] = cl.getSesso().trim();
+            stringtocheck[0] = StringUtils.substring(cl.getCognome().trim(), 0, 30);
+            stringtocheck[1] = StringUtils.substring(cl.getNome().trim(), 0, 30);
+            stringtocheck[2] = cl.getSesso().trim();
 
-        stringtocheck[3] = cl.getCodfisc().replaceAll("---", "").trim();
+            stringtocheck[3] = cl.getCodfisc().replaceAll("---", "").trim();
 
-        stringtocheck[4] = cl.getDt_nascita().trim().replaceAll("/", "").trim();
-        stringtocheck[5] = cl.getCitta_nascita().trim();
+            stringtocheck[4] = cl.getDt_nascita().trim().replaceAll("/", "").trim();
+            stringtocheck[5] = cl.getCitta_nascita().trim();
 
-        String pr = cl.getProvincia_nascita().trim();
-        if (pr.trim().equals("") || pr.trim().equals("-") || pr.contains("-") || pr.contains("null")) {
-            pr = "EE";
+            String pr = cl.getProvincia_nascita().trim();
+            if (pr.trim().equals("") || pr.trim().equals("-") || pr.contains("-") || pr.contains("null")) {
+                pr = "EE";
+            }
+            stringtocheck[6] = pr;
+
+            stringtocheck[7] = formatAL(cl.getNazione(), nations, 1, "ITALIA").trim();
+            stringtocheck[8] = cl.getNazione().trim();
+
+            stringtocheck[9] = formatAL(cl.getTipo_documento(), tipodoc, 2, "CI").trim();
+
+            stringtocheck[10] = cl.getNumero_documento().trim();
+            stringtocheck[11] = cl.getDt_scadenza_documento().trim().replaceAll("/", "").trim();
+            stringtocheck[12] = cl.getRilasciato_da_documento().trim();
+            stringtocheck[13] = cl.getLuogo_rilascio_documento().trim();
+            stringtocheck[14] = formatStringtoStringDate(tran.getData(), patternsqldate, patternoam).trim();
+
+            stringtocheck[15] = "30121Venezia";
+            stringtocheck[16] = tran.getTipotr().trim();
+            stringtocheck[17] = val.getValuta().trim();
+            stringtocheck[18] = val.getRate().trim();
+            stringtocheck[19] = val.getQuantita().trim();
+            stringtocheck[20] = val.getTotal().trim();
+
+            stringtocheck[21] = tran.getId().trim().substring(tran.getId().length() - 10);
+
+        } catch (Exception e) {
+            return "ERROR ON CLIENT: " + cl.getCognome().trim() + " " + cl.getNome().trim();
         }
-        stringtocheck[6] = pr;
-
-        stringtocheck[7] = formatAL(cl.getNazione(), nations, 1, "ITALIA").trim();
-        stringtocheck[8] = cl.getNazione().trim();
-
-        stringtocheck[9] = formatAL(cl.getTipo_documento(), tipodoc, 2, "CI").trim();
-
-        stringtocheck[10] = cl.getNumero_documento().trim();
-        stringtocheck[11] = cl.getDt_scadenza_documento().trim().replaceAll("/", "").trim();
-        stringtocheck[12] = cl.getRilasciato_da_documento().trim();
-        stringtocheck[13] = cl.getLuogo_rilascio_documento().trim();
-        stringtocheck[14] = formatStringtoStringDate(tran.getData(), patternsqldate, patternoam).trim();
-
-        stringtocheck[15] = "30121Venezia";
-        stringtocheck[16] = tran.getTipotr().trim();
-        stringtocheck[17] = val.getValuta().trim();
-        stringtocheck[18] = val.getRate().trim();
-        stringtocheck[19] = val.getQuantita().trim();
-        stringtocheck[20] = val.getTotal().trim();
-
-        stringtocheck[21] = tran.getId().trim().substring(tran.getId().length() - 10);
-
         int g = 0;
         while (g < 22 && ctrl) {
             ctrl = controllaSize(stringtocheck[g], sizetocheck[g]);
@@ -381,6 +383,10 @@ public class OAM {
                 tipoop = "0";
             }
 
+            if (val.getValuta().equals("---")) {
+                return "ERROR ON TRANSACTION CLIENT: " + cognome.trim() + " " + nome.trim();
+            }
+
             String divest = getALCurrency(val.getValuta(), curlist).getUic().trim();
 
             String tasso = formatImporti(val.getRate(), 14, 4).trim();
@@ -478,8 +484,8 @@ public class OAM {
             i++;
         }
         int length = (int) Math.log10(progressivo) + 1;
-        
-        if(progressivo==0){
+
+        if (progressivo == 0) {
             length = 1;
         }
         String progresscompl = "";
@@ -487,7 +493,7 @@ public class OAM {
             progresscompl = progresscompl + "0";
             length++;
         }
-        
+
         progresscompl = progresscompl + String.valueOf(progressivo);
         out = out + progresscompl;
         int j = 0;

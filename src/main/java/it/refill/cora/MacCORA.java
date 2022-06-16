@@ -136,26 +136,26 @@ public class MacCORA {
         }
     }
 
-    public static void main(String[] args) {
-        int scelta;
-        try {
-            scelta = Integer.parseInt(args[0]);
-        } catch (Exception e) {
-            scelta = 1;
-        }
-
-        log.warning("STARTING...");
-        switch (scelta) {
-            case 1:
-                generamensile();
-                break;
-            case 2:
-                generaannuale();
-                break;
-            default:
-                log.severe("ERROR. NESSUNA SCELTA.");
-        }
-
-        log.warning("END...");
-    }
+//    public static void main(String[] args) {
+//        int scelta;
+//        try {
+//            scelta = Integer.parseInt(args[0]);
+//        } catch (Exception e) {
+//            scelta = 1;
+//        }
+//
+//        log.warning("STARTING...");
+//        switch (scelta) {
+//            case 1:
+//                generamensile();
+//                break;
+//            case 2:
+//                generaannuale();
+//                break;
+//            default:
+//                log.severe("ERROR. NESSUNA SCELTA.");
+//        }
+//
+//        log.warning("END...");
+//    }
 }

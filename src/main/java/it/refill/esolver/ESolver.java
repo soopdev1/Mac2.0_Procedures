@@ -1010,7 +1010,8 @@ public class ESolver {
                             se.add(pos);
                             for (int x = 0; x < valori.size(); x++) {
 
-                                String[] tmp = {pos, valori.get(x).getNet(), valori.get(x).getTotal(), valori.get(x).getTot_com(), valori.get(x).getRoundvalue(), valori.get(x).getSpread()};
+                                String[] tmp = {pos, valori.get(x).getNet(), valori.get(x).getTotal(), 
+                                valori.get(x).getTot_com(), valori.get(x).getRoundvalue(), valori.get(x).getSpread()};
 
                                 se_value_temp.add(tmp);
                             }
@@ -1041,6 +1042,11 @@ public class ESolver {
                         roundDoubleandFormat(importo_t1, 2),
                         roundDoubleandFormat(importo_sp, 2)
                     };
+
+//                    System.out.println("C1 "+roundDoubleandFormat(importo_comm, 2));
+//                    System.out.println("N1 "+roundDoubleandFormat(importo_net, 2));
+//                    System.out.println("T1 "+roundDoubleandFormat(importo_t1, 2));
+//                    System.out.println("S1 "+roundDoubleandFormat(importo_sp, 2));
 
                     se_value.add(tmp);
                 }
@@ -2419,8 +2425,8 @@ public class ESolver {
     public static void main(String[] args) {
 
         Db_Master db = new Db_Master();
-        DateTime dt = db.getNowDT().minusDays(1);
-//        DateTime dt = new DateTime(2022, 2, 2, 0, 0);
+//        DateTime dt = db.getNowDT().minusDays(1);
+        DateTime dt = new DateTime(2022, 4, 6, 0, 0);
         db.closeDB();
 
         String from = dt.toString(patternnormdate_filter);
@@ -2477,14 +2483,12 @@ public class ESolver {
         ESolver es = new ESolver();
         for (int i = 0; i < branch.size(); i++) {
 
-//            if (
-//                    !branch.get(i).getCod().equals("165") 
-//                    //                    && !branch.get(i).getCod().equals("117") 
-//                    //                    && !branch.get(i).getCod().equals("195")
-//                    //                    && !branch.get(i).getCod().equals("112")
-//                    ) {
-//                continue;
-//            }
+            if (!branch.get(i).getCod().equals("109") //                    //                    && !branch.get(i).getCod().equals("117") 
+                    //                    //                    && !branch.get(i).getCod().equals("195")
+                    //                    //                    && !branch.get(i).getCod().equals("112")
+                    ) {
+                continue;
+            }
             Branch b1 = branch.get(i);
 
             File base64_1 = es.FILEP1(path, from, anno, list_esolver_ch, list_esolver_nc, list_esolver_refund,

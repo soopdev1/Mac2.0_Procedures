@@ -195,6 +195,10 @@ public class SftpSIA {
     }
 
     public void rilasciaFIle(File fileupload, boolean prod) {
+
+        this.logger = new LoggerNew("SFTP_SIA", this.Pathlog);
+        this.logger.log.log(Level.WARNING, "STARTING UPLOAD ON DEMAND SFTP {0}", SIA.toUpperCase());
+
         String SIA_ip = "193.178.204.95";
         String privateKey = "/mnt/run/private_key_SIATEST.ppk";
         int SIA_port = 20022;
@@ -230,6 +234,7 @@ public class SftpSIA {
                 sftpsia.cd("/input/");
                 try (InputStream is = new FileInputStream(fileupload)) {
                     sftpsia.put(is, fileupload.getName());
+
                 }
             } catch (Exception ex1) {
                 this.logger.log.log(Level.SEVERE, "ERROR: {0}", ex1.getMessage());
@@ -241,10 +246,9 @@ public class SftpSIA {
 
     }
 
-    public static void main(String[] args) {
-        new SftpSIA().sftpsia(true);
-    }
-
+//    public static void main(String[] args) {
+//        new SftpSIA().sftpsia(true);
+//    }
 }
 
 class SystemOutProgressMonitor implements SftpProgressMonitor {

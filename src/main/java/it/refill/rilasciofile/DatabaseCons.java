@@ -5,6 +5,7 @@
  */
 package it.refill.rilasciofile;
 
+import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.AtomicDouble;
 import it.refill.esolver.Branch;
 import it.refill.esolver.NC_category;
@@ -3540,16 +3541,33 @@ public class DatabaseCons {
         return null;
     }
 
+    public ArrayList<String[]> unlockratejustify() {
+        ArrayList<String[]> out = new ArrayList<>();
+        try {
+            String sql = "SELECT id_unlockrate_justify,de_unlockrate_justify,fg_blocco FROM unlockrate_justify ORDER BY de_unlockrate_justify";
+            PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2)), rs.getString(3)};
+                out.add(o1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return out;
+    }
+
     public ArrayList<DailyChange_CG> list_DailyChange_CG(Branch b1, String datad1, String datad2, boolean deleted) {
         ArrayList<DailyChange_CG> out = new ArrayList<>();
         try {
-
+            DateTime inizionuovospreadCZ = new DateTime(2021, 10, 1, 0, 0).withMillisOfDay(0);
             ArrayList<Figures> fig = list_all_figures();
             ArrayList<String[]> list_group = list_branch_group();
             ArrayList<Users> list_users = list_all_users();
             ArrayList<String[]> nazioni = country();
             ArrayList<String[]> array_undermincommjustify = undermincommjustify();
             ArrayList<String[]> array_kindcommissionefissa = kindcommissionefissa();
+            ArrayList<String[]> array_unlockrate = unlockratejustify();
             ArrayList<String[]> bank = list_bank_pos_enabled();
             ArrayList<String[]> bank2 = list_bank();
             ArrayList<String[]> history_BB = history_BB();
@@ -3570,7 +3588,7 @@ public class DatabaseCons {
 
             sqlet = sqlet + " ORDER BY e.dt_it";
 
-            ResultSet rset = this.c.createStatement().executeQuery(sqlet);
+            ResultSet rset = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sqlet);
 
             while (rset.next()) {
 
@@ -3613,33 +3631,54 @@ public class DatabaseCons {
                 d1.setCOMMVARIABILE("");
                 d1.setCOMMFISSA("");
 
-                String SPREADBRANCH = "";
                 String SPREADBANK = "";
 
                 if (rset.getString("e.fg_brba").equals("BR")) {
-                    SPREADBRANCH = (rset.getString("ev.ip_spread"));
+//                    SPREADBRANCH = (rset.getString("ev.ip_spread"));
                 } else {
                     SPREADBANK = (rset.getString("ev.ip_spread"));
                 }
 
-                d1.setSPREADBRANCH(SPREADBRANCH);
+//                if (Constant.is_IT) {
+                d1.setSPREADBRANCH("");
+//                } else {
+//                    if (dt_it.isBefore(inizionuovospreadCZ)) {
+//                        d1.setSPREADBRANCH(SPREADBRANCH);
+//                    } else {
+//                        d1.setSPREADBRANCH("");
+//                    }
+//                }
+
                 d1.setSPREADBANK(SPREADBANK);
 
                 d1.setSPREADVEND("");
 
                 double totgm = fd(rset.getString("ev.ip_spread"));
-                d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
 
-                d1.setPERCCOMM(""); //verificare
-                d1.setPERCSPREADVENDITA("");//verificare
+                if (rset.getString("e.fg_brba").equals("BR")) {
+
+                    if (gf.isIs_IT()) {
+                        d1.setTOTGM("0.00");
+                    } else {
+                        if (dt_it.isBefore(inizionuovospreadCZ)) {
+                            d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
+                        } else {
+                            d1.setTOTGM("0.00");
+                        }
+                    }
+                } else {
+                    d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
+                }
+
+                d1.setPERCCOMM("");
+                d1.setPERCSPREADVENDITA("");
                 d1.setVENDITABUYBACK("");
+                d1.setVENDITASELLBACK("");
                 d1.setCODICEINTERNETBOOKING("");
-                String FASCEIMPORTO = "";
-                d1.setFASCEIMPORTO(FASCEIMPORTO);
                 d1.setMOTIVOPERRIDUZIONEDELLACOMM("");
                 d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA("");
-                d1.setCODICESBLOCCO("");
 
+                d1.setCODICESBLOCCO("");
                 out.add(d1);
 
             }
@@ -3658,7 +3697,7 @@ public class DatabaseCons {
 
             sql = sql + " ORDER BY tr1.data";
 
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
 
             while (rs.next()) {
                 DailyChange_CG d1 = new DailyChange_CG();
@@ -3701,12 +3740,13 @@ public class DatabaseCons {
 
                 d1.setCOMMENTI(rs.getString("tr1.note"));
 
-                d1.setACQUISTOVENDITA(formatType_new(rs.getString("tr1.tipotr"),
-                        rs.getString("tr1.intbook"),
-                        rs.getString("tr1.intbook_type"),
-                        rs.getString("tr1.intbook_1_tf"),
-                        rs.getString("tr1.intbook_2_tf"),
-                        rs.getString("tr1.intbook_3_tf"), listcat, listcaus));
+                d1.setACQUISTOVENDITA(
+                        formatType_new(rs.getString("tr1.tipotr"),
+                                rs.getString("tr1.intbook"),
+                                rs.getString("tr1.intbook_type"),
+                                rs.getString("tr1.intbook_1_tf"),
+                                rs.getString("tr1.intbook_2_tf"),
+                                rs.getString("tr1.intbook_3_tf"), listcat, listcaus));
 
                 d1.setTIPOLOGIAACQOVEND(f.getDe_supporto());
 
@@ -3720,7 +3760,6 @@ public class DatabaseCons {
                 String SPREADBRANCH = "", SPREADBANK = "";
                 d1.setSPREADBRANCH(SPREADBRANCH);
                 d1.setSPREADBANK(SPREADBANK);
-
                 d1.setSPREADVEND((rs.getString("tr2.spread")));
 
                 double totgm = fd(rs.getString("tr2.spread"))
@@ -3736,14 +3775,59 @@ public class DatabaseCons {
 
                 d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
 
-                d1.setPERCCOMM(""); //verificare
-                d1.setPERCSPREADVENDITA("");//verificare
+                d1.setPERCCOMM(rs.getString("tr2.com_perc"));
 
-                if (rs.getString("tr2.bb").equals("Y")) {
-                    d1.setVENDITABUYBACK(formatMysqltoDisplay(get_Value_history_BB(history_BB, dt_tr, f)));
-                } else if (rs.getString("tr2.bb").equals("F")) {
-                    d1.setVENDITABUYBACK(formatMysqltoDisplay("0.00"));
+                double perc_spread = 0.0;
+                if (totgm != 0.0) {
+                    perc_spread = fd(rs.getString("tr2.spread")) * 100.0 / totgm;
+                }
+
+                d1.setPERCSPREADVENDITA((roundDoubleandFormat(perc_spread, 2)));
+
+                String bb_status = "N";
+                String sb_status = "N";
+
+                if (rs.getString("tr1.tipotr").equals("S")) {
+
+                    if (rs.getString("tr1.bb").equals("1") || rs.getString("tr1.bb").equals("2")) {
+                        if (rs.getString("tr2.bb").equals("Y") || rs.getString("tr2.bb").equals("F")) {
+                            bb_status = rs.getString("tr2.bb");
+                        }
+                    }
+                    if (rs.getString("tr1.bb").equals("3") || rs.getString("tr1.bb").equals("4")) {
+                        if (rs.getString("tr2.bb").equals("Y") || rs.getString("tr2.bb").equals("F")) {
+                            sb_status = rs.getString("tr2.bb");
+                        }
+                    }
+
+                    if (bb_status.equals("Y")) {
+                        d1.setVENDITABUYBACK(get_Value_history_BB(history_BB, dt_tr, f));
+                    } else if (bb_status.equals("F")) {
+                        d1.setVENDITABUYBACK("FREE");
+                    } else {
+                        d1.setVENDITABUYBACK("");
+                    }
+                    d1.setVENDITASELLBACK("");
                 } else {
+
+                    if (rs.getString("tr1.bb").equals("1")) {
+                        if (rs.getString("tr2.bb").equals("Y") || rs.getString("tr2.bb").equals("F")) {
+                            bb_status = rs.getString("tr2.bb");
+                        }
+                    }
+                    if (rs.getString("tr1.bb").equals("3") || rs.getString("tr1.bb").equals("4")) {
+                        if (rs.getString("tr2.bb").equals("Y") || rs.getString("tr2.bb").equals("F")) {
+                            sb_status = rs.getString("tr2.bb");
+                        }
+                    }
+
+                    if (sb_status.equals("Y")) {
+                        d1.setVENDITASELLBACK(get_Value_history_BB(history_BB, dt_tr, f));
+                    } else if (sb_status.equals("F")) {
+                        d1.setVENDITASELLBACK("FREE");
+                    } else {
+                        d1.setVENDITASELLBACK("");
+                    }
                     d1.setVENDITABUYBACK("");
                 }
 
@@ -3754,20 +3838,21 @@ public class DatabaseCons {
                     } else {
                         d1.setCODICEINTERNETBOOKING("");
                     }
+                    d1.setMOTIVOPERRIDUZIONEDELLACOMM("Internet Booking");
+                    d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA("Internet Booking");
                 } else {
                     d1.setCODICEINTERNETBOOKING("");
+                    d1.setMOTIVOPERRIDUZIONEDELLACOMM(formatAL(rs.getString("tr2.low_com_ju"), array_undermincommjustify, 1));
+                    d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA(formatAL(rs.getString("tr2.kind_fix_comm"), array_kindcommissionefissa, 1));
                 }
-
-                String FASCEIMPORTO = "";
-                d1.setFASCEIMPORTO(FASCEIMPORTO);
-
-                d1.setMOTIVOPERRIDUZIONEDELLACOMM(formatAL(rs.getString("tr2.kind_fix_comm"), array_undermincommjustify, 1));
-                d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA(formatAL(rs.getString("tr2.low_com_ju"), array_kindcommissionefissa, 1));
 
                 Codici_sblocco cs1 = getCod_tr(rs.getString("tr1.cod"), "01");
                 String cs = "";
                 if (cs1 != null) {
                     cs = cs1.getCodice();
+                    if (cs1.getCodice().contains("###")) {
+                        cs = Utility.formatAL(Splitter.on("###").splitToList(cs1.getCodice()).get(1), array_unlockrate, 1).toUpperCase();
+                    }
                 }
                 d1.setCODICESBLOCCO(cs);
 
@@ -3789,6 +3874,254 @@ public class DatabaseCons {
         return out;
     }
 
+//    public ArrayList<DailyChange_CG> list_DailyChange_CG_OLD(Branch b1, String datad1, String datad2, boolean deleted) {
+//        ArrayList<DailyChange_CG> out = new ArrayList<>();
+//        try {
+//
+//            ArrayList<Figures> fig = list_all_figures();
+//            ArrayList<String[]> list_group = list_branch_group();
+//            ArrayList<Users> list_users = list_all_users();
+//            ArrayList<String[]> nazioni = country();
+//            ArrayList<String[]> array_undermincommjustify = undermincommjustify();
+//            ArrayList<String[]> array_kindcommissionefissa = kindcommissionefissa();
+//            ArrayList<String[]> bank = list_bank_pos_enabled();
+//            ArrayList<String[]> bank2 = list_bank();
+//            ArrayList<String[]> history_BB = history_BB();
+//            ArrayList<NC_category> listcat = list_nc_category_enabled();
+//            ArrayList<NC_causal> listcaus = list_nc_causal_enabled_freetax();
+//
+//            String sqlet = "SELECT * FROM et_change e, et_change_valori ev WHERE ev.cod=e.cod and e.filiale='" + b1.getCod() + "' ";
+//            if (datad1 != null) {
+//                sqlet = sqlet + "AND e.dt_it >= '" + datad1 + " 00:00:00' ";
+//            }
+//            if (datad2 != null) {
+//                sqlet = sqlet + "AND e.dt_it <= '" + datad2 + " 23:59:59' ";
+//            }
+//
+//            if (!deleted) {
+//                sqlet = sqlet + "AND e.fg_annullato = '0' ";
+//            }
+//
+//            sqlet = sqlet + " ORDER BY e.dt_it";
+//
+//            ResultSet rset = this.c.createStatement().executeQuery(sqlet);
+//
+//            while (rset.next()) {
+//
+//                DailyChange_CG d1 = new DailyChange_CG();
+//                DateTime dt_it = getDT(rset.getString("e.dt_it"), patternsqldate);
+//                Users g = get_user(rset.getString("e.user"), list_users);
+//                Figures f = get_figures(fig, rset.getString("ev.kind"));
+//                d1.setCDC(b1.getCod());
+//                d1.setSPORTELLO(b1.getDe_branch().toUpperCase());
+//                d1.setID(rset.getString("e.id"));
+//                if (rset.getString("e.fg_annullato").equals("1")) {
+//                    d1.setDELETE("SI");
+//                } else {
+//                    d1.setDELETE("");
+//                }
+//
+//                d1.setAREA(Utility.formatAL(b1.getBrgr_01(), list_group, 1));
+//                d1.setCITTA(Utility.formatAL(b1.getBrgr_04(), list_group, 1));
+//                d1.setUBICAZIONE(Utility.formatAL(b1.getBrgr_02(), list_group, 1));
+//                d1.setGRUPPO(Utility.formatAL(b1.getBrgr_03(), list_group, 1));
+//                d1.setDATA(dt_it.toString(patternnormdate_filter));
+//                d1.setORA(dt_it.toString(patternhours_d));
+//                d1.setMESE(dt_it.monthOfYear().getAsText(Locale.ITALY).toUpperCase());
+//                d1.setANNO(dt_it.year().getAsText());
+//                d1.setCODUSER(g.getCod());
+//                d1.setUSERNOME(g.getDe_nome().toUpperCase());
+//                d1.setUSERCOGNOME(g.getDe_cognome().toUpperCase());
+//                d1.setMETODOPAGAMENTO("");
+//                d1.setRESIDENZACLIENTE("");
+//                d1.setNAZIONALITACLIENTE("");
+//                d1.setCOMMENTI(rset.getString("e.note"));
+//                d1.setACQUISTOVENDITA(format_tofrom_brba_new(rset.getString("e.fg_tofrom"),
+//                        rset.getString("e.fg_brba"), rset.getString("e.cod_dest"),
+//                        bank, bank2));
+//                d1.setTIPOLOGIAACQOVEND(f.getDe_supporto());
+//                d1.setVALUTA(rset.getString("ev.currency"));
+//                d1.setQUANTITA((rset.getString("ev.ip_quantity")));
+//                d1.setTASSODICAMBIO((rset.getString("ev.ip_rate")));
+//                d1.setCONTROVALORE((rset.getString("ev.ip_total")));
+//                d1.setCOMMVARIABILE("");
+//                d1.setCOMMFISSA("");
+//
+//                String SPREADBRANCH = "";
+//                String SPREADBANK = "";
+//
+//                if (rset.getString("e.fg_brba").equals("BR")) {
+//                    SPREADBRANCH = (rset.getString("ev.ip_spread"));
+//                } else {
+//                    SPREADBANK = (rset.getString("ev.ip_spread"));
+//                }
+//
+//                d1.setSPREADBRANCH(SPREADBRANCH);
+//                d1.setSPREADBANK(SPREADBANK);
+//
+//                d1.setSPREADVEND("");
+//
+//                double totgm = fd(rset.getString("ev.ip_spread"));
+//                d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
+//
+//                d1.setPERCCOMM(""); //verificare
+//                d1.setPERCSPREADVENDITA("");//verificare
+//                d1.setVENDITABUYBACK("");
+//                d1.setCODICEINTERNETBOOKING("");
+//                String FASCEIMPORTO = "";
+//                d1.setFASCEIMPORTO(FASCEIMPORTO);
+//                d1.setMOTIVOPERRIDUZIONEDELLACOMM("");
+//                d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA("");
+//                d1.setCODICESBLOCCO("");
+//
+//                out.add(d1);
+//
+//            }
+//
+//            String sql = "SELECT * FROM ch_transaction tr1, ch_transaction_valori tr2 WHERE tr1.cod=tr2.cod_tr AND tr1.filiale = '" + b1.getCod() + "' ";
+//            if (datad1 != null) {
+//                sql = sql + "AND tr1.data >= '" + datad1 + " 00:00:00' ";
+//            }
+//            if (datad2 != null) {
+//                sql = sql + "AND tr1.data <= '" + datad2 + " 23:59:59' ";
+//            }
+//
+//            if (!deleted) {
+//                sql = sql + "AND tr1.del_fg <= '0' ";
+//            }
+//
+//            sql = sql + " ORDER BY tr1.data";
+//
+//            ResultSet rs = this.c.createStatement().executeQuery(sql);
+//
+//            while (rs.next()) {
+//                DailyChange_CG d1 = new DailyChange_CG();
+//
+//                DateTime dt_tr = getDT(rs.getString("tr1.data"), patternsqldate);
+//                Users g = get_user(rs.getString("tr1.user"), list_users);
+//                Figures f = get_figures(fig, rs.getString("tr2.supporto"));
+//                Figures p = get_figures(fig, rs.getString("tr1.localfigures"));
+//
+//                d1.setCDC(b1.getCod());
+//                d1.setSPORTELLO(b1.getDe_branch().toUpperCase());
+//                d1.setID(rs.getString("tr1.id"));
+//                if (rs.getString("tr1.del_fg").equals("1")) {
+//                    d1.setDELETE("SI");
+//                } else {
+//                    d1.setDELETE("");
+//                }
+//
+//                d1.setAREA(Utility.formatAL(b1.getBrgr_01(), list_group, 1));
+//                d1.setCITTA(Utility.formatAL(b1.getBrgr_04(), list_group, 1));
+//                d1.setUBICAZIONE(Utility.formatAL(b1.getBrgr_02(), list_group, 1));
+//                d1.setGRUPPO(Utility.formatAL(b1.getBrgr_03(), list_group, 1));
+//                d1.setDATA(dt_tr.toString(patternnormdate_filter));
+//                d1.setORA(dt_tr.toString(patternhours_d));
+//                d1.setMESE(dt_tr.monthOfYear().getAsText(Locale.ITALY).toUpperCase());
+//                d1.setANNO(dt_tr.year().getAsText());
+//                d1.setCODUSER(g.getCod());
+//                d1.setUSERNOME(g.getDe_nome().toUpperCase());
+//                d1.setUSERCOGNOME(g.getDe_cognome().toUpperCase());
+//
+//                if (rs.getString("tr1.tipotr").equals("B")) {
+//                    d1.setMETODOPAGAMENTO(f.getDe_supporto());
+//                } else {
+//                    d1.setMETODOPAGAMENTO(p.getDe_supporto());
+//                }
+//
+//                Client c0 = query_Client_transaction(rs.getString("tr1.cod"), rs.getString("tr1.cl_cod"));
+//                d1.setRESIDENZACLIENTE(Utility.formatALN(c0.getNazione(), nazioni, 1));
+//                d1.setNAZIONALITACLIENTE(Utility.formatALN(c0.getNazione_nascita(), nazioni, 1));
+//
+//                d1.setCOMMENTI(rs.getString("tr1.note"));
+//
+//                d1.setACQUISTOVENDITA(formatType_new(rs.getString("tr1.tipotr"),
+//                        rs.getString("tr1.intbook"),
+//                        rs.getString("tr1.intbook_type"),
+//                        rs.getString("tr1.intbook_1_tf"),
+//                        rs.getString("tr1.intbook_2_tf"),
+//                        rs.getString("tr1.intbook_3_tf"), listcat, listcaus));
+//
+//                d1.setTIPOLOGIAACQOVEND(f.getDe_supporto());
+//
+//                d1.setVALUTA(rs.getString("tr2.valuta"));
+//                d1.setQUANTITA((rs.getString("tr2.quantita")));
+//                d1.setTASSODICAMBIO((rs.getString("tr2.rate")));
+//                d1.setCONTROVALORE((rs.getString("tr2.total")));
+//                d1.setCOMMVARIABILE((rs.getString("tr2.com_perc_tot")));
+//                d1.setCOMMFISSA((rs.getString("tr2.fx_com")));
+//
+//                String SPREADBRANCH = "", SPREADBANK = "";
+//                d1.setSPREADBRANCH(SPREADBRANCH);
+//                d1.setSPREADBANK(SPREADBANK);
+//
+//                d1.setSPREADVEND((rs.getString("tr2.spread")));
+//
+//                double totgm = fd(rs.getString("tr2.spread"))
+//                        + fd(rs.getString("tr2.tot_com"))
+//                        + parseDoubleR(gf, rs.getString("tr2.roundvalue"));
+//
+//                if (gf.isIs_CZ()) {
+//                    double rv = parseDoubleR_CZ(gf, rs.getString("tr2.roundvalue"), rs.getString("tr1.tipotr").equals("B"));
+//                    totgm = fd(rs.getString("tr2.spread"))
+//                            + fd(rs.getString("tr2.tot_com"))
+//                            + rv;
+//                }
+//
+//                d1.setTOTGM((roundDoubleandFormat(totgm, 2)));
+//
+//                d1.setPERCCOMM(""); //verificare
+//                d1.setPERCSPREADVENDITA("");//verificare
+//
+//                if (rs.getString("tr2.bb").equals("Y")) {
+//                    d1.setVENDITABUYBACK(formatMysqltoDisplay(get_Value_history_BB(history_BB, dt_tr, f)));
+//                } else if (rs.getString("tr2.bb").equals("F")) {
+//                    d1.setVENDITABUYBACK(formatMysqltoDisplay("0.00"));
+//                } else {
+//                    d1.setVENDITABUYBACK("");
+//                }
+//
+//                if (rs.getString("tr1.intbook").equals("1")) {
+//                    String[] ib = internetbooking_ch(rs.getString("tr1.cod"));
+//                    if (ib != null) {
+//                        d1.setCODICEINTERNETBOOKING(ib[1].toUpperCase());
+//                    } else {
+//                        d1.setCODICEINTERNETBOOKING("");
+//                    }
+//                } else {
+//                    d1.setCODICEINTERNETBOOKING("");
+//                }
+//
+//                String FASCEIMPORTO = "";
+//                d1.setFASCEIMPORTO(FASCEIMPORTO);
+//
+//                d1.setMOTIVOPERRIDUZIONEDELLACOMM(formatAL(rs.getString("tr2.kind_fix_comm"), array_undermincommjustify, 1));
+//                d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA(formatAL(rs.getString("tr2.low_com_ju"), array_kindcommissionefissa, 1));
+//
+//                Codici_sblocco cs1 = getCod_tr(rs.getString("tr1.cod"), "01");
+//                String cs = "";
+//                if (cs1 != null) {
+//                    cs = cs1.getCodice();
+//                }
+//                d1.setCODICESBLOCCO(cs);
+//
+////                String loy = Engine.query_LOY_transaction(rs.getString("tr1.cod"), null, "000");
+//                String loy = query_LOY_transaction(rs.getString("tr1.cod"));
+//
+//                if (loy == null) {
+//                    loy = "";
+//                }
+//                d1.setLOYALTYCODE(loy);
+//
+//                out.add(d1);
+//
+//            }
+//
+//        } catch (SQLException ex) {
+//            ex.printStackTrace();
+//        }
+//        return out;
+//    }
     public ArrayList<Openclose> list_openclose_errors_report(String filiale, String datad1, String datad2) {
         ArrayList<Openclose> out = new ArrayList<>();
         try {

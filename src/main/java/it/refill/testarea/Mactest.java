@@ -37,31 +37,24 @@ public class Mactest {
 ////        agg(null);
         
 
+//        updateSQL("INSERT INTO pages VALUES ('threshold_edit.jsp','3')", false);
+//        updateSQLTEST("INSERT INTO pages VALUES ('threshold_edit.jsp','3')", false);
 
+//        updateSQLTEST("ALTER TABLE `codici_sblocco` CHANGE COLUMN `codice` `codice` VARCHAR(20) NOT NULL DEFAULT '0000000000' COLLATE 'latin1_swedish_ci' FIRST", false);
 
-//        updateSQLTESTCZ("UPDATE selectncde SET fg_inout='4' WHERE cod = '10';", false);
-//        updateSQLCZ("UPDATE nc_causali SET fg_in_out='4' WHERE nc_de = '10' AND fg_tipo_transazione_nc='2' AND fg_in_out <> '4';", false);
-////        
-//        updateSQLTESTUK("UPDATE selectncde SET fg_inout='4' WHERE cod = '10';", false);
-//        updateSQLUK("UPDATE nc_causali SET fg_in_out='4' WHERE nc_de = '10' AND fg_tipo_transazione_nc='2' AND fg_in_out <> '4';", false);
-        
-//        updateSQLTEST("UPDATE selectncde SET fg_inout='4' WHERE cod = '10';", false);
-//        updateSQLTEST("UPDATE nc_causali SET fg_in_out='4' WHERE nc_de = '10' AND fg_tipo_transazione_nc='2' AND fg_in_out <> '4';", false);
-
-//        updateSQLTESTCZ("DROP TABLE IF EXISTS `rate`;", false);
 //        updateSQLCZ("DROP TABLE IF EXISTS `rate`;", false);
         
 //        try {
 //            Db db = new Db(host_TEST, false);
-////            ResultSet rs = db.getC().createStatement().executeQuery("show create table department");
-////            ResultSet rs = db.getC().createStatement().executeQuery("show create table department_nc");
-//            ResultSet rs = db.getC().createStatement().executeQuery("show create table rate");
+//            ResultSet rs = db.getC().createStatement().executeQuery("show create table unlockrate_justify");
 //            if (rs.next()) {
 //                String cr = StringUtils.replace(rs.getString(2), "CREATE TABLE", "CREATE TABLE IF NOT EXISTS") ;
 //                System.out.println("Table Name: " + rs.getString(1));
 //                System.out.println("CREATE: " + cr);
-//                updateSQLCZ(rs.getString(2), true);
-//                updateSQLTESTCZ(rs.getString(2), true);
+//                updateSQL(rs.getString(2), false);
+//                updateSQLCZ(rs.getString(2), false);
+//                updateSQLTEST(rs.getString(2), true);
+//                updateSQLTESTCZ(rs.getString(2), false);
 //            }
 //            rs.close();
 //            db.closeDB();

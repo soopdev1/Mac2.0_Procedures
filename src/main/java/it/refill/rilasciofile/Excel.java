@@ -75,6 +75,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
+import org.apache.poi.xssf.usermodel.IndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
@@ -2411,6 +2412,14 @@ public class Excel {
         return cell1;
     }
 
+    public static Cell getCell(Row row, int index, CellType ct) {
+        Cell cell1 = row.getCell(index);
+        if (cell1 == null || ct.equals(CellType.NUMERIC)) {
+            cell1 = row.createCell(index, ct);
+        }
+        return cell1;
+    }
+
     public static String giornalieroCG(GeneraFile gf, File outputfile, int numgiornimese, int nummese,
             ArrayList<Colonna> elencovalori,
             ArrayList<Riga> elencovaloririgafoglio2,
@@ -3165,31 +3174,30 @@ public class Excel {
         String formatdataCell = "#,#.00";
         String formatdataCellRATE = "#,#.00000000";
         try {
-//            InputStream is = new FileInputStream(new File("C:\\Maccorp\\Report 1 CDC 2 .xlsx"));
             InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1cdc")));
             XSSFWorkbook wb = new XSSFWorkbook(is);
-            XSSFCellStyle cellStylenum = (XSSFCellStyle) wb.createCellStyle();
-            XSSFDataFormat hssfDataFormat = (XSSFDataFormat) wb.createDataFormat();
+            XSSFCellStyle cellStylenum = wb.createCellStyle();
+            XSSFDataFormat hssfDataFormat = wb.createDataFormat();
             cellStylenum.setDataFormat(hssfDataFormat.getFormat(formatdataCell));
             cellStylenum.setBorderBottom(BorderStyle.THIN);
             cellStylenum.setBorderTop(BorderStyle.THIN);
             cellStylenum.setBorderRight(BorderStyle.THIN);
             cellStylenum.setBorderLeft(BorderStyle.THIN);
 
-            XSSFCellStyle cellStyle = (XSSFCellStyle) wb.createCellStyle();
+            XSSFCellStyle cellStyle = wb.createCellStyle();
             cellStyle.setBorderBottom(BorderStyle.THIN);
             cellStyle.setBorderTop(BorderStyle.THIN);
             cellStyle.setBorderRight(BorderStyle.THIN);
             cellStyle.setBorderLeft(BorderStyle.THIN);
 
-            XSSFCellStyle cellStylenumrate = (XSSFCellStyle) wb.createCellStyle();
+            XSSFCellStyle cellStylenumrate = wb.createCellStyle();
             cellStylenumrate.setDataFormat(hssfDataFormat.getFormat(formatdataCellRATE));
             cellStylenumrate.setBorderBottom(BorderStyle.THIN);
             cellStylenumrate.setBorderTop(BorderStyle.THIN);
             cellStylenumrate.setBorderRight(BorderStyle.THIN);
             cellStylenumrate.setBorderLeft(BorderStyle.THIN);
 
-            XSSFCellStyle cellStyleint = (XSSFCellStyle) wb.createCellStyle();
+            XSSFCellStyle cellStyleint = wb.createCellStyle();
             cellStyleint.setDataFormat(hssfDataFormat.getFormat(formatdataCelINT));
             cellStyleint.setBorderBottom(BorderStyle.THIN);
             cellStyleint.setBorderTop(BorderStyle.THIN);
@@ -3199,8 +3207,8 @@ public class Excel {
             Sheet sheet = wb.getSheetAt(0);
 
             CellStyle backgroundStyle = wb.createCellStyle();
-            byte[] rgb = {(byte)146,(byte) 208,(byte) 80};
-            XSSFColor color = new XSSFColor(rgb, new DefaultIndexedColorMap());
+            IndexedColorMap colorMap = wb.getStylesSource().getIndexedColors();
+            XSSFColor color = new XSSFColor(new java.awt.Color(146, 208, 80), colorMap); //accepts a short value
 
             XSSFFont font = wb.createFont();
             font.setFontHeightInPoints((short) 11);
@@ -3216,12 +3224,8 @@ public class Excel {
             backgroundStyle.setBorderLeft(BorderStyle.THIN);
             backgroundStyle.setVerticalAlignment(VerticalAlignment.CENTER);
             backgroundStyle.setAlignment(HorizontalAlignment.CENTER);
-            backgroundStyle.setFont(font);
 
-            Row row0 = getRow(sheet, 1);
-            Cell c10 = getCell(row0, 40);
-            c10.setCellValue("LOYALTY CODE");
-            c10.setCellStyle(backgroundStyle);
+            backgroundStyle.setFont(font);
 
             int st = 2;
             for (int i = 0; i < output.size(); i++) {
@@ -3271,68 +3275,74 @@ public class Excel {
                 c1.setCellValue(dc.getTIPOLOGIAACQOVEND());
                 c1 = getCell(row, 22);
                 c1.setCellValue(dc.getVALUTA());
-                c1 = getCell(row, 23);
+                c1 = getCell(row, 23, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getQUANTITA()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
 
-                c1 = getCell(row, 24);
+                c1 = getCell(row, 24, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getTASSODICAMBIO()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenumrate);
 
-                c1 = getCell(row, 25);
+                c1 = getCell(row, 25, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getCONTROVALORE()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 26);
+                c1 = getCell(row, 26, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getCOMMVARIABILE()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 27);
+                c1 = getCell(row, 27, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getCOMMFISSA()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 28);
+
+                c1 = getCell(row, 28, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getSPREADBRANCH()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 29);
+                c1 = getCell(row, 29, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getSPREADBANK()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 30);
+                c1 = getCell(row, 30, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getSPREADVEND()));
-                c1.setCellType(CellType.NUMERIC);
+
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 31);
+                c1 = getCell(row, 31, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getTOTGM()));
-                c1.setCellType(CellType.NUMERIC);
+
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 32);
+
+                c1 = getCell(row, 32, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getPERCCOMM()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 33);
+
+                c1 = getCell(row, 33, CellType.NUMERIC);
                 c1.setCellValue(fd(dc.getPERCSPREADVENDITA()));
-                c1.setCellType(CellType.NUMERIC);
                 c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 34);
-                c1.setCellValue(fd(formatDoubleforMysql(db.getGf(), dc.getVENDITABUYBACK())));
-                c1.setCellType(CellType.NUMERIC);
-                c1.setCellStyle(cellStylenum);
-                c1 = getCell(row, 35);
-                c1.setCellValue(dc.getCODICEINTERNETBOOKING());
+
+                if (dc.getVENDITABUYBACK().equals("") || dc.getVENDITABUYBACK().startsWith("F")) {
+                    c1 = getCell(row, 34);
+                    c1.setCellValue(dc.getVENDITABUYBACK());
+                } else {
+                    c1 = getCell(row, 34, CellType.NUMERIC);
+                    c1.setCellValue(fd(dc.getVENDITABUYBACK()));
+                    c1.setCellStyle(cellStylenum);
+                }
+                if (dc.getVENDITASELLBACK().equals("") || dc.getVENDITASELLBACK().startsWith("F")) {
+                    c1 = getCell(row, 35);
+                    c1.setCellValue(dc.getVENDITASELLBACK());
+                } else {
+                    c1 = getCell(row, 35, CellType.NUMERIC);
+                    c1.setCellValue(fd(dc.getVENDITASELLBACK()));
+                    c1.setCellStyle(cellStylenum);
+                }
+
                 c1 = getCell(row, 36);
-                c1.setCellValue(dc.getFASCEIMPORTO());
+                c1.setCellValue(dc.getCODICEINTERNETBOOKING());
                 c1 = getCell(row, 37);
                 c1.setCellValue(dc.getMOTIVOPERRIDUZIONEDELLACOMM());
                 c1 = getCell(row, 38);
                 c1.setCellValue(dc.getMOTIVOPERRIDUZIONEDELLACOMMFISSA());
+
                 c1 = getCell(row, 39);
                 c1.setCellValue(dc.getCODICESBLOCCO());
-                c1 = getCell(row, 39);
-                c1.setCellValue(dc.getCODICESBLOCCO());
+
                 c1 = getCell(row, 40);
                 c1.setCellValue(dc.getLOYALTYCODE());
                 c1.setCellStyle(cellStyle);
@@ -3343,6 +3353,7 @@ public class Excel {
             }
 
             try {
+                
                 FileOutputStream fileOut = new FileOutputStream(outputfile);
                 wb.write(fileOut);
                 fileOut.close();
@@ -3351,18 +3362,219 @@ public class Excel {
 
                 String base64 = new String(Base64.encodeBase64(FileUtils.readFileToByteArray(outputfile)));
                 return base64;
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
 
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
         return null;
     }
+
+//    public static String create_cdcOLD(File outputfile, ArrayList<DailyChange_CG> output, DatabaseCons db) {
+//        String formatdataCell = "#,#.00";
+//        String formatdataCellRATE = "#,#.00000000";
+//        try {
+////            InputStream is = new FileInputStream(new File("C:\\Maccorp\\Report 1 CDC 2 .xlsx"));
+//            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1cdc")));
+//            XSSFWorkbook wb = new XSSFWorkbook(is);
+//            XSSFCellStyle cellStylenum = (XSSFCellStyle) wb.createCellStyle();
+//            XSSFDataFormat hssfDataFormat = (XSSFDataFormat) wb.createDataFormat();
+//            cellStylenum.setDataFormat(hssfDataFormat.getFormat(formatdataCell));
+//            cellStylenum.setBorderBottom(BorderStyle.THIN);
+//            cellStylenum.setBorderTop(BorderStyle.THIN);
+//            cellStylenum.setBorderRight(BorderStyle.THIN);
+//            cellStylenum.setBorderLeft(BorderStyle.THIN);
+//
+//            XSSFCellStyle cellStyle = (XSSFCellStyle) wb.createCellStyle();
+//            cellStyle.setBorderBottom(BorderStyle.THIN);
+//            cellStyle.setBorderTop(BorderStyle.THIN);
+//            cellStyle.setBorderRight(BorderStyle.THIN);
+//            cellStyle.setBorderLeft(BorderStyle.THIN);
+//
+//            XSSFCellStyle cellStylenumrate = (XSSFCellStyle) wb.createCellStyle();
+//            cellStylenumrate.setDataFormat(hssfDataFormat.getFormat(formatdataCellRATE));
+//            cellStylenumrate.setBorderBottom(BorderStyle.THIN);
+//            cellStylenumrate.setBorderTop(BorderStyle.THIN);
+//            cellStylenumrate.setBorderRight(BorderStyle.THIN);
+//            cellStylenumrate.setBorderLeft(BorderStyle.THIN);
+//
+//            XSSFCellStyle cellStyleint = (XSSFCellStyle) wb.createCellStyle();
+//            cellStyleint.setDataFormat(hssfDataFormat.getFormat(formatdataCelINT));
+//            cellStyleint.setBorderBottom(BorderStyle.THIN);
+//            cellStyleint.setBorderTop(BorderStyle.THIN);
+//            cellStyleint.setBorderRight(BorderStyle.THIN);
+//            cellStyleint.setBorderLeft(BorderStyle.THIN);
+//
+//            Sheet sheet = wb.getSheetAt(0);
+//
+//            CellStyle backgroundStyle = wb.createCellStyle();
+//            byte[] rgb = {(byte) 146, (byte) 208, (byte) 80};
+//            XSSFColor color = new XSSFColor(rgb, new DefaultIndexedColorMap());
+//
+//            XSSFFont font = wb.createFont();
+//            font.setFontHeightInPoints((short) 11);
+//            font.setFontName("Calibri");
+//            font.setColor(IndexedColors.BLACK.getIndex());
+//            font.setBold(true);
+//            font.setItalic(false);
+//            ((XSSFCellStyle) backgroundStyle).setFillForegroundColor(color);
+//            backgroundStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            backgroundStyle.setBorderBottom(BorderStyle.THIN);
+//            backgroundStyle.setBorderTop(BorderStyle.THIN);
+//            backgroundStyle.setBorderRight(BorderStyle.THIN);
+//            backgroundStyle.setBorderLeft(BorderStyle.THIN);
+//            backgroundStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+//            backgroundStyle.setAlignment(HorizontalAlignment.CENTER);
+//            backgroundStyle.setFont(font);
+//
+//            Row row0 = getRow(sheet, 1);
+//            Cell c10 = getCell(row0, 40);
+//            c10.setCellValue("LOYALTY CODE");
+//            c10.setCellStyle(backgroundStyle);
+//
+//            int st = 2;
+//            for (int i = 0; i < output.size(); i++) {
+//                DailyChange_CG dc = output.get(i);
+//                Row row = getRow(sheet, st + i);
+//                Cell c1 = getCell(row, 1);
+//                c1.setCellValue(dc.getCDC());
+//                c1 = getCell(row, 2);
+//                c1.setCellValue(dc.getSPORTELLO());
+//                c1 = getCell(row, 3);
+//                c1.setCellValue(dc.getID());
+//                c1 = getCell(row, 4);
+//                c1.setCellValue(dc.getDELETE());
+//                c1 = getCell(row, 5);
+//                c1.setCellValue(dc.getAREA());
+//                c1 = getCell(row, 6);
+//                c1.setCellValue(dc.getCITTA());
+//                c1 = getCell(row, 7);
+//                c1.setCellValue(dc.getUBICAZIONE());
+//                c1 = getCell(row, 8);
+//                c1.setCellValue(dc.getGRUPPO());
+//                c1 = getCell(row, 9);
+//                c1.setCellValue(dc.getDATA());
+//                c1 = getCell(row, 10);
+//                c1.setCellValue(dc.getORA());
+//                c1 = getCell(row, 11);
+//                c1.setCellValue(dc.getMESE());
+//                c1 = getCell(row, 12);
+//                c1.setCellValue(dc.getANNO());
+//                c1 = getCell(row, 13);
+//                c1.setCellValue(dc.getCODUSER());
+//                c1 = getCell(row, 14);
+//                c1.setCellValue(dc.getUSERNOME());
+//                c1 = getCell(row, 15);
+//                c1.setCellValue(dc.getUSERCOGNOME());
+//                c1 = getCell(row, 16);
+//                c1.setCellValue(dc.getMETODOPAGAMENTO());
+//                c1 = getCell(row, 17);
+//                c1.setCellValue(dc.getRESIDENZACLIENTE());
+//                c1 = getCell(row, 18);
+//                c1.setCellValue(dc.getNAZIONALITACLIENTE());
+//                c1 = getCell(row, 19);
+//                c1.setCellValue(dc.getCOMMENTI());
+//                c1 = getCell(row, 20);
+//                c1.setCellValue(dc.getACQUISTOVENDITA());
+//                c1 = getCell(row, 21);
+//                c1.setCellValue(dc.getTIPOLOGIAACQOVEND());
+//                c1 = getCell(row, 22);
+//                c1.setCellValue(dc.getVALUTA());
+//                c1 = getCell(row, 23);
+//                c1.setCellValue(fd(dc.getQUANTITA()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//
+//                c1 = getCell(row, 24);
+//                c1.setCellValue(fd(dc.getTASSODICAMBIO()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenumrate);
+//
+//                c1 = getCell(row, 25);
+//                c1.setCellValue(fd(dc.getCONTROVALORE()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 26);
+//                c1.setCellValue(fd(dc.getCOMMVARIABILE()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 27);
+//                c1.setCellValue(fd(dc.getCOMMFISSA()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 28);
+//                c1.setCellValue(fd(dc.getSPREADBRANCH()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 29);
+//                c1.setCellValue(fd(dc.getSPREADBANK()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 30);
+//                c1.setCellValue(fd(dc.getSPREADVEND()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 31);
+//                c1.setCellValue(fd(dc.getTOTGM()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 32);
+//                c1.setCellValue(fd(dc.getPERCCOMM()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 33);
+//                c1.setCellValue(fd(dc.getPERCSPREADVENDITA()));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 34);
+//                c1.setCellValue(fd(formatDoubleforMysql(db.getGf(), dc.getVENDITABUYBACK())));
+//                c1.setCellType(CellType.NUMERIC);
+//                c1.setCellStyle(cellStylenum);
+//                c1 = getCell(row, 35);
+//                c1.setCellValue(dc.getCODICEINTERNETBOOKING());
+//                c1 = getCell(row, 36);
+//                c1.setCellValue(dc.getFASCEIMPORTO());
+//                c1 = getCell(row, 37);
+//                c1.setCellValue(dc.getMOTIVOPERRIDUZIONEDELLACOMM());
+//                c1 = getCell(row, 38);
+//                c1.setCellValue(dc.getMOTIVOPERRIDUZIONEDELLACOMMFISSA());
+//                c1 = getCell(row, 39);
+//                c1.setCellValue(dc.getCODICESBLOCCO());
+//                c1 = getCell(row, 39);
+//                c1.setCellValue(dc.getCODICESBLOCCO());
+//                c1 = getCell(row, 40);
+//                c1.setCellValue(dc.getLOYALTYCODE());
+//                c1.setCellStyle(cellStyle);
+//            }
+//
+//            for (int r = 0; r < 41; r++) {
+//                sheet.autoSizeColumn(r);
+//            }
+//
+//            try {
+//                FileOutputStream fileOut = new FileOutputStream(outputfile);
+//                wb.write(fileOut);
+//                fileOut.close();
+//                is.close();
+//                wb.close();
+//
+//                String base64 = new String(Base64.encodeBase64(FileUtils.readFileToByteArray(outputfile)));
+//                return base64;
+//            } catch (IOException ex) {
+//                ex.printStackTrace();
+//            }
+//
+//        } catch (FileNotFoundException ex) {
+//            ex.printStackTrace();
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//        }
+//
+//        return null;
+//    }
 
     public static String limit_insurance(File outputfile, ArrayList<String> primatabella, ArrayList<String> secondatabella,
             ArrayList<String> terzatabella, ArrayList<String> quartatabella, ArrayList<LimitInsur> li, ArrayList<Branch> fil1,

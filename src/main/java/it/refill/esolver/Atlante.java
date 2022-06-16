@@ -495,8 +495,8 @@ public class Atlante {
 
         Db_Master db = new Db_Master();
 //        DateTime dt = db.getNowDT();
-//        DateTime dt = db.getNowDT().minusDays(1);
-        DateTime dt = getDateRif("24/02/2022");
+        DateTime dt = db.getNowDT().minusDays(1);
+//        DateTime dt = getDateRif("24/02/2022");
         db.closeDB();
 
         String from = dt.toString(patternnormdate_filter);
@@ -594,7 +594,7 @@ public class Atlante {
         boolean release = false;
 //        boolean release = true;
         if (!release) {
-            boolean mail = false; //PRENDERLI DAL CONF
+            boolean mail = true; //PRENDERLI DAL CONF
             // MAIL ATLANTE
             if (atl_ok.size() > 0) {
                 try {

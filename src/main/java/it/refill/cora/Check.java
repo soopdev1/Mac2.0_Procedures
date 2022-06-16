@@ -60,8 +60,8 @@ public class Check {
         Db_Master db = new Db_Master();
         String path = db.getPath("temp");
         db.closeDB();
-        DateTime dtSTART = new DateTime(2021, 10, 31, 0, 0).withMillisOfDay(0);
-//        DateTime dtSTART = new DateTime().minusDays(10);
+//        DateTime dtSTART = new DateTime(2021, 10, 31, 0, 0).withMillisOfDay(0);
+        DateTime dtSTART = new DateTime().minusDays(10);
         
         
         

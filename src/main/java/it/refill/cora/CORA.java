@@ -27,6 +27,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -256,9 +257,8 @@ public class CORA {
                             pr = prov.stream().filter(br -> br.getDescr().equalsIgnoreCase(sb1)).distinct().findFirst().orElse(new Object_DB(sb1, sb1)).getCod();
                         }
                     }
-
-                    String c1 = StringUtils.removePattern(StringUtils.stripAccents(cl.getCognome()), "[^A-Za-z0-9]");
-                    String n1 = StringUtils.removePattern(StringUtils.stripAccents(cl.getNome()), "[^A-Za-z0-9]");
+                    String c1 = RegExUtils.removePattern(StringUtils.stripAccents(cl.getCognome()), "[^A-Za-z0-9]");
+                    String n1 = RegExUtils.removePattern(StringUtils.stripAccents(cl.getNome()), "[^A-Za-z0-9]");
 
                     if (db1.getC() == null) {
                         db1 = new Db_Master();
