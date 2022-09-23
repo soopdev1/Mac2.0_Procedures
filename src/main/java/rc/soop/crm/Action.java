@@ -1,0 +1,389 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package rc.soop.crm;
+
+import com.google.common.base.Splitter;
+import com.google.gson.Gson;
+import static rc.soop.crm.CRM_batch.rb;
+import static rc.soop.crm.CRM_batch.test;
+import static rc.soop.crm.MailObject.mailerror_Cliente;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONObject;
+
+/**
+ *
+ * @author rcosco
+ */
+public class Action {
+
+    public static final String pat1 = "dd/MM/yyyy HH:mm:ss";
+    public static final String pat2 = "yyyy-MM-dd HH:mm:ss";
+    public static final String pat3 = "dd/MM/yyyy";
+    public static final String pat4 = "yyyy-MM-dd";
+    public static final String pat5 = "yyyyMMdd";
+    public static final String pat6 = "HHmmssSSS";
+    public static final String pat7 = "dd-MM-yyyy";
+
+    public static final String pat8 = "yyMMddHHmmssSSS";
+
+    public static final Logger log = createLog(rb.getString("path.log"), pat5);
+
+    private static Logger createLog(String folderini, String patterndatefolder) {
+        String appname = "Mac2.0_CRMPROD_";
+        if (test) {
+            appname = "Mac2.0_CRMTEST_";
+        }
+        Logger LOGGER = Logger.getLogger(appname);
+        try {
+            DateTime dt = new DateTime();
+            String filename = appname + dt.toString(pat6) + ".log";
+            File dirING = new File(folderini);
+            dirING.mkdirs();
+            if (patterndatefolder != null) {
+                File dirINGNew = new File(dirING.getPath() + File.separator + dt.toString(patterndatefolder));
+                dirINGNew.mkdirs();
+                filename = dirINGNew.getPath() + File.separator + filename;
+            } else {
+                filename = dirING.getPath() + File.separator + filename;
+            }
+            Handler fileHandler = new FileHandler(filename);
+            LOGGER.addHandler(fileHandler);
+            fileHandler.setFormatter(new SimpleFormatter());
+            fileHandler.setLevel(Level.ALL);
+            LOGGER.setLevel(Level.ALL);
+        } catch (IOException ex) {
+        }
+        return LOGGER;
+    }
+
+    public static Booking getBookingbyCod(String cod) {
+        Database db = new Database();
+        Booking out = db.getBookingbyCod(cod);
+        db.closeDB();
+        return out;
+    }
+
+    public static String formatStringtoStringDate(String dat, String pattern1, String pattern2) {
+        try {
+            if (dat.length() == 21) {
+                dat = dat.substring(0, 19);
+            }
+            if (dat.length() == pattern1.length()) {
+                DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
+                DateTime dt = formatter.parseDateTime(dat);
+                return dt.toString(pattern2, Locale.ITALY);
+            }
+        } catch (IllegalArgumentException ex) {
+            log.log(Level.SEVERE, "formatStringtoStringDate {0}", ex.getMessage());
+        }
+        return dat;
+    }
+
+    public static String get_descr_Branch(String cod) {
+        Database db = new Database();
+        String es = db.get_descr_Branch(cod);
+        db.closeDB();
+        return es;
+    }
+
+    public static String formatMysqltoDisplay(String ing) {
+        String decimal = ",";
+        String thousand = ".";
+
+        if (ing == null) {
+            return "";
+        }
+        if (ing.trim().equals("") || ing.trim().equals("-")) {
+            return "";
+        }
+        if (ing.length() == 0) {
+            return "";
+        }
+        if (ing.trim().startsWith(".") || ing.trim().startsWith(",")) {
+            return "0" + decimal + "00";
+        }
+
+        String start = ing.substring(0, 1);
+        if (start.equals("-") || start.equals("+")) {
+            ing = ing.replaceAll(start, "");
+        } else {
+            start = "";
+        }
+
+        String out = "";
+        if (ing.contains(",")) {
+            ing = ing.replaceAll(",", "");
+        }
+        if (ing.contains(".")) {
+            String[] inter1 = splitStringEvery(ing.split("\\.")[0], 3);
+            if (inter1.length > 1) {
+                for (int i = 0; i < inter1.length; i++) {
+                    out = out + inter1[i] + thousand;
+                }
+            } else {
+                out = inter1[0];
+            }
+            if (out.lastIndexOf(thousand) + 1 == out.length()) {
+                out = out.substring(0, out.lastIndexOf(thousand));
+            }
+            String dec = ing.split("\\.")[1];
+            out = out + decimal + dec;
+        } else {
+
+            String[] inter1 = splitStringEvery(ing, 3);
+            if (inter1.length > 1) {
+                for (int i = 0; i < inter1.length; i++) {
+                    out = out + inter1[i] + thousand;
+                }
+            } else {
+                out = inter1[0];
+            }
+            if (out.lastIndexOf(thousand) + 1 == out.length()) {
+                out = out.substring(0, out.lastIndexOf(thousand));
+            }
+        }
+        return start + out;
+    }
+
+    public static String[] splitStringEvery(String s, int interval) {
+        int arrayLength = (int) Math.ceil(((s.length() / (double) interval)));
+        String[] result = new String[arrayLength];
+        int j = s.length();
+        int lastIndex = result.length - 1;
+        for (int i = lastIndex; i >= 0 && j >= interval; i--) {
+            result[i] = s.substring(j - interval, j);
+            j -= interval;
+        } //Add the last bit
+        if (result[0] == null) {
+            result[0] = s.substring(0, j);
+        }
+        return result;
+    }
+
+    public static String generaId(int length) {
+        String random = RandomStringUtils.randomAlphanumeric(length - 15).trim();
+        return new DateTime().toString(pat8) + random;
+    }
+
+    public static Settings get_Settings(String id) {
+        Crm_Db db = new Crm_Db();
+        Settings out = db.get_Settings(id);
+        db.closeDB();
+        return out;
+    }
+
+//    public static Preauth POSTRequest_GETBOOKING(String metod, String request, String idprenotazione) {
+//        Preauth output = new Preauth(idprenotazione);
+//        output.setRequest(request);
+//        try {
+//            String linktest = "https://forexchangedev.moneym.eu/api/ext/" + metod;
+//            String linkprod = "https://forexchange.it/api/ext/" + metod;
+//
+//            String request_date = new DateTime().toString(pat2);
+//            URL obj;
+//            if (test) {
+//                obj = new URL(linktest);
+//            } else {
+//                obj = new URL(linkprod);
+//            }
+//
+//            output.setRequest_date(request_date);
+//            log.log(Level.INFO, "LINK REQUEST: {0}", obj.toString());
+//            HttpURLConnection postConnection = (HttpURLConnection) obj.openConnection();
+//            postConnection.setRequestMethod("POST");
+//            postConnection.setRequestProperty("userId", "a1bcdefgh");
+//            postConnection.setRequestProperty("Content-Type", "application/json");
+//            postConnection.setDoOutput(true);
+//            try (OutputStream os = postConnection.getOutputStream()) {
+//                os.write(request.getBytes());
+//                os.flush();
+//            }
+//            int responseCode = postConnection.getResponseCode();
+//            output.setResponse_code(String.valueOf(responseCode));
+//            output.setResponse_message(postConnection.getResponseMessage());
+//            if (responseCode == 200 || responseCode == 201) {                 StringBuilder response;
+//                try ( //success
+//                        BufferedReader in = new BufferedReader(new InputStreamReader(
+//                                postConnection.getInputStream()))) {
+//                    String inputLine;
+//                    response = new StringBuilder();
+//                    while ((inputLine = in.readLine()) != null) {
+//                        response.append(inputLine);
+//                    }
+//                }
+//                log.log(Level.INFO, "RESPONSE PREAUTH: {0}", response.toString());
+//                output.setResponse(response.toString());
+//                output.setResponse_date(new DateTime().toString(pat2));
+//                boolean result = Boolean.valueOf(getJsonString(response.toString(), "result"));
+//                boolean status = Boolean.valueOf(getJsonString(response.toString(), "status"));
+//                if (result && status) {
+//                    output.setStato("OK");
+//                } else {
+//                    output.setStato("KO");
+//                }
+//            } else {
+//                output.setResponse("ERROR");
+//                output.setResponse_date(new DateTime().toString(pat2));
+//                output.setStato("KO");
+//            }
+//        } catch (Exception ex) {
+//            log.log(Level.SEVERE, "getBooking: {0}", ExceptionUtils.getStackTrace(ex));
+//            output.setResponse("ERROR: " + ex.getMessage());
+//            output.setResponse_date(new DateTime().toString(pat2));
+//            output.setStato("KO");
+//        }
+//        return output;
+//    }
+
+    public static ApiResponse POSTRequestEDIT(String json, String idprenotazione) {
+        try {
+            Crm_Db db = new Crm_Db();
+            URL obj;
+            if (test) {
+                obj = new URL(db.get_Settings("EDT").getValue());
+            } else {
+                obj = new URL(db.get_Settings("EDP").getValue());
+            }
+            db.closeDB();
+            System.out.println("it.refill.util.Utility.POSTRequest() " + obj.toString());
+            HttpURLConnection postConnection = (HttpURLConnection) obj.openConnection();
+            postConnection.setRequestMethod("POST");
+            postConnection.setRequestProperty("userId", "a1bcdefgh");
+            postConnection.setRequestProperty("Content-Type", "application/json");
+            postConnection.setDoOutput(true);
+            try ( OutputStream os = postConnection.getOutputStream()) {
+                os.write(json.getBytes());
+                os.flush();
+            }
+            int responseCode = postConnection.getResponseCode();
+            System.out.println("it.refill.util.Utility.POSTRequest(RESPONSE CODE) " + responseCode);
+            if (responseCode == 200) {
+                StringBuilder response;
+                try ( //success
+                         BufferedReader in = new BufferedReader(new InputStreamReader(
+                                postConnection.getInputStream()))) {
+                    String inputLine;
+                    response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                }
+
+                log.log(Level.INFO, "RESPONSE : {0}", response.toString());
+                Gson g = new Gson();
+                return g.fromJson(response.toString(), ApiResponse.class);
+            }
+            System.out.println("RESPONSE ERROR: " + postConnection.getResponseCode());
+            System.out.println("RESPONSE ERROR: " + postConnection.getResponseMessage());
+            mailerror_Cliente(idprenotazione);
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "RESPONSE ERROR: {0}", ExceptionUtils.getStackTrace(ex));
+            mailerror_Cliente(idprenotazione);
+        }
+        return null;
+    }
+
+    public static String estraiServizi(Booking bo) {
+        if (bo == null || bo.getServiziagg().trim().equals("")) {
+            return "";
+        }
+        List<Items> servizi = servizi(null);
+        StringBuilder seout = new StringBuilder("");
+        List<String> se1 = Splitter.on(";").splitToList(bo.getServiziagg());
+        if (!se1.isEmpty()) {
+            se1.forEach(servizio -> {
+                if (servizio.equals("")) {
+                } else {
+                    Items ag2 = servizi.stream().filter(br -> br.getCodice().equalsIgnoreCase(servizio))
+                            .distinct().findFirst().orElse(new Items(servizio, servizio, "", "", "", "", "", ""));
+                    seout.append(ag2.getDescrizione()).append(";");
+                }
+            });
+        } else {
+            seout.append("");
+        }
+        return seout.toString();
+    }
+
+    public static String estraiAgevolazioni(Booking bo) {
+        if (bo == null || bo.getAgevolazioni().trim().equals("")) {
+            return "";
+        }
+        StringBuilder agout = new StringBuilder("");
+        List<Items> agevolazioni_varie = agevolazioni(null);
+        List<String> ag1 = Splitter.on(";").splitToList(bo.getAgevolazioni());
+        if (!ag1.isEmpty()) {
+            ag1.forEach(agevolazione -> {
+                Items ag2 = agevolazioni_varie.stream().filter(br -> br.getCodice().equalsIgnoreCase(agevolazione))
+                        .distinct().findFirst().orElse(new Items(agevolazione, agevolazione, "", "", "", "", "", ""));
+                agout.append(ag2.getDescrizione()).append(";");
+            });
+        } else {
+            agout.append("");
+        }
+        return agout.toString();
+    }
+
+    public static ArrayList<Items> agevolazioni(Booking bo) {
+        Database db = new Database();
+        ArrayList<Items> result = db.agevolazioni_e_servizi(bo, "sito_agevolazioni_varie");
+        db.closeDB();
+        return result;
+    }
+
+    public static ArrayList<Items> servizi(Booking bo) {
+        Database db = new Database();
+        ArrayList<Items> result = db.agevolazioni_e_servizi(bo, "sito_servizi_agg");
+        db.closeDB();
+        return result;
+    }
+
+    public static String getJsonString(String input, String fieldname) {
+        try {
+            JSONObject base = new JSONObject(input);
+            Object o1 = base.get(fieldname);
+            if (o1 != null) {
+                return o1.toString().trim();
+            }
+        } catch (Exception e) {
+        }
+        return "";
+    }
+
+    public static double fd(String si_t_old) {
+        if (si_t_old == null) {
+            return 0.0D;
+        }
+        double d1;
+        si_t_old = si_t_old.replace(",", "").trim();
+        try {
+            d1 = Double.parseDouble(si_t_old);
+        } catch (NumberFormatException e) {
+            d1 = 0.0D;
+        }
+        return d1;
+    }
+
+}
