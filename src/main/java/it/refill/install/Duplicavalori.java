@@ -5,7 +5,7 @@
  */
 package it.refill.install;
 
-import it.refill.maintenance.Db_Master;
+import rc.soop.maintenance.Db_Master;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -31,7 +31,7 @@ public class Duplicavalori {
 
 //        listafiliali.remove("000");
         ArrayList<String> listafiliali = new ArrayList<>();
-        listafiliali.add("202");
+        listafiliali.add("203");
 //        listafiliali.add("198");
 //        listafiliali.add("322");
 //        listafiliali.add("319");

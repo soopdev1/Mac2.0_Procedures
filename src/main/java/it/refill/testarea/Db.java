@@ -24,6 +24,7 @@ import static it.refill.testarea.Utility.visualizzaStringaMySQL;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import rc.soop.maintenance.Rate;
 
 /**
  *

@@ -37,7 +37,6 @@ public class Crm_Db {
             if (test) {
                 host = "//172.18.17.41:3306/mac_crm";
             }
-
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);

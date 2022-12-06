@@ -18,10 +18,9 @@ import org.json.JSONObject;
  *
  * @author rcosco
  */
-
 public class CRM_batch {
 
-    public static final ResourceBundle rb = ResourceBundle.getBundle("conf.conf");
+    public static final ResourceBundle rb = ResourceBundle.getBundle("crm.conf");
     public static final boolean test = rb.getString("test").equals("SI");
     public static DateTimeFormatter formatter_N = DateTimeFormat.forPattern("yyyy-MM-dd");
 
@@ -88,7 +87,6 @@ public class CRM_batch {
 //    }
 //
 //    
-
     public static String getJSON_06(Booking bo) {
         JSONObject json = new JSONObject();
         JSONObject json_cl = new JSONObject();
@@ -114,19 +112,19 @@ public class CRM_batch {
             json.put("rate", bo.getRate());
             json.put("dt_tr", bo.getDt_ritiro());
             json.put("user_data", json_cl);
-            
+
             Crm_Db crmdb = new Crm_Db();
             json.put("mail_filiale", crmdb.getEmail(bo.getFiliale()));
             json.put("mail_crm", crmdb.getEmail("CRM"));
             crmdb.closeDB();
-            
+
             return json.toString(3);
         } catch (JSONException ex) {
             log.log(Level.SEVERE, "getJSON {0} -- {1}", new Object[]{bo.getCod(), ex.getMessage()});
         }
         return "ERR";
     }
-    
+
     public static String getJSON(Booking bo) {
         JSONObject json = new JSONObject();
         JSONObject json_cl = new JSONObject();
@@ -152,12 +150,12 @@ public class CRM_batch {
             json.put("rate", bo.getRate());
             json.put("dt_tr", bo.getDt_ritiro());
             json.put("user_data", json_cl);
-            
+
             Crm_Db crmdb = new Crm_Db();
             json.put("mail_filiale", crmdb.getEmail(bo.getFiliale()));
             json.put("mail_crm", crmdb.getEmail("CRM"));
             crmdb.closeDB();
-            
+
             return json.toString(3);
         } catch (JSONException ex) {
             log.log(Level.SEVERE, "getJSON {0} -- {1}", new Object[]{bo.getCod(), ex.getMessage()});

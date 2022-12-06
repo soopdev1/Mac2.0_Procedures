@@ -20,13 +20,10 @@ import static rc.soop.crm.Action.pat7;
 import static rc.soop.crm.CRM_batch.rb;
 import static rc.soop.crm.Items.all_CUR;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.logging.Level;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -65,11 +62,11 @@ public class MailObject {
             InternetAddress froms = new InternetAddress(rb.getString("mail.sender"));
             froms.setPersonal(rb.getString("mail.personal"));
             message.setFrom(froms);
-            for (int i = 0; i < dest.length; i++) {
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(dest[i]));
+            for (String dest1 : dest) {
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(dest1));
             }
-            for (int i = 0; i < cc.length; i++) {
-                message.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc[i]));
+            for (String cc1 : cc) {
+                message.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc1));
             }
             message.setSubject(oggetto);
             Multipart mp = new MimeMultipart();
@@ -79,7 +76,7 @@ public class MailObject {
             message.setContent(mp);
             Transport.send(message, rb.getString("mail.sender"), rb.getString("mail.pass"));
             return true;
-        } catch (MessagingException | UnsupportedEncodingException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "sendMailHtml: {0}", ExceptionUtils.getStackTrace(ex));
         }
         return false;
@@ -107,7 +104,7 @@ public class MailObject {
             message.setContent(mp);
             Transport.send(message, rb.getString("mail.sender"), rb.getString("mail.pass"));
             return true;
-        } catch (MessagingException | UnsupportedEncodingException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "sendMailHtml: {0}", ExceptionUtils.getStackTrace(ex));
         }
         return false;
@@ -155,7 +152,7 @@ public class MailObject {
             content = StringUtils.replaceAll(content, "\\{\\{TESTO CHIUSURA\\}\\}", mo.getCHIUSURA());
             boolean es = sendMailHtml(bo.getCl_email(), subject, content);
             return es;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "send_Mail_REMINDER {0}", ex.getMessage());
         }
         return false;
@@ -205,7 +202,7 @@ public class MailObject {
 
             boolean es = sendMailHtml(bo.getCl_email(), subject, content);
             return es;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "send_Mail_EXPIRED {0}", ex.getMessage());
         }
         return false;

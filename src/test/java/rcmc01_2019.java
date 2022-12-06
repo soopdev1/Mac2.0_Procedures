@@ -1,9 +1,9 @@
 
-import it.refill.esolver.Branch;
-import static it.refill.esolver.Util.patternsql;
-import it.refill.rilasciofile.ControlloGestione;
-import it.refill.rilasciofile.DatabaseCons;
-import it.refill.rilasciofile.GeneraFile;
+import rc.soop.esolver.Branch;
+import static rc.soop.esolver.Util.patternsql;
+import rc.soop.rilasciofile.ControlloGestione;
+import rc.soop.rilasciofile.DatabaseCons;
+import rc.soop.rilasciofile.GeneraFile;
 import java.io.File;
 import java.util.ArrayList;
 import org.joda.time.DateTime;

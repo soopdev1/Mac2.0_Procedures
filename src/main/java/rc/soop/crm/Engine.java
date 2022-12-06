@@ -35,15 +35,17 @@ public class Engine {
         Database db = new Database();
         try {
             ResultSet rs = db.getC().createStatement().executeQuery("SELECT cod,dt_ritiro,stato,stato_crm,dt_ritiro,filiale"
-                    + " FROM sito_prenotazioni WHERE stato='0' AND canale LIKE '%5' AND dt_ritiro = DATE_ADD(curdate(), INTERVAL " + days + " DAY)");
-
+                    + " FROM sito_prenotazioni WHERE "
+                    + "stato_crm IN ('2','3','4')"
+//                    + "stato='0'"
+                    + " AND canale LIKE '%5' AND dt_ritiro = DATE_ADD(curdate(), INTERVAL " + days + " DAY)");
             while (rs.next()) {
                 Booking_Date bd1 = new Booking_Date(rs.getString("cod"), rs.getString("dt_ritiro"),
                         rs.getString("stato"), rs.getString("stato_crm"),
                         formatter_N.parseDateTime(rs.getString("dt_ritiro")), rs.getString("filiale"));
                 total.add(bd1);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "RECAP_MAIL SQL: {0}", ex.getMessage());
         }
 
@@ -179,8 +181,7 @@ public class Engine {
 
     }
 
-    public static void refresh_branch() {
-        
+    public static void refresh_branch() {        
         Database dbmac = new Database();
         List<Items> all = dbmac.list_Branch_Active();
         dbmac.closeDB();

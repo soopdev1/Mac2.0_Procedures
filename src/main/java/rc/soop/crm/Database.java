@@ -6,6 +6,7 @@
 package rc.soop.crm;
 
 import com.google.common.base.Splitter;
+import static it.refill.testarea.Db.comma;
 import static rc.soop.crm.Action.formatStringtoStringDate;
 import static rc.soop.crm.Action.generaId;
 import static rc.soop.crm.Action.log;
@@ -59,7 +60,7 @@ public class Database {
         } catch (Exception ex) {
             this.c = null;
             log.log(Level.SEVERE, "Connection DB: {0}", ex.getMessage());
-            sendMailHtml("mac2.0@setacom.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH "+rc.soop.crm.CRM_batch.test+" :"+ex.getMessage());
+            sendMailHtml("mac2.0@setacom.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH " + rc.soop.crm.CRM_batch.test + " :" + ex.getMessage());
         }
     }
 
@@ -237,6 +238,17 @@ public class Database {
         } else {
             return;
         }
+
+        if (filiali == null) {
+            filiali = "";
+            ArrayList<String> al = list_cod_branch_enabled();
+            for (int i = 0; i < al.size(); i++) {
+                if (!al.get(i).equals("000")) {
+                    filiali = filiali + al.get(i) + comma;
+                }
+            }
+        }
+
         Iterable<String> parameters = Splitter.on(",").split(filiali);
         Iterator<String> it = parameters.iterator();
         String dtoper = new DateTime().toString(pat2);
@@ -251,6 +263,23 @@ public class Database {
                         ty, psstring, username, dtoper));
             }
         }
+    }
+    
+    public ArrayList<String> list_cod_branch_enabled() {
+        ArrayList<String> out = new ArrayList<>();
+        try {
+            String sql = "SELECT cod FROM branch WHERE fg_annullato = ? AND filiale = ? ORDER BY cod";
+            PreparedStatement ps = this.c.prepareStatement(sql);
+            ps.setString(1, "0");
+            ps.setString(2, "000");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                out.add(rs.getString("cod"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return out;
     }
 
     public void insert_aggiornamenti_mod(Aggiornamenti_mod am) {
@@ -302,7 +331,7 @@ public class Database {
         }
         return false;
     }
-    
+
     public List<Items> list_Branch_Active() {
         List<Items> output = new ArrayList<>();
         try {
@@ -312,7 +341,7 @@ public class Database {
             ps.setString(1, "0");
             ps.setString(2, "000");
             ResultSet rs = ps.executeQuery();
-            
+
             while (rs.next()) {
                 output.add(new Items(rs.getString(1), (rs.getString(2)), (rs.getString(3))));
             }
@@ -321,8 +350,7 @@ public class Database {
         }
         return output;
     }
-    
-    
+
     public void updateSpreadSito() {
         try {
             String sql = "SELECT valuta,cambio_bce FROM valute WHERE filiale = '000'";
