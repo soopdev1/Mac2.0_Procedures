@@ -41,7 +41,6 @@ public class updatemotivazioni {
 //                XSSFRow row1 = mySheet.getRow(0);
 //
 //                String filiale = row1.getCell(1).getStringCellValue().split(" ")[1].trim();
-////                System.out.println("com.seta.reload.updatemotivazioni.main() " + filiale);
 //
 //                Iterator<Row> rowIterator = mySheet.iterator();
 //
@@ -78,7 +77,6 @@ public class updatemotivazioni {
 //                                    r1.setNote(value);
 //                            }
 //
-////                            System.out.println("com.seta.reload.updatemotivazioni.main() " + cell.getCellTypeEnum().name());
 //////                            switch (cell.getCellType()) {
 //////                                case Cell.CELL_TYPE_FORMULA:
 //////                                    switch (cell.getCachedFormulaResultType()) {

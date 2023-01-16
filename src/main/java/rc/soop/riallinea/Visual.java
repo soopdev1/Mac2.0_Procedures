@@ -223,7 +223,7 @@ public class Visual extends javax.swing.JFrame {
         if (db == null) {
             JOptionPane.showMessageDialog(this, "CODICE NAZIONE ERRATO", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            DateTime start = new DateTime().minusDays(10).withMillisOfDay(0);
+            DateTime start = new DateTime().minusDays(20).withMillisOfDay(0);
             DateTime end = new DateTime().withMillisOfDay(0);
             //CENTRALE
             List<IpFiliale> fi1ial_list_ip = db.getIpFiliale();

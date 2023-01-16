@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -42,6 +43,7 @@ import rc.soop.rilasciofile.Figures;
 import rc.soop.rilasciofile.Fileinfo;
 import rc.soop.rilasciofile.GeneraFile;
 import rc.soop.rilasciofile.StockPrice_value;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -49,38 +51,30 @@ import rc.soop.rilasciofile.StockPrice_value;
  */
 public class Db {
 
-// SVILUPPO
-//    private static final String user = "root";
-//    private static final String host = "//172.31.224.159:3306/MAC_sftp";
-//    private static final String pwd = "fertilizza";
-// PRODUZIONE
-    private static final String user = "maccorp";
-    private static final String host = "//172.18.17.41:3306/macsftp";
-    private static final String pwd = "M4cc0Rp";
-
     private Connection c = null;
     private LoggerNew logger = new LoggerNew("SFTP_MAC", path_log);
 
     public Db(boolean mac) {
         try {
-            Class.forName("org.mariadb.jdbc.Driver").newInstance();
-            if (mac) {
-                String prodhost = "//172.18.17.41:3306/maccorpita";
-                this.c = DriverManager.getConnection("jdbc:mariadb:" + prodhost + "?user=" + user + "&password=" + pwd);
-            } else {
-                this.c = DriverManager.getConnection("jdbc:mariadb:" + host + "?user=" + user + "&password=" + pwd);
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
-            logger.log.log(Level.SEVERE, "Errore CONNESSIONE DB : {0}", ex.getMessage());
-            this.c = null;
-        }
-    }
-
-    public Db(String linkhost) {
-        try {
-            Class.forName("org.mariadb.jdbc.Driver").newInstance();
-            this.c = DriverManager.getConnection("jdbc:mariadb:" + linkhost + "?user=" + user + "&password=" + pwd);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
+            String user = "maccorp";
+            String pwd = "M4cc0Rp";
+            Class.forName(drivername).newInstance();
+            Properties p = new Properties();
+            p.put("user", user);
+            p.put("password", pwd);
+            p.put("useUnicode", "true");
+            p.put("characterEncoding", "UTF-8");
+            p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = mac ? rb.getString("db.ip") + "/maccorpita" : rb.getString("db.ip") + "/macsftp";
+            this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
+        } catch (Exception ex) {
             logger.log.log(Level.SEVERE, "Errore CONNESSIONE DB : {0}", ex.getMessage());
             this.c = null;
         }
@@ -104,23 +98,11 @@ public class Db {
         return c;
     }
 
-    public String getUtente() {
-        return user;
-    }
-
-    public String getPassword() {
-        return pwd;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
     public ArrayList<Fileinfo> getFile(String table) {
         ArrayList<Fileinfo> out = new ArrayList();
         try {
             String sql = "SELECT nomefile, hash_code, size, stato, b_64 FROM " + table;
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Fileinfo tmp = new Fileinfo(rs.getString("nomefile"), rs.getString("hash_code"), rs.getLong("size"), rs.getString("b_64"));
@@ -135,7 +117,7 @@ public class Db {
     public boolean insertFile(Fileinfo fileinfo, String table) {
         try {
             String sql = "INSERT INTO " + table + " SET nomefile=?, hash_code=?, size=?, b_64=?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, fileinfo.getName());
             ps.setString(2, fileinfo.getHash());
             ps.setLong(3, fileinfo.getSize());
@@ -147,14 +129,14 @@ public class Db {
         return false;
     }
 
-    public String getPath(String path) {
+    public String getPath(String path, String field) {
         try {
-            String sql = "SELECT url FROM path WHERE id=?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            String sql = (field.equals("descr")) ? "SELECT descr FROM path WHERE cod = ? " : "SELECT url FROM path WHERE id = ? ";
+            PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, path);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getString("url");
+                return rs.getString(1);
             }
         } catch (SQLException e) {
             logger.log.log(Level.SEVERE, "Errore DB getPath: {0}", e.getMessage());
@@ -166,7 +148,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM bassilichi WHERE stato = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, "S");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -174,7 +156,7 @@ public class Db {
                 out.add(v1);
             }
             String sql2 = "SELECT * FROM mercury WHERE stato = ?";
-            PreparedStatement ps2 = this.c.prepareStatement(sql2);
+            PreparedStatement ps2 = this.c.prepareStatement(sql2, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps2.setString(1, "S");
             ResultSet rs2 = ps2.executeQuery();
             while (rs2.next()) {

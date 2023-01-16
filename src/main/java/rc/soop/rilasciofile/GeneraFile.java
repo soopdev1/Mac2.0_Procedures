@@ -28,6 +28,8 @@ import java.util.logging.Level;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import rc.soop.sftp.SftpMaccorp;
 
 /**
  *
@@ -54,20 +56,25 @@ public class GeneraFile {
     }
 
     public void rilasciafile(GeneraFile gf, String tipofile) {
+        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+        DateTime ieri = new DateTime().minusDays(1);
+        rilasciafile(gf, tipofile, iniziomese, ieri);
+    }
+
+    public void rilasciafile(GeneraFile gf, String tipofile, DateTime iniziomese, DateTime ieri) {
         gf.logger.log.warning("START");
 
         gf.setIs_IT(true);
         gf.setIs_UK(false);
         gf.setIs_CZ(false);
-
+        
+        
+        
         DatabaseCons db = new DatabaseCons(gf);
-
+        String datecreation = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
 //        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue();
-        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-
 //        System.out.println("com.fl.upload.GeneraFile.rilasciafile() "+);
         String mesemysql = iniziomese.toString(patternmonthsql);
-        DateTime ieri = new DateTime().minusDays(1);
 
         String meseriferimento = iniziomese.monthOfYear().getAsText(Locale.ITALY).toUpperCase();
         String annoriferimento = iniziomese.year().getAsText(Locale.ITALY).toUpperCase();
@@ -93,12 +100,13 @@ public class GeneraFile {
                 ArrayList<Openclose> result = db.query_oc(data1, data2);
                 ArrayList<Till> listTill_complete = db.list_till();
                 String base64;
+                
                 if (!result.isEmpty()) {
-                    String nomereport = "LIST OPEN CLOSE DA " + data1 + " A " + data2 + ".xlsx";
+                    String nomereport = "LIST OPEN CLOSE DA " + data1 + " A " + data2 +"_"+datecreation+ ".xlsx";
                     File Output = new File(path + nomereport);
                     base64 = Excel.excel_openclose(gf, Output, result, listTill_complete);
                     if (base64 != null) {
-                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST OPEN CLOSE", annoriferimento);
+                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST OPEN CLOSE", annoriferimento, gf);
                         if (es) {
                             gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                         } else {
@@ -117,11 +125,11 @@ public class GeneraFile {
                 ArrayList<Ch_transaction> result = db.query_transaction_ch_new(data1, data2, br1);
                 String base64;
                 if (!result.isEmpty()) {
-                    String nomereport = "LIST TRANSACTION CHANGE DA " + data1 + " A " + data2 + ".xlsx";
+                    String nomereport = "LIST TRANSACTION CHANGE DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                     File Output = new File(path + nomereport);
                     base64 = Excel.excel_transaction_listEVO(gf, Output, result);
                     if (base64 != null) {
-                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST TRANSACTION CHANGE", annoriferimento);
+                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST TRANSACTION CHANGE", annoriferimento, gf);
                         if (es) {
                             gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                         } else {
@@ -140,11 +148,11 @@ public class GeneraFile {
                 ArrayList<NC_transaction> result = db.query_NC_transaction_NEW(data1, data2, br1, "NO");
                 String base64;
                 if (!result.isEmpty()) {
-                    String nomereport = "LIST TRANSACTION NOCHANGE DA " + data1 + " A " + data2 + ".xlsx";
+                    String nomereport = "LIST TRANSACTION NOCHANGE DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                     File Output = new File(path + nomereport);
                     base64 = Excel.excel_transactionnc_list(gf, Output, result);
                     if (base64 != null) {
-                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST TRANSACTION NOCHANGE", annoriferimento);
+                        boolean es = rilasciasftp(Output, meseriferimento + "/LIST TRANSACTION NOCHANGE", annoriferimento, gf);
                         if (es) {
                             gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                         } else {
@@ -181,11 +189,11 @@ public class GeneraFile {
                     datifooter.add(pdfsell.getBanksellnumber());
                     pdfsell.setFooterdati(datifooter);
 
-                    String nomereport = "SB LIST TRANSACTION DA " + data1 + " A " + data2 + ".xlsx";
+                    String nomereport = "SB LIST TRANSACTION DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                     File Output = new File(path + nomereport);
                     String base64 = Excel.BB_receiptexcel(Output, pdfsell, d3, d4, "SellBack Transaction List - Group By Sell-Buy");
                     if (base64 != null) {
-                        boolean es = rilasciasftp(Output, meseriferimento + "/SB LIST TRANSACTION", annoriferimento);
+                        boolean es = rilasciasftp(Output, meseriferimento + "/SB LIST TRANSACTION", annoriferimento, gf);
                         if (es) {
                             gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                         } else {
@@ -223,11 +231,11 @@ public class GeneraFile {
                     datifooter.add(pdfsell.getBanksellnumber());
                     pdfsell.setFooterdati(datifooter);
 
-                    String nomereport = "BB LIST TRANSACTION DA " + data1 + " A " + data2 + ".xlsx";
+                    String nomereport = "BB LIST TRANSACTION DA " + data1 + " A " + data2 +"_"+datecreation+ ".xlsx";
                     File Output = new File(path + nomereport);
                     String base64 = Excel.BB_receiptexcel(Output, pdfsell, d3, d4, "BuyBack Transaction List - Group By Buy-Sell ");
                     if (base64 != null) {
-                        boolean es = rilasciasftp(Output, meseriferimento + "/BB LIST TRANSACTION", annoriferimento);
+                        boolean es = rilasciasftp(Output, meseriferimento + "/BB LIST TRANSACTION", annoriferimento, gf);
                         if (es) {
                             gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                         } else {
@@ -244,11 +252,11 @@ public class GeneraFile {
             case "AML1": {
                 // AML MASTER - DA INIZIO MESE A IERI
 
-                String nomereport = "MONEY LAUNDERING - MASTER DATA DA " + data1 + " A " + data2 + ".xls";
+                String nomereport = "MONEY LAUNDERING - MASTER DATA DA " + data1 + " A " + data2 +"_"+datecreation+ ".xls";
                 File Output = new File(path + nomereport);
                 String base64 = Excel.AML_anagrafica(gf, Output, data1, data2);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MONEY LAUNDERING", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MONEY LAUNDERING", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -262,11 +270,11 @@ public class GeneraFile {
             case "AML2": {
                 //AML REGISTRATION - DA INIZIO MESE A IERI
 
-                String nomereport = "MONEY LAUNDERING - REGISTRATION DA " + data1 + " A " + data2 + ".xls";
+                String nomereport = "MONEY LAUNDERING - REGISTRATION DA " + data1 + " A " + data2 + "_"+datecreation+".xls";
                 File Output = new File(path + nomereport);
                 String base64 = Excel.AML_registrazione(gf, Output, data1, data2);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MONEY LAUNDERING", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MONEY LAUNDERING", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -280,7 +288,7 @@ public class GeneraFile {
             case "COR": {
                 // CORA MESE PRECEDENTE
                 boolean es = false;
-                String nomereport = "CORA MENSILE " + meseanno_prec + ".zip";
+                String nomereport = "CORA MENSILE " + meseanno_prec + "_"+datecreation+".zip";
                 File Output = new File(path + nomereport);
                 try {
                     String base64 = db.getCORA(meseanno_prec, "0");
@@ -293,7 +301,7 @@ public class GeneraFile {
                     es = false;
                 }
                 if (es) {
-                    boolean es1 = rilasciasftp(Output, meseriferimento_prec + "/CORA", anno_rif);
+                    boolean es1 = rilasciasftp(Output, meseriferimento_prec + "/CORA", anno_rif, gf);
                     if (es1) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -307,7 +315,7 @@ public class GeneraFile {
             case "OAM": {
                 // OAM MESE PRECEDENTE
                 boolean es = false;
-                String nomereport = "OAM ORDINARY " + meseanno_prec + ".zip";
+                String nomereport = "OAM ORDINARY " + meseanno_prec +"_"+datecreation+ ".zip";
                 File Output = new File(path + nomereport);
                 try {
                     String base64 = db.getOAM(meseanno_prec, "0");
@@ -320,7 +328,7 @@ public class GeneraFile {
                     es = false;
                 }
                 if (es) {
-                    boolean es1 = rilasciasftp(Output, meseriferimento_prec + "/OAM", anno_rif);
+                    boolean es1 = rilasciasftp(Output, meseriferimento_prec + "/OAM", anno_rif, gf);
                     if (es1) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -334,7 +342,7 @@ public class GeneraFile {
             case "CP1": {
                 // CASHIER PERFRMANCE - DA INIZIO MESE A IERI
 
-                String nomereport = "CASHIER PERFORMANCE DA " + data1 + " A " + data2 + ".xls";
+                String nomereport = "CASHIER PERFORMANCE DA " + data1 + " A " + data2 + "_"+datecreation+".xls";
                 File Output = new File(path + nomereport);
                 ArrayList<String[]> fasce = db.list_fasce_cashier_perf("BS", null);
                 ArrayList<C_CashierPerformance_value> dati = db.list_C_CashierPerformance_value(data1, data2, "BS", br1, fasce);
@@ -355,7 +363,7 @@ public class GeneraFile {
                 alcolonne.add("tot. ERR");
                 String base64 = Excel.CP_mainexcel(Output, d3, d4, data1, data2, "BS", dati, alcolonne, br1, allenabledbr);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/CASHIER PERFORMANCE", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/CASHIER PERFORMANCE", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -368,12 +376,12 @@ public class GeneraFile {
             }
             case "DA1": {
                 // MANAGEMENT CONTROL - DAILY REPORT - DA INIZIO MESE A IERI     //COMPLETO
-                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 ArrayList<NC_category> listnccat = db.list_ALL_nc_category("000");
                 String base64 = ControlloGestione.daily_report(Output, br1, mesemysql, meseriferimento, allenabledbr, iniziomese, db, listnccat);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -386,12 +394,12 @@ public class GeneraFile {
             }
             case "DAR": {
                 // MANAGEMENT CONTROL - DAILY REPORT - DA INIZIO MESE A IERI     //ROMA
-                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT - SOLO ROMA DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT - SOLO ROMA DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 ArrayList<NC_category> listnccat = db.list_ALL_nc_category("000");
                 String base64 = ControlloGestione.daily_report(Output, filiali_soloROMA, mesemysql, meseriferimento, allenabledbr, iniziomese, db, listnccat);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -411,11 +419,11 @@ public class GeneraFile {
                 ArrayList<NC_category> listnccat = db.list_ALL_nc_category("000");
                 br1 = db.list_branchcode_completeAFTER311217();
                 allenabledbr = db.list_branch();
-                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT UK - DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT UK - DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.daily_report(Output, br1, mesemysql, meseriferimento, allenabledbr, iniziomese, db, listnccat);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL UK", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL UK", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -436,11 +444,11 @@ public class GeneraFile {
                 ArrayList<NC_category> listnccat = db.list_ALL_nc_category("000");
                 br1 = db.list_branchcode_completeAFTER311217();
                 allenabledbr = db.list_branch();
-                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT CZ - DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - DAILY REPORT CZ - DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.daily_report(Output, br1, mesemysql, meseriferimento, allenabledbr, iniziomese, db, listnccat);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL CZ", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL CZ", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -454,11 +462,11 @@ public class GeneraFile {
             case "MCO1": {
                 // MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL - DA INIZIO MESE A IERI     //COMPLETO
 
-                String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.management_change_n1(Output, br1, data1, data2, true, allenabledbr, db);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -471,11 +479,11 @@ public class GeneraFile {
             }
             case "MCO2": {
                 // MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL - DA INIZIO MESE A IERI     // NO DELETE
-                String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 - NO DELETE OPERATIONS DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 - NO DELETE OPERATIONS DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.management_change_n1(Output, br1, data1, data2, false, allenabledbr, db);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -488,11 +496,11 @@ public class GeneraFile {
             }
             case "INS": {
                 // MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL - DA INIZIO MESE A IERI     // NO DELETE
-                String nomereport = "MANAGEMENT CONTROL - REPORT LIMIT INSURANCE BRANCH DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - REPORT LIMIT INSURANCE BRANCH DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.limit_insurance(Output, br1, iniziomese, ieri, allenabledbr, db);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -505,11 +513,11 @@ public class GeneraFile {
             }
             case "CA1": {
                 // MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 - DA INIZIO MESE A IERI     //COMPLETO
-                String nomereport = "MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.management_change_accounting1(Output, br1, iniziomese, ieri, allenabledbr, db);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -522,11 +530,11 @@ public class GeneraFile {
             }
             case "CAER": {
                 //
-                String nomereport = "CASHIER OPENCLOSE ERRORS DA " + data1 + " A " + data2 + ".xlsx";
+                String nomereport = "CASHIER OPENCLOSE ERRORS DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
                 File Output = new File(path + nomereport);
                 String base64 = ControlloGestione.C_OpenCloseError(Output, br1, data1, data2, allenabledbr, db);
                 if (base64 != null) {
-                    boolean es = rilasciasftp(Output, meseriferimento + "/CASHIER PERFORMANCE", annoriferimento);
+                    boolean es = rilasciasftp(Output, meseriferimento + "/CASHIER PERFORMANCE", annoriferimento, gf);
                     if (es) {
                         gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
                     } else {
@@ -549,40 +557,42 @@ public class GeneraFile {
 //        GeneraFile gf = new GeneraFile();
 //        gf.rilasciafile(gf, "LOC");        
 //    }
-
-    private boolean rilasciasftp(File file, String meseriferimento, String annoriferimento) {
-        boolean ok = true;
-        String folder_dest = "/mnt/MasterVolume/macsftp/Files/" + annoriferimento + "/" + meseriferimento + "/";
-        ChannelSftp sftpseta = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
-        if (sftpseta.isConnected()) {
-            if (!isDirectory(sftpseta, folder_dest)) {
-                logger.log.log(Level.INFO, "CREO CARTELLA {0}", folder_dest);
-                try {
-                    sftpseta.mkdir(folder_dest);
-                } catch (SftpException ex) {
-                    ok = false;
-                    logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{folder_dest, ex.getMessage()});
-                }
-            }
-            try {
-                sftpseta.put(new FileInputStream(file), folder_dest + file.getName());
-                logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1}", new Object[]{file.getName(), file.length(), "SFTP_MAC_FILES"});
-            } catch (SftpException | FileNotFoundException ex) {
-                ok = false;
-                logger.log.log(Level.SEVERE, "ERRORE UPLOAD FILE {0}: {1}", new Object[]{file.getName(), ex.getMessage()});
-            }
-            SftpConnection.closeConnection(sftpseta, logger);
-        } else {
-            ok = false;
-        }
-        return ok;
+    private boolean rilasciasftp(File file, String meseriferimento, String annoriferimento, GeneraFile gf) {
+        return SftpMaccorp.UPLOAD_AWS(file, meseriferimento, annoriferimento, gf.logger);
     }
 
+//    private boolean rilasciasftp(File file, String meseriferimento, String annoriferimento) {
+//        boolean ok = true;
+//        String folder_dest = "/mnt/MasterVolume/macsftp/Files/" + annoriferimento + "/" + meseriferimento + "/";
+//        ChannelSftp sftpaws = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
+//        if (sftpaws.isConnected()) {
+//            if (!isDirectory(sftpaws, folder_dest)) {
+//                logger.log.log(Level.INFO, "CREO CARTELLA {0}", folder_dest);
+//                try {
+//                    sftpaws.mkdir(folder_dest);
+//                } catch (SftpException ex) {
+//                    ok = false;
+//                    logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{folder_dest, ex.getMessage()});
+//                }
+//            }
+//            try {
+//                sftpaws.put(new FileInputStream(file), folder_dest + file.getName());
+//                logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1}", new Object[]{file.getName(), file.length(), "SFTP_MAC_FILES"});
+//            } catch (SftpException | FileNotFoundException ex) {
+//                ok = false;
+//                logger.log.log(Level.SEVERE, "ERRORE UPLOAD FILE {0}: {1}", new Object[]{file.getName(), ex.getMessage()});
+//            }
+//            SftpConnection.closeConnection(sftpaws, logger);
+//        } else {
+//            ok = false;
+//        }
+//        return ok;
+//    }
     public boolean is_IT = false;
     public boolean is_CZ = false;
     public boolean is_UK = true;
 
-    public LoggerNew logger = new LoggerNew("SFTP_MAC_FILES", "/mnt/temp/");
+    public LoggerNew logger = new LoggerNew("SFTP_MAC_FILES", "/mnt/mac/temp/");
 
     public boolean isIs_IT() {
         return is_IT;

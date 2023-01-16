@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.install;
+package rc.soop.start;
 
 import rc.soop.maintenance.Db_Master;
 import java.sql.PreparedStatement;
@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -18,9 +19,9 @@ import java.util.ArrayList;
  */
 public class Duplicavalori {
 
-    private static final String hostIT = "//172.18.17.41:3306/maccorpita";
-    //  private static final String hostCZ = "//172.18.17.41:3306/maccorpczprod";
-    //  private static final String hostUK = "//172.18.17.41:3306/maccorpuk";
+    private static final String hostIT = rb.getString("db.ip") + "/maccorpita";
+    //  private static final String hostCZ = rb.getString("db.ip") + "/maccorpczprod";
+    //  private static final String hostUK = rb.getString("db.ip") + "/maccorpuk";
 
     public static void main(String[] args) {
 //        ArrayList<String> listafiliali = new ArrayList<>();

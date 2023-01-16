@@ -7,7 +7,6 @@ import static rc.soop.gs.Config.fd;
 import static rc.soop.gs.Config.log;
 import static rc.soop.gs.Config.patternD1;
 import static rc.soop.gs.Config.roundDoubleandFormat;
-import static java.lang.Class.forName;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,6 +20,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import static rc.soop.start.Utility.rb;
 
 public class Db_Master {
 
@@ -28,18 +28,23 @@ public class Db_Master {
 
     public Db_Master() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            forName(drivername);
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
-            String host = "//machaproxy01.mactwo.loc:3306/maccorpita";
+            Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
             p.put("password", pwd);
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = rb.getString("db.ip") + "/maccorpita";
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
         } catch (Exception ex) {
             log.log(Level.SEVERE, "{0} ERROR: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
@@ -94,8 +99,8 @@ public class Db_Master {
 
         }
 
-        System.out.println("com.seta.rest.Db_Master.query_datiinvio_annuale() " + date.toString(patternD1));
-        System.out.println("com.seta.rest.Db_Master.query_datiinvio_annuale() " + last.toString(patternD1));
+        System.out.println("com.rest.Db_Master.query_datiinvio_annuale() " + date.toString(patternD1));
+        System.out.println("com.rest.Db_Master.query_datiinvio_annuale() " + last.toString(patternD1));
 
         return out;
     }
@@ -189,7 +194,7 @@ public class Db_Master {
                 sql = sql + "AND tr1.data <= '" + datad2 + ":59' ";
                 sql = sql + " ORDER BY tr1.data";
 
-                try ( ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+                try ( ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                     setNoTransPurch = 0;
                     setNoTransSales = 0;
                     while (rs.next()) {
@@ -246,7 +251,7 @@ public class Db_Master {
         List<Filiale> out = new ArrayList<>();
         try {
             String sql = "SELECT des FROM conf WHERE id='gs.json.filiali'";
-            try ( Statement st = this.c.createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try ( Statement st = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);  ResultSet rs = st.executeQuery(sql)) {
                 if (rs.next()) {
                     out = Arrays.asList(new ObjectMapper().readValue(rs.getString(1), Filiale[].class));
                 }

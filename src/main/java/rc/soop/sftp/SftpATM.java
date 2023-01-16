@@ -46,13 +46,13 @@ public class SftpATM {
     public SftpATM() {
         this.dtnow = new DateTime().toString("yyyy-MM-dd_HHmmss");
         Db db = new Db(false);
-        this.logger = new LoggerNew("SFTP_RATE", db.getPath("Pathlog"));
-        this.spread = fd(db.getPath("atm.spread"));
-        this.costiservizio = fd(db.getPath("atm.costiservizio"));
-        this.reference = fd(db.getPath("atm.reference"));
-        this.commission = db.getPath("atm.fix");
-        this.pathout = db.getPath("upload_atm");
-        this.pathtemp = db.getPath("temp");
+        this.logger = new LoggerNew("SFTP_RATE", db.getPath("Pathlog", "url"));
+        this.spread = fd(db.getPath("atm.spread", "url"));
+        this.costiservizio = fd(db.getPath("atm.costiservizio", "url"));
+        this.reference = fd(db.getPath("atm.reference", "url"));
+        this.commission = db.getPath("atm.fix", "url");
+        this.pathout = db.getPath("upload_atm", "url");
+        this.pathtemp = db.getPath("temp", "url");
         db.closeDB();
     }
 
@@ -118,7 +118,7 @@ public class SftpATM {
 
                 //CSV
                 output = new File(this.pathtemp + new DateTime().toString(dtnow) + "_Tassi.csv");
-                try ( PrintWriter writer = new PrintWriter(output)) {
+                try (PrintWriter writer = new PrintWriter(output)) {
                     writer.println("VALUTA;TASSO BCE;Costi di servizio;Reference rate on top;% EXCHANGE RATE;TASSO DI CAMBIO (BUY);COMMISSIONE (importo fisso)");
                     lista.forEach(tasso -> {
                         writer.println(
@@ -193,7 +193,7 @@ public class SftpATM {
 //            if (output_xslx != null) {
 //
 //                ChannelSftp sftpnexi_prod = SftpConnection.connect(
-//                        "setacom", //USER
+//                        "", //USER
 //                        "transfer.nexi.it", //HOST
 //                        115, //PORTA
 //                        "private_key_PROD.ppk",

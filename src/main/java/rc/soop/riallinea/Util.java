@@ -20,18 +20,20 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import rc.soop.maintenance.Monitor;
 
 /**
  *
  * @author rcosco
  */
 public class Util {
+
     public static final String patternsqldate = "yyyy-MM-dd HH:mm:ss";
     public static final String patternsql = "yyyy-MM-dd";
     public static final String patternita = "dd/MM/yyyy";
     private static final String pattern4 = "yyyyMMdd";
     private static final String pattern3 = "HHmmssSSS";
-    public static final Logger log = createLog("Mac2.0_RIALLINEA", "E:\\log\\", pattern4);
+    public static final Logger log = createLog("Mac2.0_RIALLINEA", Monitor.rb.getString("path.log"), pattern4);
     public static final String patternsqlcomplete = "yyyy-MM-dd HH:mm:SS";
 
     public static String visualizzaStringaMySQL(String ing) {
@@ -127,7 +129,6 @@ public class Util {
         return LOGGER;
     }
 
-    
     public static String estraiEccezione(Exception ec1) {
         try {
             String stack_nam = ec1.getStackTrace()[0].getMethodName();

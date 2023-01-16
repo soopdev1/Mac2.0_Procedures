@@ -33,7 +33,7 @@ public class Action {
 
     public static String getPath(String path) {
         Db db = new Db(false);
-        String out = db.getPath(path);
+        String out = db.getPath(path, "url");
         db.closeDB();
         return out;
     }
@@ -49,7 +49,6 @@ public class Action {
         return sbuil.toString();
     }
 
-    
     public static String formatTypeTransaction_stockprice(String type) {
         if (type.equals("CH") || type.equals("NC")) {
             return "Transaction";
@@ -62,6 +61,5 @@ public class Action {
         }
         return type;
     }
-    
-    
+
 }

@@ -103,7 +103,455 @@ public class Central_Branch {
                     if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
                         if (action.contains(":")) {
                             type = "ST";
-                            oper.setSql(action.substring(action.indexOf(":") + 1).trim());
+                            String newact = formatPS(action);
+                            oper.setSql(newact);
+                        }
+                    } else {
+                        action = action.replace("sql : '", "").trim();
+                        if (action.contains("', parameters : ")) {
+                            Iterable<String> parameters = Splitter.on("', parameters : ").split(action);
+                            Iterator<String> it = parameters.iterator();
+                            if (Iterators.size(it) == 2) {
+                                it = parameters.iterator();
+                                String sql = it.next();
+                                String param = it.next();
+                                oper.setSql(sql);
+                                Iterable<String> parameters2 = Splitter.on("','").split(param);
+                                Iterator<String> it2 = parameters2.iterator();
+                                int length = Iterators.size(it2);
+                                it2 = parameters2.iterator();
+                                for (int j = 0; j < length; j++) {
+                                    String val = it2.next();
+                                    if (j == 0) {
+                                        val = val.substring(2);
+                                    } else if (j == length - 1) {
+                                        val = val.substring(0, val.length() - 2);
+                                    }
+                                    paramlist.add(val.trim());
+                                }
+                                oper.setParam(paramlist);
+                            }
+                        }
+                    }
+
+                } else if (type.equalsIgnoreCase("st")) {
+                    oper.setSql(st.getAction());
+                }
+                oper.setType(formatType(oper.getSql()));
+                DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
+                DateTime dt_start_value = formatter.parseDateTime(dt_start);
+                if (dt_start_value.isBefore(adesso)) {
+                    DBFiliale dbfiliale = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                    if (dbfiliale.getConnectionDB() == null) {
+                        log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+                        throw new BreakException();
+                    }
+                    boolean es = dbfiliale.execute_agg(type, oper);
+                    dbfiliale.closeDB();
+                    if (es) {
+                        DBFiliale db1 = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                        db1.setStatus_agg(cod, "1");
+                        db1.closeDB();
+                    } else {
+                        throw new BreakException();
+                    }
+                }
+            });
+        } catch (BreakException e) {
+            errore.addAndGet(1);
+        }
+
+        if (errore.get() > 0) {
+            return true;
+        }
+
+        try {
+            log.log(Level.WARNING, "NUMERO AGGIORNAMENTI {0} PER LA FILIALE {1}", new Object[]{li.size(), filiale});
+            if (li.isEmpty()) {
+                return false;
+            }
+            AtomicInteger index = new AtomicInteger(1);
+            li.forEach(st -> {
+
+                String cod = st.getCod();
+                String dt_start = formatDateStart(st.getDt_start(), log);
+                String type = st.getTipost();
+                String action = st.getAction();
+                Oper oper = new Oper();
+                LinkedList<String> paramlist = new LinkedList<>();
+                log.log(Level.INFO, "Avanzamento.....  {0}", (index.get()));
+                log.log(Level.INFO, "{0} TYPE {1}", new Object[]{index.get(), type});
+                log.log(Level.INFO, "{0} ACTION {1}", new Object[]{index.get(), action});
+                index.addAndGet(1);
+                if (type.equalsIgnoreCase("ps")) {
+                    if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
+                        if (action.contains(":")) {
+                            type = "ST";
+                            String newact = formatPS(action);
+                            oper.setSql(newact);
+                        }
+                    } else {
+                        action = action.replace("sql : '", "").trim();
+                        if (action.contains("', parameters : ")) {
+                            Iterable<String> parameters = Splitter.on("', parameters : ").split(action);
+                            Iterator<String> it = parameters.iterator();
+                            if (Iterators.size(it) == 2) {
+                                it = parameters.iterator();
+                                String sql = it.next();
+                                String param = it.next();
+                                oper.setSql(sql);
+                                Iterable<String> parameters2 = Splitter.on("','").split(param);
+                                Iterator<String> it2 = parameters2.iterator();
+                                int length = Iterators.size(it2);
+                                it2 = parameters2.iterator();
+                                for (int j = 0; j < length; j++) {
+                                    String val = it2.next();
+                                    if (j == 0) {
+                                        val = val.substring(2);
+                                    } else if (j == length - 1) {
+                                        val = val.substring(0, val.length() - 2);
+                                    }
+                                    paramlist.add(val.trim());
+                                }
+                                oper.setParam(paramlist);
+                            }
+                        }
+                    }
+
+                } else if (type.equalsIgnoreCase("st")) {
+                    oper.setSql(action);
+                }
+                oper.setType(formatType(oper.getSql()));
+                DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
+                DateTime dt_start_value = formatter.parseDateTime(dt_start);
+                if (dt_start_value.isBefore(adesso)) {
+                    DBFiliale dbfiliale = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                    if (dbfiliale.getConnectionDB() == null) {
+                        log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+                        throw new BreakException();
+                    }
+                    boolean es = dbfiliale.execute_agg(type, oper);
+                    dbfiliale.closeDB();
+                    if (es) {
+                        DBHost db1 = new DBHost(host_h, user_h, pwd_h, log);
+                        db1.setStatus_agg(cod, "1");
+                        db1.closeDB();
+                    } else {
+                        throw new BreakException();
+                    }
+                }
+            });
+        } catch (BreakException e) {
+            errore.addAndGet(1);
+        }
+        return errore.get() > 0;
+    }
+
+    public boolean updateToBranch3(Logger log) {
+
+        DateTime adesso = getTime(log);
+        DBHost db = new DBHost(host_h, user_h, pwd_h, log);
+        if (db.getConnectionDB() == null) {
+            log.warning("DB CENTRALE NON RAGGIUNGIBILE.");
+            return true;
+        }
+        String myip = db.getIpFiliale(filiale);
+        ArrayList<Aggiornamenti_mod> li = db.list_aggiornamenti_mod(filiale, "0");
+        db.closeDB();
+
+        //nuovo
+        DBFiliale dbfiliale1 = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+
+        if (dbfiliale1.getConnectionDB() == null) {
+            log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+            return true;
+        }
+
+        ArrayList<Aggiornamenti_mod> li_locali = dbfiliale1.list_aggiornamenti_mod_div_limit_local(filiale, "0");
+
+        dbfiliale1.closeDB();
+
+        log.log(Level.WARNING, "NUMERO AGGIORNAMENTI {0} IN LOCALE SULLA FILIALE {1}", new Object[]{li_locali.size(), filiale});
+        AtomicInteger errore = new AtomicInteger(0);
+
+        try {
+
+            AtomicInteger index = new AtomicInteger(1);
+            li_locali.forEach(st -> {
+//            for (int i = 0; i < li_locali.size(); i++) {
+                log.log(Level.INFO, "Avanzamento.....  {0}", (index.get()));
+                index.addAndGet(1);
+                String cod = st.getCod();
+                String dt_start = formatDateStart(st.getDt_start(), log);
+                String type = st.getTipost();
+                String action = st.getAction();
+                Oper oper = new Oper();
+                LinkedList<String> paramlist = new LinkedList<>();
+                if (type.equalsIgnoreCase("ps")) {
+                    if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
+                        if (action.contains(":")) {
+
+                            type = "ST";
+
+                            String newact = action.substring(action.indexOf(":") + 1).trim();
+                            if (newact.contains("VALUES")) {
+                                newact = StringUtils.replace(newact, "('", "(\"");
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, "')", "\")");
+                            } else if (newact.contains("UPDATE")) {
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                                newact = StringUtils.replace(newact, "', ", "\", ");
+                                newact = StringUtils.replace(newact, "' , ", "\" , ");
+                                newact = StringUtils.replace(newact, "' WHERE", "\" WHERE");
+                                newact = StringUtils.replace(newact, "' AND", "\" AND");
+                                if (newact.endsWith("'")) {
+                                    newact = StringUtils.substring(newact, 0, newact.length() - 1);
+                                    newact = newact + "\"";
+                                }
+                            } else if (newact.startsWith("INSERT INTO nc_transaction (SELECT")) {
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, ",'", ",\"");
+                                newact = StringUtils.replace(newact, "' FROM", "\" FROM");
+                                newact = StringUtils.replace(newact, "' ORDER BY", "\" ORDER BY");
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                            }
+                            oper.setSql(newact);
+
+                        }
+                    } else {
+                        action = action.replace("sql : '", "").trim();
+                        if (action.contains("', parameters : ")) {
+                            Iterable<String> parameters = Splitter.on("', parameters : ").split(action);
+                            Iterator<String> it = parameters.iterator();
+                            if (Iterators.size(it) == 2) {
+                                it = parameters.iterator();
+                                String sql = it.next();
+                                String param = it.next();
+                                oper.setSql(sql);
+                                Iterable<String> parameters2 = Splitter.on("','").split(param);
+                                Iterator<String> it2 = parameters2.iterator();
+                                int length = Iterators.size(it2);
+                                it2 = parameters2.iterator();
+                                for (int j = 0; j < length; j++) {
+                                    String val = it2.next();
+                                    if (j == 0) {
+                                        val = val.substring(2);
+                                    } else if (j == length - 1) {
+                                        val = val.substring(0, val.length() - 2);
+                                    }
+                                    paramlist.add(val.trim());
+                                }
+                                oper.setParam(paramlist);
+                            }
+                        }
+                    }
+
+                } else if (type.equalsIgnoreCase("st")) {
+                    oper.setSql(st.getAction());
+                }
+                oper.setType(formatType(oper.getSql()));
+                DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
+                DateTime dt_start_value = formatter.parseDateTime(dt_start);
+                if (dt_start_value.isBefore(adesso)) {
+                    DBFiliale dbfiliale = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                    if (dbfiliale.getConnectionDB() == null) {
+                        log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+                        throw new BreakException();
+                    }
+                    boolean es = dbfiliale.execute_agg(type, oper);
+                    dbfiliale.closeDB();
+                    if (es) {
+                        DBFiliale db1 = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                        db1.setStatus_agg(cod, "1");
+                        db1.closeDB();
+                    } else {
+                        throw new BreakException();
+                    }
+                }
+            });
+        } catch (BreakException e) {
+            errore.addAndGet(1);
+        }
+
+        if (errore.get() > 0) {
+            return true;
+        }
+
+        try {
+            log.log(Level.WARNING, "NUMERO AGGIORNAMENTI {0} PER LA FILIALE {1}", new Object[]{li.size(), filiale});
+            if (li.isEmpty()) {
+                return false;
+            }
+            AtomicInteger index = new AtomicInteger(1);
+            li.forEach(st -> {
+
+                String cod = st.getCod();
+                String dt_start = formatDateStart(st.getDt_start(), log);
+                String type = st.getTipost();
+                String action = st.getAction();
+                Oper oper = new Oper();
+                LinkedList<String> paramlist = new LinkedList<>();
+                log.log(Level.INFO, "Avanzamento.....  {0}", (index.get()));
+                log.log(Level.INFO, "{0} TYPE {1}", new Object[]{index.get(), type});
+                log.log(Level.INFO, "{0} ACTION {1}", new Object[]{index.get(), action});
+                index.addAndGet(1);
+                if (type.equalsIgnoreCase("ps")) {
+
+                    if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
+                        if (action.contains(":")) {
+
+                            type = "ST";
+                            String newact = action.substring(action.indexOf(":") + 1).trim();
+                            if (newact.contains("VALUES")) {
+                                newact = StringUtils.replace(newact, "('", "(\"");
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, "')", "\")");
+                            } else if (newact.contains("UPDATE") || newact.contains("INSERT INTO sito_prenotazioni SET")) {
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                                newact = StringUtils.replace(newact, "='", "= \"");
+                                newact = StringUtils.replace(newact, "', ", "\", ");
+                                newact = StringUtils.replace(newact, "' , ", "\" , ");
+                                newact = StringUtils.replace(newact, "' WHERE", "\" WHERE");
+                                newact = StringUtils.replace(newact, "' AND", "\" AND");
+                                if (newact.endsWith("'")) {
+                                    newact = StringUtils.substring(newact, 0, newact.length() - 1);
+                                    newact = newact + "\"";
+                                }
+                            } else if (newact.startsWith("INSERT INTO nc_transaction (SELECT")) {
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, ",'", ",\"");
+                                newact = StringUtils.replace(newact, "' FROM", "\" FROM");
+                                newact = StringUtils.replace(newact, "' ORDER BY", "\" ORDER BY");
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                            }
+                            oper.setSql(newact);
+                        }
+                    } else {
+                        action = action.replace("sql : '", "").trim();
+                        if (action.contains("', parameters : ")) {
+                            Iterable<String> parameters = Splitter.on("', parameters : ").split(action);
+                            Iterator<String> it = parameters.iterator();
+                            if (Iterators.size(it) == 2) {
+                                it = parameters.iterator();
+                                String sql = it.next();
+                                String param = it.next();
+                                oper.setSql(sql);
+                                Iterable<String> parameters2 = Splitter.on("','").split(param);
+                                Iterator<String> it2 = parameters2.iterator();
+                                int length = Iterators.size(it2);
+                                it2 = parameters2.iterator();
+                                for (int j = 0; j < length; j++) {
+                                    String val = it2.next();
+                                    if (j == 0) {
+                                        val = val.substring(2);
+                                    } else if (j == length - 1) {
+                                        val = val.substring(0, val.length() - 2);
+                                    }
+                                    paramlist.add(val.trim());
+                                }
+                                oper.setParam(paramlist);
+                            }
+                        }
+                    }
+
+                } else if (type.equalsIgnoreCase("st")) {
+                    oper.setSql(action);
+                }
+                oper.setType(formatType(oper.getSql()));
+                DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
+                DateTime dt_start_value = formatter.parseDateTime(dt_start);
+                if (dt_start_value.isBefore(adesso)) {
+                    DBFiliale dbfiliale = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+                    if (dbfiliale.getConnectionDB() == null) {
+                        log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+                        throw new BreakException();
+                    }
+                    boolean es = dbfiliale.execute_agg(type, oper);
+                    dbfiliale.closeDB();
+                    if (es) {
+                        DBHost db1 = new DBHost(host_h, user_h, pwd_h, log);
+                        db1.setStatus_agg(cod, "1");
+                        db1.closeDB();
+                    } else {
+                        throw new BreakException();
+                    }
+                }
+            });
+        } catch (BreakException e) {
+            errore.addAndGet(1);
+        }
+        return errore.get() > 0;
+    }
+
+    public boolean updateToBranch2(Logger log) {
+
+        DateTime adesso = getTime(log);
+        DBHost db = new DBHost(host_h, user_h, pwd_h, log);
+        if (db.getConnectionDB() == null) {
+            log.warning("DB CENTRALE NON RAGGIUNGIBILE.");
+            return true;
+        }
+        String myip = db.getIpFiliale(filiale);
+        ArrayList<Aggiornamenti_mod> li = db.list_aggiornamenti_mod(filiale, "0");
+        db.closeDB();
+
+        //nuovo
+        DBFiliale dbfiliale1 = new DBFiliale(myip, filiale, user_f, pwd_f, log);
+
+        if (dbfiliale1.getConnectionDB() == null) {
+            log.log(Level.SEVERE, "FILIALE {0} NON RAGGIUNGIBILE ALL''IP: {1}", new Object[]{filiale, myip});
+            return true;
+        }
+
+        ArrayList<Aggiornamenti_mod> li_locali = dbfiliale1.list_aggiornamenti_mod_div_limit_local(filiale, "0");
+
+        dbfiliale1.closeDB();
+
+        log.log(Level.WARNING, "NUMERO AGGIORNAMENTI {0} IN LOCALE SULLA FILIALE {1}", new Object[]{li_locali.size(), filiale});
+        AtomicInteger errore = new AtomicInteger(0);
+
+        try {
+
+            AtomicInteger index = new AtomicInteger(1);
+            li_locali.forEach(st -> {
+//            for (int i = 0; i < li_locali.size(); i++) {
+                log.log(Level.INFO, "Avanzamento.....  {0}", (index.get()));
+                index.addAndGet(1);
+                String cod = st.getCod();
+                String dt_start = formatDateStart(st.getDt_start(), log);
+                String type = st.getTipost();
+                String action = st.getAction();
+                Oper oper = new Oper();
+                LinkedList<String> paramlist = new LinkedList<>();
+                if (type.equalsIgnoreCase("ps")) {
+                    if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
+                        if (action.contains(":")) {
+                            type = "ST";
+
+                            String newact = action.substring(action.indexOf(":") + 1).trim();
+                            if (newact.contains("VALUES")) {
+                                newact = StringUtils.replace(newact, "('", "(\"");
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, "')", "\")");
+                            } else if (newact.contains("UPDATE")) {
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                                newact = StringUtils.replace(newact, "', ", "\", ");
+                                newact = StringUtils.replace(newact, "' , ", "\" , ");
+                                newact = StringUtils.replace(newact, "' WHERE", "\" WHERE");
+                                newact = StringUtils.replace(newact, "' AND", "\" AND");
+                                if (newact.endsWith("'")) {
+                                    newact = StringUtils.substring(newact, 0, newact.length() - 1);
+                                    newact = newact + "\"";
+                                }
+                            } else if (newact.startsWith("INSERT INTO nc_transaction (SELECT")) {
+                                newact = StringUtils.replace(newact, "','", "\",\"");
+                                newact = StringUtils.replace(newact, ",'", ",\"");
+                                newact = StringUtils.replace(newact, "' FROM", "\" FROM");
+                                newact = StringUtils.replace(newact, "' ORDER BY", "\" ORDER BY");
+                                newact = StringUtils.replace(newact, "= '", "= \"");
+                            }
+                            oper.setSql(newact);
+
                         }
                     } else {
                         action = action.replace("sql : '", "").trim();
@@ -193,7 +641,6 @@ public class Central_Branch {
                         if (action.contains("', parameters : ")) {
                             Iterable<String> parameters = Splitter.on("', parameters : ").split(action);
                             Iterator<String> it = parameters.iterator();
-//                            System.out.println("update.Central_Branch.updateToBranch( 0 )"+Iterators.size(it));
                             if (Iterators.size(it) == 2) {
                                 it = parameters.iterator();
                                 String sql = it.next();
@@ -341,30 +788,7 @@ public class Central_Branch {
                     if (action.contains("com.mysql.jdbc") || action.contains("com.mysql.cj.jdbc")) {
                         if (action.contains(":")) {
                             type = "ST";
-                            String newact = formatPS(action);
-//                            String newact = action.substring(action.indexOf(":") + 1).trim();
-//                            if (newact.contains("VALUES")) {
-//                                newact = StringUtils.replace(newact, "('", "(\"");
-//                                newact = StringUtils.replace(newact, "','", "\",\"");
-//                                newact = StringUtils.replace(newact, "')", "\")");
-//                            } else if (newact.contains("UPDATE")) {
-//                                newact = StringUtils.replace(newact, "= '", "= \"");
-//                                newact = StringUtils.replace(newact, "', ", "\", ");
-//                                newact = StringUtils.replace(newact, "' , ", "\" , ");
-//                                newact = StringUtils.replace(newact, "' WHERE", "\" WHERE");
-//                                newact = StringUtils.replace(newact, "' AND", "\" AND");
-//                                if (newact.endsWith("'")) {
-//                                    newact = StringUtils.substring(newact, 0, newact.length() - 1);
-//                                    newact = newact + "\"";
-//                                }
-//                            } else if (newact.startsWith("INSERT INTO nc_transaction (SELECT")) {
-//                                newact = StringUtils.replace(newact, "','", "\",\"");
-//                                newact = StringUtils.replace(newact, ",'", ",\"");
-//                                newact = StringUtils.replace(newact, "' FROM", "\" FROM");
-//                                newact = StringUtils.replace(newact, "' ORDER BY", "\" ORDER BY");
-//                                newact = StringUtils.replace(newact, "= '", "= \"");
-//                            }
-//                            System.out.println(newact);
+                            String newact = formatPS0(action);
                             oper.setSql(newact);
                         }
                     } else {
@@ -567,7 +991,6 @@ public class Central_Branch {
                                 newact = StringUtils.replace(newact, "' ORDER BY", "\" ORDER BY");
                                 newact = StringUtils.replace(newact, "= '", "= \"");
                             }
-                            System.out.println(newact);
                             oper.setSql(newact);
                         }
                     } else {
@@ -628,17 +1051,61 @@ public class Central_Branch {
         return (errore.get() > 0);
     }
 
+    public static String formatPS0(String ps) {
+        try {
+            ps = ps.substring(ps.indexOf(":") + 1).trim();
+        } catch (Exception e) {
+        }
+        return ps;
+    }
+
+//    public static void main(String[] args) {
+//        String s1 = "com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ch_transaction_temp (SELECT '063230105130044878yY1OjIl',LPAD((CAST(id AS DECIMAL(10))+1),15, '0'),'063','B','1607','001','2023-01-05 13:02:46','002','OCO230105100008206eUlQ7qn','208.80','225.77','9.50','7.43','-0.04','16.93','18.06','PC VENE'NEZIA APRILE','0','-','-','-','0','-','-','-','-','-','-','-','-','-','-','-','-','DMYHLN89T66Z138V','210807145551146IlQXGby063','0','1901-01-01 00:00:00','-','-','0','-','0','0','-','-','-' FROM ch_transaction_temp WHERE filiale = '063' ORDER BY CAST(id AS DECIMAL(10,2)) DESC LIMIT 1)";
+//
+//        System.out.println("rc.soop.start.Central_Branch.main() " + formatPS(s1));
+//    }
+
     public static String formatPS(String ps) {
         ps = ps.substring(ps.indexOf(":") + 1).trim();
+//        System.out.println("rc.soop.start.Central_Branch.formatPS(1) " + ps);
+        try {
+
+            ps = StringUtils.replace(ps, "\\", "-");
+            ps = StringUtils.replace(ps, "\\\\", "-");
+            ps = StringUtils.replace(ps, "= '", "=\"");
+            ps = StringUtils.replace(ps, "='", "=\"");
+            ps = StringUtils.replace(ps, "',", "\",");
+            ps = StringUtils.replace(ps, "' ,", "\",");
+            ps = StringUtils.replace(ps, ",'", ",\"");
+            ps = StringUtils.replace(ps, "'0'", "\"0\"");
+            ps = StringUtils.replace(ps, "' WHERE", "\" WHERE");
+            ps = StringUtils.replace(ps, "'WHERE", "\" WHERE");
+            ps = StringUtils.replace(ps, "' AND", "\" AND");
+            ps = StringUtils.replace(ps, "'AND", "\" AND");
+            ps = StringUtils.replace(ps, "SELECT '", "SELECT \"");
+            ps = StringUtils.replace(ps, "' FROM", "\" FROM");
+            ps = StringUtils.replace(ps, "' ORDER", "\" ORDER");
+            ps = StringUtils.replace(ps, "VALUES ('", "VALUES (\"");
+            ps = StringUtils.replace(ps, "')", "\")");
+            ps = StringUtils.replace(ps, "** BYTE ARRAY DATA **", "\"\"");
+            
+
+        } catch (Exception e) {
+        }
+//        System.out.println("rc.soop.start.Central_Branch.formatPS(2) " + ps);
+
         StringBuilder ps_final = new StringBuilder();
-        if (ps.contains("UPDATE") && ps.contains("', ") && !ps.contains("ch_transaction_doc")) {
+        if ((ps.contains("UPDATE") && ps.contains("', ")
+                || ps.contains("UPDATE") && ps.contains("',"))
+                && !ps.contains("ch_transaction_doc") && !ps.contains("users")) {
             Splitter.on(" = ").splitToList(ps).forEach(s1 -> {
                 if (!s1.contains("WHERE") && !s1.contains("AND ") && !s1.startsWith("''")) {
                     Splitter.on("', ").splitToList(s1).forEach(s2 -> {
-                        String content = s2.startsWith("'") && !s2.endsWith(")") && !s2.endsWith("'") && !s2.contains("UPDATE")
-                                && !s2.contains("SELECT") && !s2.contains("FROM") && !s2.contains("WHERE") ? StringUtils.substring(s2, 1) : s2;
+                        String content = s2.startsWith("'") && !s2.endsWith(")") && !s2.endsWith("'")
+                                && !s2.contains("UPDATE")
+                                && !s2.contains("SELECT") && !s2.contains("FROM")
+                                && !s2.contains("WHERE") ? StringUtils.substring(s2, 1) : s2;
                         if (!content.equals(s2)) {
-
                             String dest = StringUtils.replace(content, "\\", "-");
                             dest = StringUtils.replace(dest, "'", "\\'");
                             ps_final.append("'").append(dest);
@@ -654,9 +1121,11 @@ public class Central_Branch {
             });
         } else if (ps.contains("',")) {
             Splitter.on("',").splitToList(ps).forEach(s1 -> {
-                String content = s1.startsWith("'") && !s1.endsWith(")")
+                String content
+                        = s1.startsWith("'") && !s1.endsWith(")")
                         && !s1.contains("UPDATE") && !s1.contains("SELECT")
-                        && !s1.contains("FROM") && !s1.contains("WHERE") ? StringUtils.substring(s1, 1) : s1;
+                        && !s1.contains("FROM") && !s1.contains("WHERE")
+                        ? StringUtils.substring(s1, 1) : s1;
                 if (!content.equals(s1)) {
                     String dest = StringUtils.replace(content, "\\", "-");
                     dest = StringUtils.replace(dest, "'", "\\'");
@@ -669,7 +1138,14 @@ public class Central_Branch {
         } else {
             ps_final.append(ps).append(" = ");
         }
-        return StringUtils.substring(ps_final.toString(), 0, ps_final.toString().length() - 2).trim();
+
+        String psf = ps_final.toString();
+        try {
+            psf = StringUtils.replace(psf, "' =", "\" =");
+        } catch (Exception e) {
+        }
+//        System.out.println("rc.soop.start.Central_Branch.formatPS(3) " + psf);
+        return StringUtils.substring(psf, 0, psf.length() - 2).trim();
     }
 
 //    private void createBat(boolean pause, Logger log) {
@@ -703,7 +1179,6 @@ public class Central_Branch {
 //            ex.printStackTrace();
 //        }
 //    }
-
 //    public static void main(String[] args) {
 //        String filiale;
 //        String metodo;

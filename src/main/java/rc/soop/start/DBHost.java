@@ -25,6 +25,7 @@ import static rc.soop.start.Utility.formatStringtoStringDate;
 import static rc.soop.start.Utility.parseStringDate;
 import static rc.soop.start.Utility.pattern1;
 import static rc.soop.start.Utility.patternsqldate;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -35,24 +36,25 @@ public class DBHost {
     private Connection conn = null;
     private Logger log = null;
 
-    private static final String drivername = "org.mariadb.jdbc.Driver";
-    private static final String typedb = "mariadb";
-
     public DBHost(String host, String user, String pwd, Logger log) {
         this.log = log;
         try {
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
             p.put("password", pwd);
+            p.put("useUnicode", "true");
+            p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
-
-//            if (host.contains("uk")) {
-//                p.put("useLegacyDatetimeCode", "false");
-//                p.put("serverTimezone", "-01:00");
-//            }
-            conn = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            this.conn = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "{0}: ERROR {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
             this.conn = null;
         }
@@ -83,7 +85,7 @@ public class DBHost {
     public DateTime now() {
         try {
             String sql = "SELECT now()";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     DateTime now = parseStringDate(rs.getString(1), patternsqldate);
                     if (host_h.contains("uk")) {
@@ -106,7 +108,7 @@ public class DBHost {
     public String getIpFiliale(String filiale) {
         try {
             String sql = "SELECT ip FROM dbfiliali WHERE filiale = ?";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, filiale);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -126,7 +128,7 @@ public class DBHost {
         try {
             String sql = "SELECT cod,dt_start,tipost,action FROM aggiornamenti_mod where filiale = '"
                     + filiale + "' AND fg_stato='" + stato + "' ORDER BY timestamp,cod LIMIT 10000";
-            try (ResultSet rs = this.conn.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     li.add(new Aggiornamenti_mod(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
                 }
@@ -140,7 +142,7 @@ public class DBHost {
     public void setStatus_agg(String cod, String st) {
         try {
             String upd = "UPDATE aggiornamenti_mod SET fg_stato = ? WHERE cod = ?";
-            try (PreparedStatement ps = this.conn.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, st);
                 ps.setString(2, cod);
                 ps.executeUpdate();
@@ -153,7 +155,7 @@ public class DBHost {
     public boolean execute_agg_copia(String cod, String filiale, String dt_start, String type, String action, String user) {
         try {
             String sqlins = "INSERT INTO aggiornamenti_mod VALUES (?,?,?,?,?,?,?,?)";
-            try (PreparedStatement ps = this.conn.prepareStatement(sqlins)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sqlins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, cod);
                 ps.setString(2, filiale);
                 ps.setString(3, dt_start);
@@ -178,7 +180,7 @@ public class DBHost {
     public boolean execute_agg(String type, Oper oper) {
         try {
             if (type.equalsIgnoreCase("PS")) {
-                try (PreparedStatement ps = this.conn.prepareStatement(oper.getSql())) {
+                try (PreparedStatement ps = this.conn.prepareStatement(oper.getSql(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                     for (int i = 0; i < oper.getParam().size(); i++) {
                         ps.setString(i + 1, oper.getParam().get(i));
                     }
@@ -190,7 +192,7 @@ public class DBHost {
                 }
                 return true;
             } else if (type.equalsIgnoreCase("ST")) {
-                try (Statement st = this.conn.createStatement()) {
+                try (Statement st = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                     st.executeUpdate(oper.getSql());
                     return true;
                 }
@@ -208,7 +210,7 @@ public class DBHost {
         ArrayList<String> out = new ArrayList<>();
         try {
             String sql = "SELECT distinct(cod) FROM branch WHERE fg_annullato = ? ORDER BY cast(cod AS decimal (10,0))";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "0");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -226,7 +228,7 @@ public class DBHost {
         List<WaitingExcel> out = new ArrayList<>();
         try {
             String sql = "SELECT cod,fileout,user,dt_start,data FROM excel_upload WHERE stato = ? order by data";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "0");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -242,7 +244,7 @@ public class DBHost {
 
     public boolean getPresenzaValuta(String filiale, String valuta, String bce, String dt_start, String user) {
         try {
-            try (ResultSet rs = this.conn.createStatement().executeQuery("select valuta from valute where valuta='" + valuta + "' AND filiale = '" + filiale + "'")) {
+            try (ResultSet rs = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("select valuta from valute where valuta='" + valuta + "' AND filiale = '" + filiale + "'")) {
                 if (!rs.next()) {
                     String ins = "insert into valute (filiale,valuta,codice_uic_divisa,de_valuta,cambio_acquisto,cambio_vendita,cambio_bce,de_messaggio) values ('" + filiale + "','" + valuta + "','','-','','','" + bce + "','-')";
                     if (filiale.equals("000")) {
@@ -299,7 +301,7 @@ public class DBHost {
     public void insert_aggiornamenti_mod(Aggiornamenti_mod am) {
         try {
             String ins = "INSERT INTO aggiornamenti_mod VALUES (?,?,?,?,?,?,?,?)";
-            try (PreparedStatement ps = this.conn.prepareStatement(ins)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, am.getCod());
                 ps.setString(2, am.getFiliale());
                 ps.setString(3, am.getDt_start());
@@ -326,7 +328,7 @@ public class DBHost {
     public boolean insert_ratehistory(Rate_history rh) {
         try {
             String ins = "INSERT INTO rate_history VALUES (?,?,?,?,?,?,?)";
-            try (PreparedStatement ps = this.conn.prepareStatement(ins)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, rh.getCodic());
                 ps.setString(2, rh.getFiliale());
                 ps.setString(3, rh.getValuta());
@@ -351,7 +353,7 @@ public class DBHost {
     public boolean update_stato_excel(String cod, String stato) {
         try {
             String upd = "UPDATE excel_upload SET stato = ? WHERE cod = ?";
-            try (PreparedStatement ps = this.conn.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, stato);
                 ps.setString(2, cod);
                 return ps.executeUpdate() > 0;
@@ -366,7 +368,7 @@ public class DBHost {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT cod,de_nome,de_cognome FROM users where length(username)<5 AND fg_stato='1'";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] in = {rs.getString(1), rs.getString(2), rs.getString(3)};
                     out.add(in);
@@ -382,7 +384,7 @@ public class DBHost {
     public boolean updateusername(String cod, String username) {
         try {
             String upd = "UPDATE users SET username = ? WHERE cod = ?";
-            try (PreparedStatement ps = this.conn.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, username);
                 ps.setString(2, cod);
                 return ps.executeUpdate() > 0;
@@ -410,7 +412,7 @@ public class DBHost {
     public DateTime get_last_date_blocked() {
         try {
             String sql = "SELECT timestamp FROM block_it_et WHERE data = curdate() AND status = ?";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "1");
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -427,7 +429,7 @@ public class DBHost {
     public boolean updateBlockedOperation(String user, String status) {
         try {
             String upd = "UPDATE block_it_et SET user = ?, status = ? WHERE data = curdate()";
-            try (PreparedStatement ps = this.conn.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, user);
                 ps.setString(2, status);
                 return ps.executeUpdate() > 0;
@@ -441,7 +443,7 @@ public class DBHost {
     public String[] get_currency_filiale(String filiale, String valuta) {
         try {
             String sql = "SELECT * FROM valute WHERE filiale = ? AND valuta = ? ORDER BY valuta";
-            try (PreparedStatement ps = this.conn.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.conn.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, filiale);
                 ps.setString(2, valuta);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -459,7 +461,7 @@ public class DBHost {
 
     public ResultSet getValoreTabelle(String nomeTabella, String filiale) {
         try {
-            try (Statement st = this.conn.createStatement()) {
+            try (Statement st = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 return st.executeQuery("select * from " + nomeTabella + " where filiale='" + filiale + "'");
             }
         } catch (Exception ex) {
@@ -470,7 +472,7 @@ public class DBHost {
 
     public boolean insAgg(String tabella, String filiale, String filialenew) {
         try {
-            try (Statement stmt = this.conn.createStatement()) {
+            try (Statement stmt = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 stmt.executeUpdate("insert into " + tabella + " values (select '" + filialenew + "',gruppo_nc,causale_nc,de_causale_nc,fg_in_out,ip_prezzo_nc,fg_tipo_transazione_nc,annullato,nc_de,fg_batch,fg_gruppo_stampa,fg_scontrino,ticket_fee_type,ticket_fee,max_ticket,data,bonus,codice_integr,paymat,docric from " + tabella + " where filiale='" + filiale + "')");
                 return true;
             }
@@ -483,7 +485,7 @@ public class DBHost {
     public void updateSpreadSito() {
         try {
             String sql = "SELECT valuta,cambio_bce FROM valute WHERE filiale = '000'";
-            try (ResultSet rs = this.conn.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     String upd = "UPDATE sito_spread SET cambio_bce = ? WHERE valuta = ?";
                     try (PreparedStatement ps = this.conn.prepareStatement(upd)) {

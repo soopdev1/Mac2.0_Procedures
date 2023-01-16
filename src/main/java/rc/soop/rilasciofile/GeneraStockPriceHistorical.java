@@ -24,14 +24,15 @@ public class GeneraStockPriceHistorical {
     public static void engine() {
 
         String year = new DateTime().toString(patternyear);
-        String datareport = new DateTime().toString(patternnormdate);
+        
         GeneraFile gf = new GeneraFile();
         gf.setIs_IT(true);
         gf.setIs_UK(false);
         gf.setIs_CZ(false);
 
         Db dbm = new Db(true);
-        String path = dbm.getPath("temp");
+        String path = dbm.getPath("temp","descr");
+        String datareport = dbm.getNowDT().toString(patternnormdate);
 //        String path = "E:\\temp\\HSP\\";
         ArrayList<Branch> allenabledbr = dbm.list_branch_completeAFTER311217();
         ArrayList<StockPrice_value> complete = new ArrayList<>();
@@ -62,7 +63,6 @@ public class GeneraStockPriceHistorical {
         String base64 = sp.receipt_multi(path, complete, datareport);
 
         try {
-//            Db dbm1 = new Db("//machaproxy01.mactwo.loc:3306/maccorp");
             Db dbm1 = new Db(true);
             try ( Statement st = dbm1.getConnection().createStatement()) {
                 st.executeUpdate("UPDATE conf SET des = '" + base64 + "' WHERE id = 'stockprice." + year + ".pdf'");

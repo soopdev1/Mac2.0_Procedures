@@ -6,7 +6,6 @@
 package rc.soop.crm;
 
 import com.google.common.base.Splitter;
-import static it.refill.testarea.Db.comma;
 import static rc.soop.crm.Action.formatStringtoStringDate;
 import static rc.soop.crm.Action.generaId;
 import static rc.soop.crm.Action.log;
@@ -28,6 +27,9 @@ import java.util.Properties;
 import java.util.logging.Level;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.DateTime;
+import static rc.soop.crm.CRM_batch.test;
+import static rc.soop.start.Utility.comma;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -39,28 +41,28 @@ public class Database {
 
     public Database() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
-            String host = "//172.18.17.41:3306/maccorpita";
-            if (test) {
-                host = "//172.18.17.41:3306/maccorp";
-            }
-            ////        
-            Class.forName(drivername);
+            Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
             p.put("password", pwd);
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = test ? rb.getString("db.ip") + "/maccorp" : rb.getString("db.ip") + "/maccorpita";
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-            this.c.createStatement().execute("SET GLOBAL max_allowed_packet=1024*1024*1024;");
         } catch (Exception ex) {
             this.c = null;
             log.log(Level.SEVERE, "Connection DB: {0}", ex.getMessage());
-            sendMailHtml("mac2.0@setacom.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH " + rc.soop.crm.CRM_batch.test + " :" + ex.getMessage());
+            sendMailHtml("mac2.0@smartoop.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH " + rc.soop.crm.CRM_batch.test + " :" + ex.getMessage());
         }
     }
 
@@ -85,7 +87,7 @@ public class Database {
     public String getUserPermission(String name) {//fatto
         try {
             String sql = "SELECT permessi FROM pagina WHERE nome = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -100,7 +102,7 @@ public class Database {
     public Booking getBookingbyCod(String cod) {
         try {
             String sql = "SELECT * FROM sito_prenotazioni WHERE cod = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -123,7 +125,7 @@ public class Database {
     public String get_descr_Branch(String cod) {
         try {
             String sql = "SELECT de_branch,cod,add_cap,add_via,add_city FROM branch WHERE cod = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -140,7 +142,7 @@ public class Database {
         try {
             String sql = "SELECT cod,de_branch,brgr_05,brgr_03 FROM branch "
                     + "WHERE fg_annullato='0' AND cod <>'000' ORDER BY de_branch";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 out.add(new Items(rs.getString(1), rs.getString(2), (rs.getString(1) + " - " + rs.getString(2)).toUpperCase(), rs.getString(3), rs.getString(4)));
             }
@@ -155,7 +157,7 @@ public class Database {
         try {
             String sql = "SELECT cod FROM branch "
                     + "WHERE fg_annullato='0' AND brgr_05 = '" + crv + "' ORDER BY de_branch";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 out.add(rs.getString(1));
             }
@@ -177,7 +179,7 @@ public class Database {
 
             sql += "ORDER BY de_branch";
 
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 out.add(new Items(rs.getString(1), rs.getString(2), (rs.getString(1) + " - " + rs.getString(2)).toUpperCase(), rs.getString(3), rs.getString(4)));
             }
@@ -191,7 +193,7 @@ public class Database {
         List<Items> out = new ArrayList<>();
         try {
             String sql = "SELECT valuta,de_valuta FROM valute WHERE filiale='000'";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 out.add(new Items(rs.getString(1), rs.getString(2), (rs.getString(1) + " - " + rs.getString(2)).toUpperCase()));
             }
@@ -213,7 +215,7 @@ public class Database {
                         + "','%Y-%m-%d') AND STR_TO_DATE(data_end,'%Y-%m-%d') >= STR_TO_DATE('" + dtrit
                         + "','%Y-%m-%d') ORDER BY descrizione";
             }
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 Items it = new Items(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
                         rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8));
@@ -264,12 +266,12 @@ public class Database {
             }
         }
     }
-    
+
     public ArrayList<String> list_cod_branch_enabled() {
         ArrayList<String> out = new ArrayList<>();
         try {
             String sql = "SELECT cod FROM branch WHERE fg_annullato = ? AND filiale = ? ORDER BY cod";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, "0");
             ps.setString(2, "000");
             ResultSet rs = ps.executeQuery();
@@ -285,7 +287,7 @@ public class Database {
     public void insert_aggiornamenti_mod(Aggiornamenti_mod am) {
         try {
             String ins = "INSERT INTO aggiornamenti_mod VALUES (?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(ins);
+            PreparedStatement ps = this.c.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, am.getCod());
             ps.setString(2, am.getFiliale());
             ps.setString(3, am.getDt_start());
@@ -303,7 +305,7 @@ public class Database {
     public List<Booking_Date> list_total_booking() {
         List<Booking_Date> total = new ArrayList<>();
         try {
-            ResultSet rs = this.c.createStatement().executeQuery("SELECT * FROM sito_prenotazioni WHERE stato='0' OR stato = '3' ORDER BY dt_ritiro");
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM sito_prenotazioni WHERE stato='0' OR stato = '3' ORDER BY dt_ritiro");
             while (rs.next()) {
                 Booking_Date bd1 = new Booking_Date(rs.getString("cod"), rs.getString("dt_ritiro"), rs.getString("stato"),
                         rs.getString("stato_crm"), formatter_N.parseDateTime(rs.getString("dt_ritiro")), rs.getString("filiale"));
@@ -318,7 +320,7 @@ public class Database {
     public boolean update_status_sito(String cod, String stato, String statoCRM, String filiale) {
         try {
             String upd = "UPDATE sito_prenotazioni SET stato = '" + stato + "', stato_crm = '" + statoCRM + "' WHERE cod = '" + cod + "'";
-            boolean es1 = this.c.createStatement().executeUpdate(upd) > 0;
+            boolean es1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeUpdate(upd) > 0;
             if (es1) {
                 //aggiornafiliale
                 //---DIFFUSIONE---AGGIORNAMENTI
@@ -337,7 +339,7 @@ public class Database {
         try {
             String s1 = "SELECT cod,de_branch,fg_annullato FROM branch "
                     + "WHERE fg_annullato = ? AND cod <> ? ORDER BY de_branch";
-            PreparedStatement ps = this.c.prepareStatement(s1);
+            PreparedStatement ps = this.c.prepareStatement(s1,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, "0");
             ps.setString(2, "000");
             ResultSet rs = ps.executeQuery();
@@ -354,10 +356,10 @@ public class Database {
     public void updateSpreadSito() {
         try {
             String sql = "SELECT valuta,cambio_bce FROM valute WHERE filiale = '000'";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 String upd = "UPDATE sito_spread SET cambio_bce = ? WHERE valuta = ?";
-                PreparedStatement ps = this.c.prepareStatement(upd);
+                PreparedStatement ps = this.c.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 ps.setString(1, rs.getString(2));
                 ps.setString(2, rs.getString(1));
                 boolean b = ps.executeUpdate() > 0;

@@ -5,7 +5,6 @@
  */
 package rc.soop.main;
 
-import rc.soop.maintenance.Clear;
 import static rc.soop.maintenance.Clear.CENTRAL_delete_chtransactiondoc_story;
 import static rc.soop.maintenance.Clear.CENTRAL_deleteaggiornamentimenouno;
 import static rc.soop.cora.MacCORA.generaannuale;
@@ -16,7 +15,6 @@ import static rc.soop.gs.Client.invia2022;
 import rc.soop.gs.DatiInvio;
 import rc.soop.gs.Db_Master;
 import rc.soop.gs.Filiale;
-import static rc.soop.maintenance.Monitor.exe;
 import rc.soop.rilasciofile.GeneraFile;
 import rc.soop.sftp.SftpSIA;
 import rc.soop.start.Central_Branch;
@@ -27,8 +25,11 @@ import static rc.soop.start.Utility.rb;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import static rc.soop.aggiornamenti.VerificaAggiornamenti.ultimo_Aggiornamento22;
 import static rc.soop.aggiornamenti.VerificaAggiornamenti.verifica_Aggiornamenti22;
 import static rc.soop.crm.Engine.recap_greenNumber;
@@ -37,6 +38,7 @@ import static rc.soop.crm.Engine.set_expired_noshow_NEW;
 import static rc.soop.crm.Engine.updateSpreadSito;
 import rc.soop.indicerischio.RiskIndex;
 import rc.soop.maintenance.Branch;
+import rc.soop.maintenance.Monitor;
 import static rc.soop.maintenance.ProceduraDaily.allinea;
 import rc.soop.maintenance.RateStockPrice;
 import rc.soop.maintenance.Rate_BCE;
@@ -64,12 +66,37 @@ public class MainSelector {
 
         int scelta;
         String repvalue;
+
+        String filiale;
+        String metodo;
         try {
             scelta = Integer.parseInt(args[0]);
+        } catch (Exception e) {
+            scelta = 11;
+        }
+
+        try {
             repvalue = args[1];
         } catch (Exception e) {
-            scelta = 4;
-            repvalue = "TCH";
+            repvalue = "NO";
+        }
+
+        try {
+            filiale = args[1];
+            metodo = args[2];
+        } catch (Exception e) {
+            filiale = "000";
+            metodo = "NO";
+        }
+
+        String datastart;
+        String dataend;
+        try {
+            datastart = args[2];
+            dataend = args[3];
+        } catch (Exception e) {
+            datastart = "2022-12-01";
+            dataend = "2022-12-31";
         }
 
         switch (scelta) {
@@ -96,21 +123,26 @@ public class MainSelector {
             case 6: //  CORA MENSILE
                 generamensile();
                 break;
-            case 7: //  CORA ANNUALE
+            case 7: { //  CORA ANNUALE
                 generaannuale();
                 break;
-            case 8: //ALLINEAMENTO DATI CENTRALE
+            }
+            case 8: { //ALLINEAMENTO DATI CENTRALE
                 ReloadingDati.riallinea();
                 break;
-            case 9: // SITO ENGINE
+            }
+            case 9: {// SITO ENGINE
                 recap_greenNumber();
                 refresh_branch();
                 updateSpreadSito();
                 set_expired_noshow_NEW();
                 break;
-            case 10: //AGGIORNA RATE BCE 
+            }
+            case 10: {
+                //AGGIORNA RATE BCE 
                 Rate_BCE.engine();
                 break;
+            }
             case 11: // AGGIORNAMENTI CENTRALE
                 Logger log = createLog("Mac2.0_AGG_CENTRAL_" + "000", rb.getString("path.log"), pattern4);
                 log.warning("START...");
@@ -142,7 +174,7 @@ public class MainSelector {
 
                 break;
             case 12: //MONITOR
-                exe();
+                Monitor.exe();
                 break;
             case 13: //VERIFICA AGGIORNAMENTI
                 ultimo_Aggiornamento22();
@@ -209,7 +241,6 @@ public class MainSelector {
                 CorreggiSpread.enginecz();
                 break;
             case 31: {// ALLINEA FILIALE CZ
-
                 rc.soop.maintenance.Db_Master dbm = new rc.soop.maintenance.Db_Master(false, true);
                 ArrayList<Branch> li = dbm.list_branch_enabled();
                 for (int y = 0; y < li.size(); y++) {
@@ -227,6 +258,63 @@ public class MainSelector {
             case 33: //SFTP SIA/NEXI
                 new SftpSIA().sftpsia(true);
                 break;
+            case 44: { //AGGIORNA FILIALI    
+                Logger log1 = createLog("Mac2.0_AGG_" + metodo + "_" + filiale, rb.getString("path.log"), pattern4);
+                log1.warning("START...");
+                Central_Branch cb1 = new Central_Branch(filiale);
+                switch (metodo) {
+                    case "TOBRANCH": {
+
+                        try {
+                            if (!cb1.updateToBranch(log1)) {
+                                log1.log(Level.WARNING, "AGGIORNAMENTO1 VERSO LA  FILIALE: {0} COMPLETATO", filiale);
+                            } else {
+                                log1.log(Level.SEVERE, "ERRORE AGGIORNAMENTO1 VERSO LA FILIALE: {0}", filiale);
+                            }
+                        } catch (Exception e) {
+                        }
+                        try {
+                            if (!cb1.updateToBranch2(log1)) {
+                                log1.log(Level.WARNING, "AGGIORNAMENTO2 VERSO LA  FILIALE: {0} COMPLETATO", filiale);
+                            } else {
+                                log1.log(Level.SEVERE, "ERRORE AGGIORNAMENTO2 VERSO LA FILIALE: {0}", filiale);
+                            }
+                        } catch (Exception e) {
+                        }
+                        try {
+                            if (!cb1.updateToBranch3(log1)) {
+                                log1.log(Level.WARNING, "AGGIORNAMENTO3 VERSO LA  FILIALE: {0} COMPLETATO", filiale);
+                            } else {
+                                log1.log(Level.SEVERE, "ERRORE AGGIORNAMENTO3 VERSO LA FILIALE: {0}", filiale);
+                            }
+                        } catch (Exception e) {
+                        }
+
+                    }
+                    break;
+                    case "TOCENTRAL":
+                        if (!cb1.updateFromBranch(log1)) {
+                            log1.log(Level.WARNING, "AGGIORNAMENTO DALLA  FILIALE: {0} COMPLETATO", filiale);
+                        } else {
+                            log1.log(Level.SEVERE, "ERRORE AGGIORNAMENTO DALLA FILIALE: {0}", filiale);
+                        }
+
+                        break;
+                }
+                break;
+            }
+            case 55: { //GENERA FILE ONDEMAND              
+                System.out.println("rc.soop.main.MainSelector.main(1) "+datastart);
+                System.out.println("rc.soop.main.MainSelector.main(2) "+dataend);
+                DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
+                DateTime iniziomese = dtf.parseDateTime(datastart);
+                DateTime ieri = dtf.parseDateTime(dataend);
+
+                GeneraFile gf2 = new GeneraFile();
+                gf2.rilasciafile(gf2, repvalue, iniziomese, ieri);
+                break;
+
+            }
             default:
                 break;
         }

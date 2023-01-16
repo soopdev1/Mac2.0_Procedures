@@ -6,6 +6,7 @@
 package rc.soop.cora;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import static java.lang.Class.forName;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -39,24 +40,24 @@ public class Db_Master {
 
     public Db_Master() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
-            String host;
-////        host = "//machaproxy01.mactwo.loc:3306/maccorp";
-            host = "//machaproxy01.mactwo.loc:3306/maccorpita";
-            Class.forName(drivername).newInstance();
+            String host = rb.getString("db.ip") + "/maccorpita";
+            forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
             p.put("password", pwd);
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-            try (Statement st1 = this.c.createStatement()) {
-                st1.execute("SET GLOBAL max_allowed_packet=1024*1024*1024;");
-            }
         } catch (Exception ex) {
             this.c = null;
             log.severe(ex.getMessage());
@@ -84,7 +85,7 @@ public class Db_Master {
     public String getConf(String id) {
         try {
             String sql = "SELECT des FROM conf WHERE id = ? ";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, id);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -101,7 +102,7 @@ public class Db_Master {
     public String getPath(String cod) {
         try {
             String sql = "SELECT descr FROM path WHERE cod = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, cod);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -128,7 +129,7 @@ public class Db_Master {
             }
 
             query = query + " ORDER BY filiale,valuta";
-            try (ResultSet rs = this.c.createStatement().executeQuery(query)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(query)) {
                 while (rs.next()) {
                     String var1[] = {rs.getString("valuta"), rs.getString("de_valuta"), rs.getString("cambio_bce"), rs.getString("buy_std_value"),
                         rs.getString("buy_std_type"), rs.getString("buy_std"), rs.getString("sell_std_value"), rs.getString("sell_std_type"),
@@ -147,7 +148,7 @@ public class Db_Master {
         ArrayList<Branch> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM branch WHERE fg_annullato = ? ORDER BY de_branch";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "0");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -222,7 +223,7 @@ public class Db_Master {
     public Client query_Client_transaction(String codtr, String codcl) {
         try {
             String sql = "SELECT * FROM ch_transaction_client WHERE codtr = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, codtr);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -257,7 +258,7 @@ public class Db_Master {
                         return bl;
                     } else {
                         sql = "SELECT * FROM ch_transaction_client WHERE codcl = ?";
-                        try (PreparedStatement ps1 = this.c.prepareStatement(sql)) {
+                        try (PreparedStatement ps1 = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                             ps1.setString(1, codcl);
                             try (ResultSet rs1 = ps.executeQuery()) {
                                 if (rs1.next()) {
@@ -305,7 +306,7 @@ public class Db_Master {
     public Client query_Client(String cod) {
         try {
             String sql = "SELECT * FROM anagrafica_ru where ndg = ? limit 1";
-            try (PreparedStatement ps1 = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps1 = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps1.setString(1, cod);
                 try (ResultSet rs1 = ps1.executeQuery()) {
                     if (rs1.next()) {
@@ -355,7 +356,7 @@ public class Db_Master {
         ArrayList<Branch> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM branch WHERE fg_annullato = ? ORDER BY de_branch";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "0");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -404,7 +405,7 @@ public class Db_Master {
     public Branch get_branch(String cod) {
         try {
             String sql = "SELECT * FROM branch WHERE cod = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, cod);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -463,7 +464,7 @@ public class Db_Master {
         List<Object_DB> out = new ArrayList<>();
         try {
             String sql = "SELECT provincia,de_provincia FROM province group by provincia order by de_provincia";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     out.add(new Object_DB(rs.getString(1), rs.getString(2).toUpperCase()));
                 }
@@ -478,7 +479,7 @@ public class Db_Master {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT nazione,de_nazione,alpha_code,fg_area_geografica FROM nazioni order by de_nazione";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2)), rs.getString(3), rs.getString(4)};
                     out.add(o1);
@@ -494,7 +495,7 @@ public class Db_Master {
         ArrayList<Currency> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM valute WHERE filiale = ? ORDER BY valuta";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "000");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -545,7 +546,7 @@ public class Db_Master {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT tipo_documento_identita,de_tipo_documento_identita,OAM_code,reader_robot FROM tipologiadocumento order by de_tipo_documento_identita";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2)), rs.getString(3), rs.getString(4)};
                     out.add(o1);
@@ -560,7 +561,7 @@ public class Db_Master {
     public DateTime getNowDT() {
         try {
             String sql = "SELECT now()";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     DateTimeFormatter formatter = DateTimeFormat.forPattern(patternsqldate);
                     return formatter.parseDateTime(rs.getString(1).substring(0, 19));
@@ -580,7 +581,7 @@ public class Db_Master {
             if (f1 != null && f2 != null) {
                 query = query + "AND cl_cod NOT IN (SELECT cl_cod FROM ch_transaction c where del_fg='0' AND data >= '" + f1 + " 00:00:00' and data <= '" + f2 + " 23:59:59')";
             }
-            try (ResultSet rs = this.c.createStatement().executeQuery(query)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(query)) {
                 while (rs.next()) {
                     Client cL = query_Client_transaction(rs.getString("cod"), rs.getString("cl_cod"));
                     boolean add = true;
@@ -623,7 +624,7 @@ public class Db_Master {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM comuni_apm ORDER BY denominazione";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2))};
                     out.add(o1);
@@ -638,20 +639,20 @@ public class Db_Master {
     public String generacodiceCORA(String codcll, String anno, String mese, String datafile, String cognome, String nome) {
         try {
             String sql = "SELECT codice FROM cora_codici WHERE codicecliente = '" + codcll + "' AND anno = '" + anno + "'";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 if (rs.next()) {
                     return rs.getString(1);
                 } else {
                     String id = "";
                     String count = "SELECT count(codice) FROM cora_codici WHERE anno = '" + anno + "'";
-                    try (ResultSet rscount = this.c.createStatement().executeQuery(count)) {
+                    try (ResultSet rscount = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(count)) {
                         if (rscount.next()) {
                             int iii = rscount.getInt(1) + 1;
                             id = StringUtils.leftPad(String.valueOf(iii), 9, "0");
                         }
                         String newcod = "12951210157_" + anno + mese + "_" + datafile + "_" + estraicodicecognomenome(cognome, nome) + "_" + id;
                         String insert = "INSERT INTO cora_codici VALUES (?,?,?)";
-                        try (PreparedStatement ps = this.c.prepareStatement(insert)) {
+                        try (PreparedStatement ps = this.c.prepareStatement(insert,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                             ps.setString(1, newcod);
                             ps.setString(2, anno);
                             ps.setString(3, codcll);
@@ -671,7 +672,7 @@ public class Db_Master {
         try {
 
             String ins = "INSERT INTO cora VALUES ('" + datarif + "','" + content + "','" + tipo + "')";
-            try (Statement st = this.c.createStatement()) {
+            try (Statement st = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 st.execute(ins);
                 return true;
             }
@@ -684,7 +685,7 @@ public class Db_Master {
     public Transaction getTransaction(String cl_cod) {
         try {
             String sql = "SELECT tr.data,va.valuta,va.quantita,va.total FROM ch_transaction tr,ch_transaction_valori va WHERE tr.cl_cod='" + cl_cod + "' and tr.cod=va.cod_tr AND tr.del_fg='0' ORDER BY tr.data ASC";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 List<Transaction> TOTAL = new ArrayList<>();
                 AtomicDouble controval_cora = new AtomicDouble(0.00);
                 while (rs.next()) {
@@ -710,7 +711,7 @@ public class Db_Master {
         List<Codici> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM maccorpita.cora_codici WHERE anno ='" + anno + "'";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Codici(rs.getString(1), rs.getString(2), rs.getString(3)));
                 }
@@ -745,7 +746,7 @@ public class Db_Master {
         List<Codici> out = new ArrayList<>();
         try {
             String sql = "select * from cora_codici WHERE codicecliente = '180129180212880Sy5ObUlTfS' OR codicecliente = '180117125231435EPhuOb1H1f' OR codicecliente = '180109104122550LLODOPZA2K' OR  codicecliente = '180123162523760MhxnRHqcCj'";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     out.add(new Codici(rs.getString(1), rs.getString(2), rs.getString(3)));
                 }

@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.testarea;
+package rc.soop.testarea;
 
 import java.io.File;
 import java.io.IOException;
-import static it.refill.testarea.Mactest.updateSQL;
+import static rc.soop.aggiornamenti.Mactest.updateSQL;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 
@@ -16,9 +16,6 @@ import org.apache.commons.io.FileUtils;
  * @author rcosco
  */
 public class Update {
-
-    private static final String host_TEST = "//machaproxy01.mactwo.loc:3306/maccorp";
-    public static final String host_PROD = "//machaproxy01.mactwo.loc:3306/maccorpita";
 
     public static void main(String[] args) {
 

@@ -5,15 +5,16 @@
  */
 package rc.soop.maintenance;
 
-import it.refill.testarea.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import static it.refill.testarea.ExportDataCLiente.fd;
 import org.joda.time.DateTime;
+import rc.soop.aggiornamenti.Db;
+import static rc.soop.start.Utility.fd;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -38,21 +39,17 @@ public class RateStockPrice {
             codvalue = "CZK";
         }
 
-        String PROD = "//machaproxy01.mactwo.loc:3306/" + nameprod;
-        String TEST = "//machaproxy01.mactwo.loc:3306/" + nametest;
+        String PROD = rb.getString("db.ip") + "/" + nameprod;
+        String TEST = rb.getString("db.ip") + "/" + nametest;
         recuperorate(PROD, nameprod, nametest);
         test(TEST, codvalue);
         today(PROD, codvalue);
         today_branch(PROD, codvalue);
         recuperatuttelefiliali(TEST, true);
 
-//        prod(PROD, codvalue);
-//        all(PROD, codvalue);
-//        recuperatuttelefiliali(PROD);
     }
 
     private static void all(String PROD, String codvalue) {
-        System.out.println("mactest.InsertRateStockPrice.all() " + PROD);
         DateTime start = new DateTime(2020, 1, 1, 0, 0);
         DateTime today = new DateTime().withMillisOfDay(0);
 

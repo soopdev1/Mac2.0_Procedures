@@ -186,7 +186,6 @@ public class Monitor {
         Db_Master dbm = new Db_Master();
         ArrayList<String[]> al = dbm.getValuteForMonitor(filiale);
         dbm.closeDB();
-
         if (!al.isEmpty()) {
 
             if (filiale.equals("---")) {
@@ -257,7 +256,8 @@ public class Monitor {
                         buy.appendChild(doc.createTextNode(""));
                     } else {
                         if (al.get(i)[4].equals("0")) {
-                            buy.appendChild(doc.createTextNode(formatValue(addStandard(al.get(i)[5], al.get(i)[2]))));
+                            buy.appendChild(doc.createTextNode((addStandard(al.get(i)[5], al.get(i)[2]))));
+//                            buy.appendChild(doc.createTextNode(formatValue(addStandard(al.get(i)[5], al.get(i)[2]))));
                         } else {
                             buy.appendChild(doc.createTextNode(al.get(i)[4]));
                         }
@@ -270,7 +270,8 @@ public class Monitor {
                         sell.appendChild(doc.createTextNode(""));
                     } else {
                         if (al.get(i)[7].equals("0")) {
-                            sell.appendChild(doc.createTextNode(formatValue(addStandard(al.get(i)[8], al.get(i)[2]))));
+                            sell.appendChild(doc.createTextNode((addStandard(al.get(i)[8], al.get(i)[2]))));
+//                            sell.appendChild(doc.createTextNode(formatValue(addStandard(al.get(i)[8], al.get(i)[2]))));
                         } else {
                             sell.appendChild(doc.createTextNode(al.get(i)[6]));
                         }
@@ -291,7 +292,7 @@ public class Monitor {
 
             boolean es = ftpUploadFile(ftpClient, xml_output);
             return es;
-        } catch (ParserConfigurationException | TransformerException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
         }
         return false;
@@ -356,7 +357,7 @@ public class Monitor {
         try {
             String firstRemoteFile = StringUtils.deleteWhitespace(fileup.getName());
             boolean done;
-            try ( InputStream inputStream = new FileInputStream(fileup)) {
+            try (InputStream inputStream = new FileInputStream(fileup)) {
                 done = ftpClient.storeFile(firstRemoteFile, inputStream);
             }
             if (done) {
@@ -372,9 +373,7 @@ public class Monitor {
                     }
                 }
             }
-        } catch (FileNotFoundException ex) {
-            log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
         }
         return false;
@@ -399,13 +398,20 @@ public class Monitor {
         String path = dbm.getPath("temp");
         ArrayList<Branch> brl = dbm.list_branch_enabled();
         dbm.closeDB();
+
         FTPClient ftpClient = ftpConnect(host, port, usr, psw);
         if (ftpClient != null) {
+            ftpClient.enterLocalPassiveMode();
 //            ftpChangeDir(ftpClient, dir);
             generateFile(path, "---", brl, ftpClient);
             ftpDisconnect(ftpClient);
         }
 
     }
-
+    
+    
+//    public static void main(String[] args) {
+//        System.out.println("rc.soop.maintenance.Monitor.main() "+(addStandard("16.00", "25011.00")));
+//        System.out.println("rc.soop.maintenance.Monitor.main() "+formatValue(addStandard("16.00", "25011.00")));
+//    }
 }

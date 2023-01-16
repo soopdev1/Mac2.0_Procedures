@@ -1,4 +1,4 @@
-package it.refill.testarea;
+package rc.soop.testarea;
 
 public class Client {
 

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.testarea;
+package rc.soop.aggiornamenti;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -141,7 +141,7 @@ public class Utility {
             InternetAddress froms = new InternetAddress("cloud@maccorp.it");
             froms.setPersonal("Noreply Mac2.0");
             message.setFrom(froms);
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("mac2.0@setacom.it"));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("mac2.0@smartoop.it"));
             message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("support@maccorp.it"));
             message.setSubject("AGGIORNAMENTI IN CODA");
             Multipart mp = new MimeMultipart();

@@ -165,9 +165,9 @@ public class ESolver {
             String codice_spread, String net, String spread) {
         //giornaliera per ogni filiale, una per valuta estera (controvalore), una per valuta locale
 
-        System.out.println(type + " esolver.ESolver.tofrombank_fattura(N) " + net);
-        System.out.println(type + " esolver.ESolver.tofrombank_fattura(S) " + spread);
-        System.out.println(type + " esolver.ESolver.tofrombank_fattura(I) " + importo);
+//        System.out.println(type + " esolver.ESolver.tofrombank_fattura(N) " + net);
+//        System.out.println(type + " esolver.ESolver.tofrombank_fattura(S) " + spread);
+//        System.out.println(type + " esolver.ESolver.tofrombank_fattura(I) " + importo);
 
         String valueSpread = "";
         String valueSpreadNeg = "";
@@ -1369,9 +1369,8 @@ public class ESolver {
                                         filiale.getCod(), filiale.getDe_branch(), nc0.getDe_gruppo_nc(), vat1.getVatcode1(), writer);
                                 nreg++;
 
-                            } else {
-                                //System.out.println("com.seta.esolver.Client_es.FILEP2(1) " + vat1.getVatcode1() + " NON TROVATO");
                             }
+                            
                             if (va2 != null) {
                                 double total1 = fd(valori[3]) * fd(vat1.getPrice2());
                                 double imposta1 = calcolaIva(total1, fd(va2.getAliquota()));
@@ -1396,8 +1395,6 @@ public class ESolver {
                                         vat1.getAccountingcode2(), importo, imponibile, imposta, contocassa, codicecassa,
                                         filiale.getCod(), filiale.getDe_branch(), nc0.getDe_gruppo_nc(), vat1.getVatcode2(), writer);
                                 nreg++;
-                            } else {
-                                //System.out.println("com.seta.esolver.Client_es.FILEP2(2) " + vat1.getVatcode2() + " NON TROVATO");
                             }
                         } else {
                             VATcode va1 = get_vat(nc0.getConto_coge_02(), vat);
@@ -1739,6 +1736,7 @@ public class ESolver {
                                 if (fd(diff) > 0) {
                                     errori_cassa_pos = errori_cassa_pos + parseDoubleR(diff);
                                 } else {
+//                                    System.out.println(filiale.getCod()+" rc.soop.esolver.ESolver.FILEP1()");
                                     errori_cassa_neg = errori_cassa_neg + parseDoubleR(diff);
                                 }
                             }

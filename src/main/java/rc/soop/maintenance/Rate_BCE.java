@@ -5,15 +5,13 @@
  */
 package rc.soop.maintenance;
 
-import it.refill.testarea.Db;
-import it.refill.testarea.Mactest;
 import java.util.ArrayList;
-import static it.refill.testarea.ExportDataCLiente.fd;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import rc.soop.aggiornamenti.Db;
+import rc.soop.aggiornamenti.Mactest;
+import static rc.soop.start.Utility.fd;
 
 /**
  *
@@ -22,7 +20,7 @@ import org.joda.time.format.DateTimeFormatter;
 public class Rate_BCE {
 
     private static final String pattern1 = "yyyy-MM-dd";
-    private static final String startday = "2020-09-01";
+    private static final String startday = "2022-12-16";
 //  private static final String value = "2019-01-01";
 
     public static void today(String[] args) {
@@ -45,14 +43,15 @@ public class Rate_BCE {
     }
 
     public static void engine() {
-        DateTime dt = new DateTime().minusDays(1);
+        DateTime dt = new DateTime().withMillisOfDay(0);
         DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
         DateTime start = formatter.parseDateTime(startday);
         Db db = new Db(Mactest.host_PROD, false);
         ArrayList<String> listCurrency = db.listCurrency("EUR");
-        while (start.isBefore(dt)) {
+        while (start.isBefore(dt) || start.isEqual(dt)) {
             String giorno = start.toString(pattern1);
             start = start.plusDays(1);
+            System.out.println("rc.soop.maintenance.Rate_BCE.engine() ");
             listCurrency.forEach(valuta1 -> {
                 String value = db.get_BCE(giorno, valuta1);
                 if (fd(value) > 0) {

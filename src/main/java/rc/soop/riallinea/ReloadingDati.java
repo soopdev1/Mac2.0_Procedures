@@ -51,7 +51,7 @@ public class ReloadingDati {
         List<String> lista = new ArrayList<>();
         try {
             Db_Master db1 = new Db_Master();
-            try ( Statement st1 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);  ResultSet rs1 = st1.executeQuery("SELECT cod FROM maccorpita.branch WHERE cod<>'000' AND "
+            try (Statement st1 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs1 = st1.executeQuery("SELECT cod FROM maccorpita.branch WHERE cod<>'000' AND "
                     + "(fg_annullato = '0' OR (fg_annullato ='1' AND da_annull > '2020-01-01'))")) {
                 while (rs1.next()) {
                     lista.add(rs1.getString(1));
@@ -164,10 +164,10 @@ public class ReloadingDati {
             Db_Master db = new Db_Master();
             String sql = "SELECT v.cod FROM et_change e, et_change_valori v WHERE e.cod=v.cod AND v.ip_spread<>'0.00' "
                     + "AND e.fg_brba='BR' AND e.dt_it > '2022-06-01' AND e.fg_annullato='0'";
-            try ( Statement st = db.getC().createStatement();  ResultSet rs = st.executeQuery(sql)) {
+            try (Statement st = db.getC().createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 while (rs.next()) {
                     String upd = "UPDATE et_change_valori SET ip_spread = '0.00' WHERE ip_spread<>'0.00' AND cod='" + rs.getString(1) + "'";
-                    try ( Statement st2 = db.getC().createStatement()) {
+                    try (Statement st2 = db.getC().createStatement()) {
                         st2.executeUpdate(upd);
                     }
                 }
@@ -179,33 +179,36 @@ public class ReloadingDati {
         fase3(null);
     }
 
-//    public static void main(String[] args) {
-//        //CHECK EXTERNAL 
-////        try {
-////            Db_Master db = new Db_Master();
-////            String sql = "SELECT v.cod FROM et_change e, et_change_valori v WHERE e.cod=v.cod AND v.ip_spread<>'0.00' "
-////                    + "AND e.fg_brba='BR' AND e.dt_it > '2022-06-01' AND e.fg_annullato='0'";
-////            try ( Statement st = db.getC().createStatement();  ResultSet rs = st.executeQuery(sql)) {
-////                while (rs.next()) {
-////                    String upd = "UPDATE et_change_valori SET ip_spread = '0.00' WHERE ip_spread<>'0.00' AND cod='" + rs.getString(1) + "'";
-////                    try ( Statement st2 = db.getC().createStatement()) {
-////                        st2.executeUpdate(upd);
-////                    }
-////                }
-////            }
-////            db.closeDB();
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        }
-////
-////        fase3(null);
+    public static void main(String[] args) {
+        //CHECK EXTERNAL 
+//        try {
+//            Db_Master db = new Db_Master();
+//            String sql = "SELECT v.cod FROM et_change e, et_change_valori v WHERE e.cod=v.cod AND v.ip_spread<>'0.00' "
+//                    + "AND e.fg_brba='BR' AND e.dt_it > '2022-06-01' AND e.fg_annullato='0'";
+//            try ( Statement st = db.getC().createStatement();  ResultSet rs = st.executeQuery(sql)) {
+//                while (rs.next()) {
+//                    String upd = "UPDATE et_change_valori SET ip_spread = '0.00' WHERE ip_spread<>'0.00' AND cod='" + rs.getString(1) + "'";
+//                    try ( Statement st2 = db.getC().createStatement()) {
+//                        st2.executeUpdate(upd);
+//                    }
+//                }
+//            }
+//            db.closeDB();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 //
-//        DateTime start = new DateTime(2022, 10, 1, 0, 0).withMillisOfDay(0);
-////        fase3(start);
-////
-//        List<String> lista = new ArrayList<>();
-//        lista.add("172");
-////        lista.add("109");
+//        fase3(null);
+
+        DateTime start = new DateTime(2022, 12, 1, 0, 0).withMillisOfDay(0);
+//        fase3(start);
+//
+        List<String> lista = new ArrayList<>();
+        lista.add("306");
+        lista.add("307");
+        lista.add("312");
+        lista.add("321");
+////        lista.add("172");
 ////        lista.add("190");
 ////        lista.add("195");
 ////        lista.add("048");
@@ -216,51 +219,51 @@ public class ReloadingDati {
 ////        lista.add("188");
 ////        lista.add("195");
 ////
+        for (int i = 0; i < lista.size(); i++) {
+            String fil = lista.get(i);
+            log.log(Level.WARNING, "INIZIO: {0}", fil);
+            fase1(fil, start);
+            log.log(Level.WARNING, "FINE: {0}", fil);
+//            fase1_dbfiliale(fil, start, "192.168.115.106");
+        }
+//        DateTime start = new DateTime().withMillisOfDay(0);
+//
+//        LinkedList<Dati> result = main("090", start);
+//
+//        result.forEach(d1 -> {
+//            System.out.println(d1.toString());
+//        });
+//        fase1("090", new DateTime(2021, 1, 20, 0, 0).withMillisOfDay(0));
+//        fase3();
+//        List<String> listaok = new ArrayList<>();
+//        listaok.add("010");//07/12
+//        List<String> lista = new ArrayList<>();
+//        try {
+//
+//            Db_Master db1 = new Db_Master();
+//            Statement st1 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+//            ResultSet rs1 = st1.executeQuery("SELECT cod FROM maccorpita.branch WHERE cod<>'000' AND (fg_annullato = '0' OR (fg_annullato ='1' AND da_annull > '2020-01-01')) AND cod NOT IN (SELECT DISTINCT(filiale) FROM macreport.dailyerror)");
+//            while (rs1.next()) {
+//                if (!listaok.contains(rs1.getString(1))) {
+//                    lista.add(rs1.getString(1));
+//                }
+//            }
+//            rs1.close();
+//            st1.close();
+//            db1.closeDB();
+//        } catch (Exception e) {
+//            log.severe(ExceptionUtils.getStackTrace(e));
+//        }
+//
 //        for (int i = 0; i < lista.size(); i++) {
 //            String fil = lista.get(i);
-//            log.log(Level.WARNING, "INIZIO: {0}", fil);
-//            fase1(fil, start);
-//            log.log(Level.WARNING, "FINE: {0}", fil);
+//            log.warning("INIZIO: " + fil);
+//            fase1(fil);
+//            fase2(fil);
+//            log.warning("FINE: " + fil);
 //        }
-////        DateTime start = new DateTime().withMillisOfDay(0);
-////
-////        LinkedList<Dati> result = main("090", start);
-////
-////        result.forEach(d1 -> {
-////            System.out.println(d1.toString());
-////        });
-////        System.out.println("com.seta.reload.ReloadingDati.main() " + start.toString(patternita));
-////        fase1("090", new DateTime(2021, 1, 20, 0, 0).withMillisOfDay(0));
-////        fase3();
-////        List<String> listaok = new ArrayList<>();
-////        listaok.add("010");//07/12
-////        List<String> lista = new ArrayList<>();
-////        try {
-////
-////            Db_Master db1 = new Db_Master();
-////            Statement st1 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-////            ResultSet rs1 = st1.executeQuery("SELECT cod FROM maccorpita.branch WHERE cod<>'000' AND (fg_annullato = '0' OR (fg_annullato ='1' AND da_annull > '2020-01-01')) AND cod NOT IN (SELECT DISTINCT(filiale) FROM macreport.dailyerror)");
-////            while (rs1.next()) {
-////                if (!listaok.contains(rs1.getString(1))) {
-////                    lista.add(rs1.getString(1));
-////                }
-////            }
-////            rs1.close();
-////            st1.close();
-////            db1.closeDB();
-////        } catch (Exception e) {
-////            log.severe(ExceptionUtils.getStackTrace(e));
-////        }
-////
-////        for (int i = 0; i < lista.size(); i++) {
-////            String fil = lista.get(i);
-////            log.warning("INIZIO: " + fil);
-////            fase1(fil);
-////            fase2(fil);
-////            log.warning("FINE: " + fil);
-////        }
-////        fase2("010");
-//    }
+//        fase2("010");
+    }
 
     public static void fase1_dbfiliale(String filiale, DateTime start, String ip) {
 
@@ -495,7 +498,6 @@ public class ReloadingDati {
 
             Dati dato = result.get(1);
 
-//            System.out.println("com.seta.reload.ReloadingDati.fase1() "+dato);
             boolean ERgiornoincorso = false;
             if ((dato.getDAY_COP() == dato.getBR_ST_IN()) && (dato.getDAY_COP() == dato.getOF_ST_PR()) && (dato.getBR_ST_IN() == dato.getOF_ST_PR())) {
             } else {
@@ -829,7 +831,6 @@ public class ReloadingDati {
                         + "AND data<'" + datad1 + "' AND tipo='CH' AND kind='01' AND cod_value = 'EUR' "
                         + "AND (codiceopenclose = '" + rs.getString("f.cod") + "' OR codtr = '" + rs.getString("f.cod") + "') "
                         + "AND till='" + rs.getString("f.till") + "'";
-//                System.out.println("com.seta.reload.ReloadingDati.main() "+sql2);
                 ResultSet rs2 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql2);
                 while (rs2.next()) {
                     br_si = br_si + fd(rs2.getString(1));
@@ -902,6 +903,8 @@ public class ReloadingDati {
         if (datad1 != null && datad2 != null) {
 
             try {
+                ArrayList<NC_causal> nc_caus = db1.query_nc_causal_filial(fil[0], null);
+
                 double setPurchTotal = 0.0;
                 double setSalesTotal = 0.0;
                 double setCashAdNetTot = 0.0;
@@ -984,7 +987,6 @@ public class ReloadingDati {
                 String sql1 = "SELECT causale_nc,supporto,total,pos,fg_inout,quantita FROM nc_transaction WHERE del_fg='0' AND filiale = '" + fil[0] + "' ";
                 sql1 = sql1 + "AND data >= '" + datad1 + ":00' ";
                 sql1 = sql1 + "AND data <= '" + datad2 + ":59' AND (supporto = 01 || supporto ='...') ";
-                ArrayList<NC_causal> nc_caus = db1.query_nc_causal_filial(fil[0], null);
                 ResultSet rs1 = db1.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql1);
                 double setToLocalCurr = 0.00;
                 double setFromLocalCurr = 0.00;
@@ -1054,7 +1056,6 @@ public class ReloadingDati {
                         double[] d1 = db1.list_dettagliotransazioni(fil, o.getData(), datad2, "EUR");
                         osp_codice = o.getCodice();
                         OFP_FX = fd(o.getTotal_fx());
-//                        System.out.println(fd(o.getTotal_fx())+" com.seta.reload.ReloadingDati.list_Daily_value_NEW() "+d1[1]);
                         setFx = OFP_FX + d1[1];
                     }
                 }

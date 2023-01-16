@@ -44,7 +44,7 @@ public class MailObject {
 
     public static void mailerror_Cliente(String idprenot) {
         String[] dest = {"alena@maccorp.it", "mrivolta@maccorp.it"};
-        String[] cc = {"rcosco@setacom.it"};
+        String[] cc = {"mac2.0@smartoop.it"};
         String oggetto = "Attenzione: prenotazione " + idprenot + " - mancata comunicazione MAC-WEB";
         String testo = "Attenzione: per la prenotazione " + idprenot + " non è stato possibile aggiornare il WEB con la modifica dello stato della pratica";
         sendMailHtml(dest, cc, oggetto, testo);
@@ -137,7 +137,7 @@ public class MailObject {
         mo.setCHIUSURA("Buonviaggio dal team di Forexchange &#38; Travel, i tuoi assistenti di viaggio.");
         try {
             String subject = mo.getOGGETTO() + ": " + mo.getIDPRENOTAZIONE();
-            String pathTemp = "/mnt/temp/";
+            String pathTemp = "/mnt/mac/temp/";
             Settings mail = get_Settings("TM1");
             File temp = new File(pathTemp + generaId(75) + "_temp.html");
             FileUtils.writeByteArrayToFile(temp, Base64.decodeBase64(mail.getValue()));
@@ -184,7 +184,7 @@ public class MailObject {
         mo.setCHIUSURA("Buonviaggio dal team di Forexchange &#38; Travel, i tuoi assistenti di viaggio.");
         try {
             String subject = mo.getOGGETTO() + ": " + mo.getIDPRENOTAZIONE();
-            String pathTemp = "/mnt/temp/";
+            String pathTemp = "/mnt/mac/temp/";
             Settings mail = get_Settings("TM1");
             File temp = new File(pathTemp + generaId(75) + "_temp.html");
             FileUtils.writeByteArrayToFile(temp, Base64.decodeBase64(mail.getValue()));

@@ -5,9 +5,6 @@
  */
 package rc.soop.aggiornamenti;
 
-import it.refill.testarea.Db;
-import it.refill.testarea.StatusBranch;
-import it.refill.testarea.Utility;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,10 +14,10 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import static it.refill.testarea.Mactest.agg;
-import static it.refill.testarea.Mactest.host_PROD;
-import static it.refill.testarea.Utility.patternnormdate;
-import static it.refill.testarea.Utility.sendMail;
+import static rc.soop.aggiornamenti.Mactest.agg;
+import static rc.soop.aggiornamenti.Mactest.host_PROD;
+import static rc.soop.aggiornamenti.Utility.patternnormdate;
+import static rc.soop.aggiornamenti.Utility.sendMail;
 import org.apache.commons.lang3.RandomStringUtils;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import org.apache.commons.lang3.StringUtils;
@@ -162,7 +159,7 @@ public class VerificaAggiornamenti {
                         String fildest = rs1.getString(1);
                         sb1.setCod(fildest);
                         if (sb1.getCod().equals("000")) {
-                            sb1.setIp("172.18.17.41");
+                            sb1.setIp("AWS");
                         } else {
                             sb1.setIp(db.getIpFiliale(sb1.getCod()).get(0)[1]);
                         }

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import org.apache.commons.validator.routines.EmailValidator;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -29,14 +30,10 @@ public class Crm_Db {
 
     public Crm_Db() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
-            String pwd = "M4cc0Rp";
-            String host = "//172.18.17.41:3306/mac_crm_prod";
-            if (test) {
-                host = "//172.18.17.41:3306/mac_crm";
-            }
+            String pwd = "M4cc0Rp";            
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
@@ -44,12 +41,17 @@ public class Crm_Db {
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = test ? rb.getString("db.ip") + "/mac_crm" : rb.getString("db.ip") + "/mac_crm_prod"; 
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-            this.c.createStatement().execute("SET GLOBAL max_allowed_packet=1024*1024*1024;");
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+        } catch (Exception ex) {
             this.c = null;
             log.log(Level.SEVERE, "connection CRM_DB: {0}", ex.getMessage());
-            sendMailHtml("mac2.0@setacom.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH " + rc.soop.crm.CRM_batch.test + " :" + ex.getMessage());
+            sendMailHtml("mac2.0@smartoop.it", "ERROR PREAUTH", "CONTROLLARE ERRORE CONNESSIONE DB PROCEDURA NOTTURNA CRM/CRV PREAUTH " + rc.soop.crm.CRM_batch.test + " :" + ex.getMessage());
         }
     }
 
@@ -74,7 +76,7 @@ public class Crm_Db {
     public void insertTracking(String code, String action) {
         try {
             String sql = "INSERT INTO tracking SET idoperatore = ?, azione = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, code);
             ps.setString(2, action);
             ps.executeUpdate();
@@ -86,7 +88,7 @@ public class Crm_Db {
     public String getUserPermission(String name) {//fatto
         try {
             String sql = "SELECT permessi FROM pagina WHERE nome = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -101,7 +103,7 @@ public class Crm_Db {
     public int get_Day_NOSHOW() {
         try {
             String sql = "SELECT value FROM settings WHERE id = 'NOS'";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int x = Integer.parseInt(rs.getString(1));
@@ -116,7 +118,7 @@ public class Crm_Db {
     public int get_Day_RECAP() {
         try {
             String sql = "SELECT value FROM settings WHERE id = 'REC'";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int x = Integer.parseInt(rs.getString(1));
@@ -131,7 +133,7 @@ public class Crm_Db {
     public Settings get_Settings(String id) {
         try {
             String sql = "SELECT * FROM settings WHERE id = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -146,7 +148,7 @@ public class Crm_Db {
     public void insertpreauth(Preauth pr) {
         try {
             String sql = "INSERT INTO preauth VALUES (?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, pr.getCodice());
             ps.setString(2, pr.getPrenotazione());
             ps.setString(3, pr.getRequest());
@@ -165,7 +167,7 @@ public class Crm_Db {
     public String getEmail(String filiale) {
         try {
             String sql = "SELECT email FROM email WHERE filiale = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, filiale);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -184,7 +186,7 @@ public class Crm_Db {
         List<Items> output = new ArrayList<>();
         try {
             String s1 = "SELECT * FROM branch ORDER BY de_branch";
-            PreparedStatement ps = this.c.prepareStatement(s1);
+            PreparedStatement ps = this.c.prepareStatement(s1,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 output.add(new Items(rs.getString(1), (rs.getString(2)), (rs.getString(3))));
@@ -198,7 +200,7 @@ public class Crm_Db {
     public boolean insert_Branch(String cod, String de_branch) {
         try {
             String s1 = "INSERT INTO branch VALUES (?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(s1);
+            PreparedStatement ps = this.c.prepareStatement(s1,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ps.setString(2, de_branch);
             ps.setString(3, "0");

@@ -32,7 +32,6 @@ public class ReadTracking {
 //    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //    public static void test() {
-//        DBHost dbm0 = new DBHost("//172.18.17.41:3306/maccorp", user_h, pwd_h, log);
 //        ArrayList<String> list = dbm0.list_branch_enabled();
 //        list.forEach(bra -> {
 //            if (!bra.equals("000")) {
@@ -76,7 +75,6 @@ public class ReadTracking {
 //    }
 //
 //    public static void prod() {
-//        DBHost dbm0 = new DBHost("//172.18.17.41:3306/maccorpita", user_h, pwd_h, log);
 //        ArrayList<String> list = dbm0.list_branch_enabled();
 //        list.forEach(bra -> {
 //            if (!bra.equals("000")) {

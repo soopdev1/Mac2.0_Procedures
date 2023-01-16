@@ -30,11 +30,7 @@ public class AllineaOSP_last {
 //            String update = "UPDATE office_sp SET total_cod = '" + real_value + "' WHERE codice = '" + osp.getCodice() + "'";
 //
 //            try {
-//                boolean es = db1.getC().createStatement().executeUpdate(update) > 0;
-//
-////            System.out.println("com.seta.mac_riallinea.AllineaOSP_last.main() "+osp.getTotal_fx());
-//                System.out.println(real_value + " () " + osp.getTotal_cod() + " -- " + es);
-////            System.out.println("com.seta.mac_riallinea.AllineaOSP_last.main() "+osp.getTotal_grand());
+//                boolean es = db1.getC().createStatement().executeUpdate(update) > 0;//
 //            } catch (SQLException ex) {
 //                ex.printStackTrace();
 //            }

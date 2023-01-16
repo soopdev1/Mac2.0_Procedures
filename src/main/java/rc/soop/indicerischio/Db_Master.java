@@ -22,6 +22,7 @@ import static rc.soop.esolver.Util.fd;
 import static rc.soop.esolver.Util.patternnormdate_filter;
 import static rc.soop.esolver.Util.patternsql;
 import static rc.soop.esolver.Util.removeDuplicatesAL;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -33,11 +34,10 @@ public class Db_Master {
 
     public Db_Master() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
-            String host = "//172.18.17.41:3306/maccorpita";
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
@@ -45,8 +45,14 @@ public class Db_Master {
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = rb.getString("db.ip") + "/maccorpita";
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+        } catch (Exception ex) {
             this.c = null;
         }
     }
@@ -72,7 +78,7 @@ public class Db_Master {
     public String getConf(String id) {
         try {
             String sql = "SELECT des FROM conf WHERE id = ? ";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -87,7 +93,7 @@ public class Db_Master {
     public String getPath(String cod) {
         try {
             String sql = "SELECT descr FROM path WHERE cod = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -103,7 +109,7 @@ public class Db_Master {
         ArrayList<Branch> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM branch WHERE fg_annullato = ? ORDER BY de_branch";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, "0");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -178,7 +184,7 @@ public class Db_Master {
         try {
             String sql = "SELECT * FROM office ";
 
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Office of = new Office();
@@ -240,7 +246,7 @@ public class Db_Master {
             while(rs.next()){
                 out.add(new Value(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5)));
             }
-        } catch (SQLException | NumberFormatException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return out;
@@ -268,7 +274,7 @@ public class Db_Master {
             }
             sql = sql + " ORDER BY tr1.cl_cod,tr1.filiale,tr1.data";
 
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             ArrayList<String> cl = new ArrayList<>();
 
             while (rs.next()) {
@@ -334,7 +340,7 @@ public class Db_Master {
                 rs.beforeFirst();
             }
 
-        } catch (SQLException | NumberFormatException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return out;
@@ -344,7 +350,7 @@ public class Db_Master {
         ArrayList<String> out = new ArrayList<>();
         try {
             String sql = "SELECT cod FROM branch WHERE fg_annullato = ? AND filiale = ? ORDER BY cod";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, "0");
             ps.setString(2, "000");
             ResultSet rs = ps.executeQuery();
@@ -361,7 +367,7 @@ public class Db_Master {
         try {
 
             String sql = "SELECT * FROM ch_transaction_client WHERE codcl = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -395,7 +401,7 @@ public class Db_Master {
                 return bl;
             } else {
                 sql = "SELECT * FROM anagrafica_ru where ndg = ? limit 1";
-                PreparedStatement ps1 = this.c.prepareStatement(sql);
+                PreparedStatement ps1 = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 ps1.setString(1, cod);
                 ResultSet rs1 = ps1.executeQuery();
                 if (rs1.next()) {
@@ -441,7 +447,7 @@ public class Db_Master {
 
     public boolean deleteAll_Indicerischio() {
         try {
-            this.c.createStatement().execute("DELETE FROM indice_rischio");
+            this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).execute("DELETE FROM indice_rischio");
             return true;
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -452,7 +458,7 @@ public class Db_Master {
     public String getNow() {
         try {
             String sql = "SELECT now()";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getString(1);
@@ -466,7 +472,7 @@ public class Db_Master {
     public boolean insert_Indicerischio(IndiceRischio ir) {
         try {
             String ins = "INSERT INTO indice_rischio VALUES (?,?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(ins);
+            PreparedStatement ps = this.c.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, ir.getId());
             ps.setString(2, ir.getMessage());
             ps.setString(3, ir.getStato());

@@ -10,7 +10,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.logging.Level;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -18,40 +20,30 @@ import java.util.logging.Level;
  */
 public class Db {
 
-    public static final String path_log = "/mnt/logdb/";
-
-// SVILUPPO
-//    private static final String user = "root";
-//    private static final String host = "//172.31.224.159:3306/MAC_sftp";
-//    private static final String pwd = "fertilizza";
-// PRODUZIONE
-    private static final String user = "maccorp";
-    private static final String host = "//172.18.17.41:3306/macsftp";
-    private static final String pwd = "M4cc0Rp";
-
     private Connection c = null;
-    private LoggerNew logger = new LoggerNew("SFTP_MAC", path_log);
+    private LoggerNew logger = new LoggerNew("SFTP_MAC", "/mnt/mac/log/");
 
     public Db(boolean mac) {
         try {
-            Class.forName("org.mariadb.jdbc.Driver").newInstance();
-            if (mac) {
-                String prodhost = "//172.18.17.41:3306/maccorpita";
-                this.c = DriverManager.getConnection("jdbc:mariadb:" + prodhost + "?user=" + user + "&password=" + pwd);
-            } else {
-                this.c = DriverManager.getConnection("jdbc:mariadb:" + host + "?user=" + user + "&password=" + pwd);
-            }
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
+            String user = "maccorp";
+            String pwd = "M4cc0Rp";
+            Class.forName(drivername).newInstance();            
+            Properties p = new Properties();
+            p.put("user", user);
+            p.put("password", pwd);
+            p.put("useUnicode", "true");
+            p.put("characterEncoding", "UTF-8");
+            p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = mac ? rb.getString("db.ip") + "/maccorpita" : rb.getString("db.ip") + "/macsftp";
+            this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
         } catch (Exception ex) {
-            logger.log.log(Level.SEVERE, "Errore CONNESSIONE DB : {0}", ex.getMessage());
-            this.c = null;
-        }
-    }
-
-    public Db(String linkhost) {
-        try {
-            Class.forName("org.mariadb.jdbc.Driver").newInstance();
-            this.c = DriverManager.getConnection("jdbc:mariadb:" + linkhost + "?user=" + user + "&password=" + pwd);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             logger.log.log(Level.SEVERE, "Errore CONNESSIONE DB : {0}", ex.getMessage());
             this.c = null;
         }
@@ -75,22 +67,10 @@ public class Db {
         return c;
     }
 
-    public String getUtente() {
-        return user;
-    }
-
-    public String getPassword() {
-        return pwd;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
     public String getPath(String path) {
         try {
             String sql = "SELECT url FROM path WHERE id=?";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, path);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {

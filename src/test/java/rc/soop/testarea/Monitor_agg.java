@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.testarea;
+package rc.soop.testarea;
 
+import rc.soop.aggiornamenti.Mactest;
+import rc.soop.aggiornamenti.StatusBranch;
 import java.util.List;
 
 /**

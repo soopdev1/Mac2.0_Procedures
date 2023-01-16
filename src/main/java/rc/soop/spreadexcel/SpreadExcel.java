@@ -29,7 +29,7 @@ public class SpreadExcel {
 
     private static final Logger log = createLog("Mac2.0_EXCELSPREAD_", rb.getString("path.log"), pattern4);
 
-    private static final String host = "//172.18.17.41:3306/" + rb.getString("db.name");
+    private static final String host = Utility.rb.getString("db.ip") + "/" + rb.getString("db.name");
 
     public static void engine() {
         Db db = new Db(host, false);

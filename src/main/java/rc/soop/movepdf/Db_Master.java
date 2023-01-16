@@ -19,11 +19,10 @@ public class Db_Master {
 
     public Db_Master() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
-            String host = "//machaproxy01.mactwo.loc:3306/" + rb.getString("pdf.db.name");
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
@@ -31,6 +30,12 @@ public class Db_Master {
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = rb.getString("db.ip") + "/" + rb.getString("pdf.db.name");
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
         } catch (Exception ex) {
             log.log(Level.SEVERE, "{0} ERROR: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
@@ -61,7 +66,7 @@ public class Db_Master {
         try {
             String sql = "SELECT codice_documento,data_load,content,nomefile FROM ch_transaction_doc "
                     + "WHERE content not like ? LIMIT " + rb.getString("limit");
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, startfile + "%");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -81,7 +86,7 @@ public class Db_Master {
         try {
             String sql = "SELECT cod,data,docric FROM nc_transaction "
                     + "WHERE docric not like ? AND docric <> ? ORDER BY data ASC LIMIT " + rb.getString("limit");
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, startfile + "%");
             ps.setString(2, "-");
             ResultSet rs = ps.executeQuery();
@@ -99,8 +104,8 @@ public class Db_Master {
     public ArrayList<Doc> get_list_nc_doc_RESTORE() {
         ArrayList<Doc> li = new ArrayList<>();
         try {
-            String sql = "SELECT cod,data,docric FROM nc_transaction WHERE docric like ? LIMIT "+ rb.getString("limit");
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            String sql = "SELECT cod,data,docric FROM nc_transaction WHERE docric like ? LIMIT " + rb.getString("limit");
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, startfile + "%");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -110,14 +115,14 @@ public class Db_Master {
             log.log(Level.SEVERE, "{0} ERROR: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
         }
         return li;
-        
+
     }
-    
+
     public ArrayList<String[]> get_list_tr_doc_RESTORE() {
         ArrayList<String[]> li = new ArrayList<>();
         try {
             String sql = "SELECT * FROM ch_transaction_doc WHERE content like ? ORDER BY data_load ASC LIMIT 1";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, startfile + "%");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -133,7 +138,7 @@ public class Db_Master {
     public boolean setContentDoc(String codice_documento, String content) {
         try {
             String update = "UPDATE ch_transaction_doc SET content = ? WHERE codice_documento = ?";
-            PreparedStatement ps = this.c.prepareStatement(update);
+            PreparedStatement ps = this.c.prepareStatement(update,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, content);
             ps.setString(2, codice_documento);
             return ps.executeUpdate() > 0;
@@ -146,7 +151,7 @@ public class Db_Master {
     public boolean setContentDocNC(String codice_documento, String content) {
         try {
             String update = "UPDATE nc_transaction SET docric = ? WHERE cod = ?";
-            PreparedStatement ps = this.c.prepareStatement(update);
+            PreparedStatement ps = this.c.prepareStatement(update,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, content);
             ps.setString(2, codice_documento);
             return ps.executeUpdate() > 0;

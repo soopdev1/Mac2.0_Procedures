@@ -10,7 +10,6 @@ import com.hierynomus.msfscc.FileAttributes;
 import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2CreateOptions;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
-import com.hierynomus.mssmb2.SMBApiException;
 import com.hierynomus.security.jce.JceSecurityProvider;
 import com.hierynomus.smbj.SMBClient;
 import com.hierynomus.smbj.SmbConfig;
@@ -21,8 +20,12 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
@@ -41,24 +43,35 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.joda.time.DateTime;
+import rc.soop.esolver.Util;
 
 /**
  *
  * @author rcosco
  */
 public class CopyAtlante {
-    
-    private static final ResourceBundle rb = ResourceBundle.getBundle("qlik.conf");    
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("qlik.conf");
     private static final String hostsiap = rb.getString("hostsiap");
     private static final String usersiap = rb.getString("usersiap");
     private static final String passsiap = rb.getString("passsiap");
-    private static final String sambaDomain = rb.getString("sambaDomain");
-    private static final String sambaUsername = rb.getString("sambaUsername");
-    private static final String sambaPass = rb.getString("sambaPass");
-    private static final String sambaIP = rb.getString("sambaIP");
-    private static final String sambaSharedPath = rb.getString("sambaSharedPath");
 
+    private static final String pathtemp = rb.getString("pathtemp");
+    private static final String pathdest = rb.getString("pathdest");
+
+//    private static final String sambaDomain = rb.getString("sambaDomain");
+//    private static final String sambaUsername = rb.getString("sambaUsername");
+//    private static final String sambaPass = rb.getString("sambaPass");
+//    private static final String sambaIP = rb.getString("sambaIP");
+//    private static final String sambaSharedPath = rb.getString("sambaSharedPath");
+//    private static final String sambaSharedPath = rb.getString("sambaSharedPath");
     public static void engine() {
+
+        try {
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        } catch (Exception e) {
+        }
+
         Db db = new Db(false);
         LoggerNew logger = new LoggerNew("FTP_QLIK", db.getPath("Pathlog"));
         db.closeDB();
@@ -83,21 +96,19 @@ public class CopyAtlante {
             if (files != null) {
                 logger.log.log(Level.INFO, "NUMERO FILES DISPONIBILI: {0}", files.length);
 
-                SmbConfig cfg = SmbConfig.builder().
-                        withMultiProtocolNegotiate(true).
-                        withSecurityProvider(new JceSecurityProvider(new BouncyCastleProvider())).
-                        build();
-
-                SMBClient client = new SMBClient(cfg);
-                Connection connection = client.connect(sambaIP);
-                com.hierynomus.smbj.session.Session session = connection.authenticate(new AuthenticationContext(sambaUsername, sambaPass.toCharArray(), sambaDomain));
-                DiskShare share = (DiskShare) session.connectShare(sambaSharedPath);
-
+//                SmbConfig cfg = SmbConfig.builder().
+//                        withMultiProtocolNegotiate(true).
+//                        withSecurityProvider(new JceSecurityProvider(new BouncyCastleProvider())).
+//                        build();
+//                SMBClient client = new SMBClient(cfg);
+//                Connection connection = client.connect(sambaIP);
+//                com.hierynomus.smbj.session.Session session = connection.authenticate(new AuthenticationContext(sambaUsername, sambaPass.toCharArray(), sambaDomain));
+//                DiskShare share = (DiskShare) session.connectShare(sambaSharedPath);
                 for (FTPFile aFile : files) {
                     if (!aFile.isDirectory()) {
                         File downloadFile1 = new File(date + "/" + aFile.getName());
                         boolean success;
-                        try ( OutputStream outputStream1 = new BufferedOutputStream(new FileOutputStream(downloadFile1))) {
+                        try (OutputStream outputStream1 = new BufferedOutputStream(new FileOutputStream(downloadFile1))) {
                             success = ftpClient.retrieveFile("/ExportBI/" + date + "/" + aFile.getName(), outputStream1);
                         }
 
@@ -116,12 +127,22 @@ public class CopyAtlante {
 
                             File out = convertXls(downloadFile1, logger);
                             logger.log.log(Level.INFO, "DEST: {0}", out.getPath());
-                            boolean up = copy_SMB(share, name, FileUtils.readFileToByteArray(out), logger);
-                            if (up) {
+                            try {
+                                Path from = out.toPath(); //convert from File to Path
+                                Path to = Paths.get(pathdest + name); //convert from String to Path
+                                Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
                                 logger.log.log(Level.INFO, "{0} SCARICATO CORRETTAMENTE E CARICATO NELLA CARTELLA DI QLIK", name);
-                            } else {
+                            } catch (Exception e) {                 
                                 logger.log.log(Level.SEVERE, "{0}ERRORE NUMERO FILES DISPONIBILI: ", name);
+                                logger.log.severe(Util.estraiEccezione(e));
                             }
+
+//                            boolean up = copy_SMB(share, name, FileUtils.readFileToByteArray(out), logger);
+//                            if (up) {
+//                                logger.log.log(Level.INFO, "{0} SCARICATO CORRETTAMENTE E CARICATO NELLA CARTELLA DI QLIK", name);
+//                            } else {
+//                                logger.log.log(Level.SEVERE, "{0}ERRORE NUMERO FILES DISPONIBILI: ", name);
+//                            }
                         }
                     }
                 }
@@ -188,44 +209,62 @@ public class CopyAtlante {
         return ing;
     }
 
-    private static boolean copy_SMB(DiskShare share, String filename, byte[] bytes, LoggerNew logger) {
-        // this is com.hierynomus.smbj.share.File !
-        int idx = filename.lastIndexOf("/");
-        // if file is in folder(s), create them first
-        if (idx > -1) {
-            String folder = filename.substring(0, idx);
-            try {
-                if (!share.folderExists(folder)) {
-                    share.mkdir(folder);
-                }
-            } catch (Exception ex) {
-                logger.log.severe(ex.getMessage());
-                return false;
-            }
-        }
-        // I am creating file with flag FILE_CREATE, which will throw if file exists already
-        if (share.fileExists(filename)) {
-            share.rm(filename);
-        }
-        com.hierynomus.smbj.share.File f = share.openFile(filename,
-                new HashSet<>(Arrays.asList(AccessMask.GENERIC_ALL)),
-                new HashSet<>(Arrays.asList(FileAttributes.FILE_ATTRIBUTE_NORMAL)),
-                SMB2ShareAccess.ALL,
-                SMB2CreateDisposition.FILE_CREATE,
-                new HashSet<>(Arrays.asList(SMB2CreateOptions.FILE_DIRECTORY_FILE))
-        );
-        if (f == null) {
-            return false;
-        }
-        try {
-            try ( OutputStream os = f.getOutputStream()) {
-                os.write(bytes);
-            }
-            return true;
-        } catch (Exception ex) {
-            logger.log.severe(ex.getMessage());
-        }
-        return false;
-    }
-
+//    private static boolean copy_SMB(DiskShare share, String filename, byte[] bytes, LoggerNew logger) {
+//        // this is com.hierynomus.smbj.share.File !
+//        int idx = filename.lastIndexOf("/");
+//        // if file is in folder(s), create them first
+//        if (idx > -1) {
+//            String folder = filename.substring(0, idx);
+//            try {
+//                if (!share.folderExists(folder)) {
+//                    share.mkdir(folder);
+//                }
+//            } catch (Exception ex) {
+//                logger.log.severe(ex.getMessage());
+//                return false;
+//            }
+//        }
+//        // I am creating file with flag FILE_CREATE, which will throw if file exists already
+//        if (share.fileExists(filename)) {
+//            share.rm(filename);
+//        }
+//        com.hierynomus.smbj.share.File f = share.openFile(filename,
+//                new HashSet<>(Arrays.asList(AccessMask.GENERIC_ALL)),
+//                new HashSet<>(Arrays.asList(FileAttributes.FILE_ATTRIBUTE_NORMAL)),
+//                SMB2ShareAccess.ALL,
+//                SMB2CreateDisposition.FILE_CREATE,
+//                new HashSet<>(Arrays.asList(SMB2CreateOptions.FILE_DIRECTORY_FILE))
+//        );
+//        if (f == null) {
+//            return false;
+//        }
+//        try {
+//            try (OutputStream os = f.getOutputStream()) {
+//                os.write(bytes);
+//            }
+//            return true;
+//        } catch (Exception ex) {
+//            logger.log.severe(ex.getMessage());
+//        }
+//        return false;
+//    }
+//    public static void main(String[] args) {
+//        try {
+//            SmbConfig cfg = SmbConfig.builder().
+//                    withMultiProtocolNegotiate(true).
+//                    withSecurityProvider(new JceSecurityProvider(new BouncyCastleProvider())).
+//                    build();
+//
+//            SMBClient client = new SMBClient(cfg);
+//            Connection connection = client.connect(sambaIP);
+//            com.hierynomus.smbj.session.Session session = connection.authenticate(new AuthenticationContext(sambaUsername, sambaPass.toCharArray(), sambaDomain));
+//            DiskShare share = (DiskShare) session.connectShare(sambaSharedPath);
+//
+//            System.out.println("rc.soop.qlik.CopyAtlante.main() "+copy_SMB(share, "New Text Document.txt", FileUtils.readFileToByteArray(new File("C:\\Users\\Administrator\\Desktop\\New Text Document.txt")), null));
+//                    
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 }

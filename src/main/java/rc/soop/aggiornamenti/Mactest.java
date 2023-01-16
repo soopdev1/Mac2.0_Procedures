@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.testarea;
+package rc.soop.aggiornamenti;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import static it.refill.testarea.Utility.patternnormdate;
-import static it.refill.testarea.Utility.patternsqldate;
+import static rc.soop.aggiornamenti.Utility.patternnormdate;
+import static rc.soop.aggiornamenti.Utility.patternsqldate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -25,6 +25,7 @@ import org.apache.poi.ss.util.NumberToTextConverter;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -423,14 +424,14 @@ public class Mactest {
 
     }
 
-    public static final String host_TEST = "//172.18.17.41:3306/maccorp";
-    public static final String host_PROD = "//172.18.17.41:3306/maccorpita";
+    public static final String host_TEST = rb.getString("db.ip") + "/maccorp";
+    public static final String host_PROD = rb.getString("db.ip") + "/maccorpita";
+    
+    public static final String host_PROD_CZ = rb.getString("db.ip") + "/maccorpczprod";
+    public static final String host_TEST_CZ = rb.getString("db.ip") + "/maccorpcz";
 
-    public static final String host_PROD_CZ = "//172.18.17.41:3306/maccorpczprod";
-    public static final String host_TEST_CZ = "//172.18.17.41:3306/maccorpcz";
-
-    public static final String host_PROD_UK = "//172.18.17.41:3306/maccorpukprod";
-    public static final String host_TEST_UK = "//172.18.17.41:3306/maccorpuk";
+    public static final String host_PROD_UK = rb.getString("db.ip") + "/maccorpukprod";
+    public static final String host_TEST_UK = rb.getString("db.ip") + "/maccorpuk";
 
     public static void updateSQLPS(PreparedStatement ps) {
         Db db1 = new Db(host_PROD, false);
@@ -489,17 +490,17 @@ public class Mactest {
     }
 
     public static void resetLOY() {
-        Db_Loy db1 = new Db_Loy();
-        if (db1.getC() != null) {
-            try {
-                db1.getC().createStatement().executeUpdate("UPDATE codici SET stato='0';");
-                db1.getC().createStatement().executeUpdate("UPDATE mac_associate SET stato='0';");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            db1.closeDB();
-        }
-        updateSQLTEST("UPDATE loyalty_ch SET codcl = '-';", false);
+//        Db_Loy db1 = new Db_Loy();
+//        if (db1.getC() != null) {
+//            try {
+//                db1.getC().createStatement().executeUpdate("UPDATE codici SET stato='0';");
+//                db1.getC().createStatement().executeUpdate("UPDATE mac_associate SET stato='0';");
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//            db1.closeDB();
+//        }
+//        updateSQLTEST("UPDATE loyalty_ch SET codcl = '-';", false);
     }
 
     public static void excelspread() {

@@ -13,6 +13,7 @@ import static rc.soop.spreadexcel.Utility.patternnormdate;
 import static rc.soop.spreadexcel.Utility.patternsqldate;
 import static rc.soop.spreadexcel.Utility.visualizzaStringaMySQL;
 import org.joda.time.DateTime;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -33,13 +34,11 @@ public class Db {
     }
 
     public Db(String host, boolean filiale) {
-        String drivername = "org.mariadb.jdbc.Driver";
-        String typedb = "mariadb";
+        String drivername = rb.getString("db.driver");
+        String typedb = rb.getString("db.tipo");
         String user = "maccorp";
         String pwd = "M4cc0Rp";
         if (filiale) {
-            drivername = "com.mysql.jdbc.Driver";
-            typedb = "mysql";
             user = "root";
             pwd = "root";
         }
@@ -52,8 +51,14 @@ public class Db {
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
             p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
         } catch (Exception ex) {
+            ex.printStackTrace();
+            this.c = null;
         }
 
     }
@@ -71,7 +76,7 @@ public class Db {
     public boolean updateBranch(String[] val) {
         try {
             String upd = "UPDATE branch SET add_via = ?, add_city = ?, add_cap = ? WHERE cod = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.c.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, val[1]);
                 ps.setString(2, val[2]);
                 ps.setString(3, val[3]);
@@ -88,7 +93,7 @@ public class Db {
         ArrayList<String> li = new ArrayList<>();
         try {
             String sql = "SELECT distinct(filiale) FROM valute WHERE filiale <>'000' AND buy_std = '0.00' and valuta<>'EUR'";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     li.add(rs.getString(1));
                 }
@@ -185,7 +190,7 @@ public class Db {
         try {
             String upd = "UPDATE valute SET buy_std_value = ?, sell_std_value = ?, buy_std = ?, buy_l1 = ?,  buy_l2 = ?,  buy_l3 = ?, buy_best = ?,"
                     + " sell_std = ?, sell_l1 = ?,  sell_l2 = ?,  sell_l3 = ?, sell_best = ?, cambio_vendita = ? WHERE filiale = ? AND valuta = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.c.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, val[2]);
                 ps.setString(2, val[3]);
                 ps.setString(3, val[4]);
@@ -217,7 +222,7 @@ public class Db {
         try {
             String upd = "UPDATE valute SET buy_std = ?, buy_l1 = ?,  buy_l2 = ?,  buy_l3 = ?, buy_best = ?,"
                     + " sell_std = ?, sell_l1 = ?, sell_l2 = ?, sell_l3 = ?, sell_best = ?, cambio_vendita = ? WHERE filiale = ? AND valuta = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.c.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, val[4]);
                 ps.setString(2, val[5]);
                 ps.setString(3, val[6]);
@@ -252,7 +257,7 @@ public class Db {
     public String getNow() {
         try {
             String sql = "SELECT now()";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery();) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery();) {
                 if (rs.next()) {
                     return rs.getString(1);
                 }
@@ -266,7 +271,7 @@ public class Db {
     public void insert_aggiornamenti_mod(Aggiornamenti_mod am) {
         try {
             String ins = "INSERT INTO aggiornamenti_mod VALUES (?,?,?,?,?,?,?,?)";
-            try (PreparedStatement ps = this.c.prepareStatement(ins)) {
+            try (PreparedStatement ps = this.c.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, am.getCod());
                 ps.setString(2, am.getFiliale());
                 ps.setString(3, am.getDt_start());
@@ -287,7 +292,7 @@ public class Db {
         ArrayList<String> out = new ArrayList<>();
         try {
             String sql = "SELECT cod FROM branch WHERE fg_annullato = ? AND filiale = ? ORDER BY cod";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "0");
                 ps.setString(2, "000");
                 try (ResultSet rs = ps.executeQuery()) {
@@ -306,7 +311,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT filiale,ip FROM dbfiliali";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] ip = {rs.getString(1), rs.getString(2)};
                     out.add(ip);
@@ -322,7 +327,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT filiale,count(*) FROM aggiornamenti_mod WHERE fg_stato='0' AND now()>STR_TO_DATE(dt_start, '%d/%m/%Y %H:%i:%s') group by filiale";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] ip = {rs.getString(1), rs.getString(2)};
                     out.add(ip);
@@ -337,7 +342,7 @@ public class Db {
     public String getConf(String id) {
         try {
             String sql = "SELECT des FROM conf WHERE id = ? ";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, id);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -363,7 +368,7 @@ public class Db {
         ArrayList<String[]> li = new ArrayList<>();
         try {
             String sql = "SELECT filiale,count(*) FROM aggiornamenti_mod Where fg_stato='0' group by filiale";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     String[] ou = {rs.getString(1), rs.getString(2)};
                     li.add(ou);
@@ -380,7 +385,7 @@ public class Db {
         int agg = 0;
         try {
             String sql = "SELECT count(*) FROM aggiornamenti_mod Where fg_stato='0' AND now()>STR_TO_DATE(dt_start, '%d/%m/%Y %H:%i:%s'); ";
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     agg = agg + rs.getInt(1);
                 }
@@ -396,7 +401,7 @@ public class Db {
         try {
             String sql = "SELECT filiale,count(*) FROM aggiornamenti_mod Where fg_stato='0' AND filiale = '" + filiale + "' group by filiale";
 
-            try (ResultSet rs = this.c.createStatement().executeQuery(sql)) {
+            try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql)) {
                 while (rs.next()) {
                     System.out.println("FILIALE ORIGINE: " + filiale + " - RISULTATI: " + rs.getString(1) + " : " + rs.getString(2));
                 }
@@ -411,7 +416,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT nazione,de_nazione,alpha_code,fg_area_geografica FROM nazioni order by de_nazione";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2)), rs.getString(3), rs.getString(4)};
                     out.add(o1);
@@ -427,7 +432,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT tipo_documento_identita,de_tipo_documento_identita,OAM_code,reader_robot FROM tipologiadocumento order by de_tipo_documento_identita";
-            try (PreparedStatement ps = this.c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String[] o1 = {rs.getString(1), visualizzaStringaMySQL(rs.getString(2)), rs.getString(3), rs.getString(4)};
                     out.add(o1);
@@ -443,7 +448,7 @@ public class Db {
         ArrayList<String[]> out = new ArrayList<>();
         try {
             String sql = "SELECT cod,fileout,user,dt_start,data FROM excel_upload WHERE stato = ? order by data";
-            try (PreparedStatement ps = this.c.prepareStatement(sql)) {
+            try (PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, "3");
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -461,7 +466,7 @@ public class Db {
     public boolean update_stato_excel(String cod, String stato) {
         try {
             String upd = "UPDATE excel_upload SET stato = ? WHERE cod = ?";
-            try (PreparedStatement ps = this.c.prepareStatement(upd)) {
+            try (PreparedStatement ps = this.c.prepareStatement(upd,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 ps.setString(1, stato);
                 ps.setString(2, cod);
                 return ps.executeUpdate() > 0;

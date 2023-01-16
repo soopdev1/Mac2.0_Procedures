@@ -5,6 +5,7 @@
  */
 package rc.soop.esolver;
 
+import static com.google.common.base.Splitter.on;
 import com.jcraft.jsch.ChannelSftp;
 import rc.soop.sftp.SftpConnection;
 import java.io.BufferedReader;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +29,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -115,37 +118,38 @@ public class Util {
         if (value.equals("-") || value.equals("")) {
             return "0.00";
         }
-        value = value.replaceAll(" ", "").trim();
         String add = "";
         if (value.contains("-")) {
             add = "-";
-            value = value.replaceAll("-", "").trim();
+            value = StringUtils.replace(value.trim(), "-", "").trim();
         }
 
         if (!value.equals("0.00")) {
             if (thousand.equals(".")) {
                 if (value.contains(decimal)) {
                     if (decimal.equals(",")) {
-                        value = value.replaceAll("\\.", "");
-                        value = value.replaceAll(",", ".");
+                        value = StringUtils.replace(value, ".", "");
+                        value = StringUtils.replace(value, ",", ".");
                     }
                 } else {
-                    value = value.replaceAll("\\.", "");
-                    return value + ".00";
+
+                    value = StringUtils.replace(value, ".", "");
+                    return add + value + ".00";
+
                 }
             } else if (thousand.equals(",")) {
                 if (value.contains(decimal)) {
                     if (decimal.equals(".")) {
                         value = value.replaceAll(",", "");
                     }
-
                 } else {
                     value = value.replaceAll(",", "");
                     return value + "00";
-                }
 
+                }
             }
         }
+
         return add + value;
 
     }
@@ -193,15 +197,22 @@ public class Util {
         if (containsInfinity(value)) {
             return 0.0D;
         }
-        value = StringUtils.deleteWhitespace(value).replaceAll(" ", "").replaceAll("\\s+", "").replaceAll("-", "").trim();
+        value = StringUtils.replace(value, " ", "");
+        value = StringUtils.replace(value, "\\s+", "");
+        value = StringUtils.replace(value, "-", "");
+        value = StringUtils.replace(value, "\\r", "");
+        value = StringUtils.replace(value, "\\t", "");
+        value = StringUtils.replace(value, "\\n", "");
+        value = StringUtils.deleteWhitespace(value).trim();
         try {
-            double d1 = Double.parseDouble(value);
+            double d1 = Double.valueOf(value);
             return d1;
         } catch (Exception ex) {
 //            ex.printStackTrace();
 //            log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
             value = formatDoubleforMysql(value);
-            return parseDoubleR(value);
+            return Double.valueOf(value);
+//            return Double.parseDouble(value);
         }
 
     }
@@ -300,17 +311,21 @@ public class Util {
 
     public static String formatRa1(double d1) {
         if (d1 >= 0) {
-            NumberFormat nf = NumberFormat.getNumberInstance(Locale.ITALIAN);
+            NumberFormat nf = NumberFormat.getNumberInstance(Locale.ITALY);
             nf.setGroupingUsed(true);
-            return nf.format(d1);
+            return StringUtils.deleteWhitespace(nf.format(d1)).trim();
         } else {
-            DecimalFormat formatter = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.ITALIAN);
+            DecimalFormat formatter = (DecimalFormat) NumberFormat.getCurrencyInstance(Locale.ITALY);
             DecimalFormatSymbols symbols = formatter.getDecimalFormatSymbols();
             symbols.setCurrencySymbol("");
             formatter.setDecimalFormatSymbols(symbols);
-            return StringUtils.deleteWhitespace(formatter.format(d1)).trim().replaceAll("\n", "").replaceAll("\r", "").trim();
+            String out = StringUtils.replace(formatter.format(d1), " ", "").trim();
+            out = StringUtils.replace(out, " ", "").trim();
+            out = StringUtils.replace(out, "\n", "").trim();
+            out = StringUtils.replace(out, "\r", "").trim();
+            out = StringUtils.replace(out, "\t", "").trim();
+            return StringUtils.deleteWhitespace(out).trim();
         }
-
     }
 
     public static double calcolaIva(double total, double percentiva) {
@@ -511,7 +526,7 @@ public class Util {
         if (txt != null) {
             try {
                 String st;
-                try ( FileReader fr = new FileReader(txt);  BufferedReader br = new BufferedReader(fr)) {
+                try (FileReader fr = new FileReader(txt); BufferedReader br = new BufferedReader(fr)) {
                     while ((st = br.readLine()) != null) {
                         return !st.trim().equals("");
                     }
@@ -589,7 +604,7 @@ public class Util {
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(dest[x]));
             }
 
-            message.setRecipient(Message.RecipientType.CC, new InternetAddress("mac2.0@setacom.it"));
+            message.setRecipient(Message.RecipientType.CC, new InternetAddress("mac2.0@smartoop.it"));
 
             message.setSubject(oggetto);
             Multipart mp = new MimeMultipart();
@@ -671,7 +686,7 @@ public class Util {
         }
         if (!response) {
             try {
-                try ( FileChannel sourceChannel = new FileInputStream(ing).getChannel();  FileChannel destChannel = new FileOutputStream(out).getChannel()) {
+                try (FileChannel sourceChannel = new FileInputStream(ing).getChannel(); FileChannel destChannel = new FileOutputStream(out).getChannel()) {
                     destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
                 }
                 if (out.length() > 0 && out.canRead()) {
@@ -685,7 +700,7 @@ public class Util {
 
         if (!response) {
             try {
-                try ( InputStream is = new FileInputStream(ing);  OutputStream os = new FileOutputStream(out)) {
+                try (InputStream is = new FileInputStream(ing); OutputStream os = new FileOutputStream(out)) {
                     byte[] buffer = new byte[4096];
                     int length;
                     while ((length = is.read(buffer)) > 0) {
@@ -720,7 +735,7 @@ public class Util {
             );
             if (es1 != null && es1.isConnected()) {
                 es1.cd("/mnt/array1/Esolver/");
-                try ( InputStream is = new FileInputStream(ing)) {
+                try (InputStream is = new FileInputStream(ing)) {
                     es1.put(is, ing.getName());
                 }
                 SftpConnection.closeConnection(es1, log);

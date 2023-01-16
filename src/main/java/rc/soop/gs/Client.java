@@ -102,7 +102,6 @@ public class Client {
 //                String line;
 //                if ((line = rd.readLine()) != null) {
 //                    JSON_DATA = line;
-//                    System.out.println("com.seta.rest.Client.invia() " + line);
 //                }
 ////          JSONObject obj = new JSONObject(JSON_DATA);
 ////            printJSONObject(obj);

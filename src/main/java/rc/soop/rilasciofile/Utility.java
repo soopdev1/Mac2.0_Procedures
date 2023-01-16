@@ -43,11 +43,11 @@ import org.joda.time.format.DateTimeFormatter;
  * @author raffaele
  */
 public class Utility {
-    
+
     public static final String separatorString = "_";
     public static final String PATTERN1 = "_";
-    public static final String path_log = "/mnt/logdb/";
-    
+    public static final String path_log = "/mnt/mac/log/";
+
     public static final String patternnormdate_filter = "dd/MM/yyyy";
     public static final String pattermonthnorm = "MM/yyyy";
     public static final String patternnormdate_f = "dd/MM/yyyy HH:mm";
@@ -63,7 +63,7 @@ public class Utility {
     public static final String patterntsdatecora = "yyyyMMddHHmmss";
     public static final String patternhours_d = "HH:mm:ss";
     public static final String patternhours_d1 = "HH:mm";
-    
+
     public static String ctrlString(String a) {
         if (a == null) {
             return "-";
@@ -132,8 +132,6 @@ public class Utility {
         return "";
     }
 
-    
-    
     public static String getStringBase64_IO(File file) {
         try {
             byte[] bytes = FileUtils.readFileToByteArray(file);
@@ -166,10 +164,9 @@ public class Utility {
         } catch (SftpException ex) {
             return false;
         }
-        
+
     }
-    
-    
+
     public static boolean isFile(String filename, ArrayList<Fileinfo> lis) {
         for (Fileinfo fileinfo : lis) {
             if (filename.equals(fileinfo.getName())) {
@@ -178,8 +175,7 @@ public class Utility {
         }
         return false;
     }
-    
-    
+
     public static String visualizzaStringaMySQL(String ing) {
         if (ing == null) {
             return "";
@@ -189,7 +185,7 @@ public class Utility {
         ing = StringUtils.replace(ing, "\"", "'");
         return ing.trim();
     }
-    
+
     public static String getStringCurrency(ArrayList<String> li1, ArrayList<Currency> li2) {
         String out = "";
         for (int l = 0; l < li1.size(); l++) {
@@ -213,7 +209,7 @@ public class Utility {
         }
         return out.trim();
     }
-    
+
     public static String formatCountry(String code, ArrayList<String[]> lista) {
         for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i)[0].trim().equals(code.trim())) {
@@ -222,6 +218,7 @@ public class Utility {
         }
         return "-";
     }
+
     public static String formatALN(String cod, ArrayList<String[]> array, int index) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(((String[]) array.get(i))[0])) {
@@ -230,7 +227,7 @@ public class Utility {
         }
         return cod;
     }
-    
+
     public static String formatSex(String s) {
         if (s.equalsIgnoreCase("M")) {
             return "Male";
@@ -241,19 +238,20 @@ public class Utility {
         }
         return s;
     }
-    public static double parseDoubleR(GeneraFile gf,String value) {
+
+    public static double parseDoubleR(GeneraFile gf, String value) {
         value = value.replaceAll("-", "").trim();
         double d1;
         try {
             d1 = Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            value = formatDoubleforMysql(gf,value);
-            return parseDoubleR(gf,value);
+            value = formatDoubleforMysql(gf, value);
+            return parseDoubleR(gf, value);
         }
         return d1;
     }
-    
-    public static String formatDoubleforMysql(GeneraFile gf,String value) {
+
+    public static String formatDoubleforMysql(GeneraFile gf, String value) {
         if (value == null) {
             return "0.00";
         }
@@ -265,7 +263,7 @@ public class Utility {
             add = "-";
             value = value.replaceAll("-", "").trim();
         }
-        
+
         if (!value.equals("0.00")) {
             if (gf.getThousand().equals(".")) {
                 if (value.contains(gf.getDecimal())) {
@@ -318,7 +316,7 @@ public class Utility {
         return add + value;
 
     }
-    
+
     public static String formatALNC_category(String cod, ArrayList<NC_category> array) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(array.get(i).getGruppo_nc())) {
@@ -327,7 +325,7 @@ public class Utility {
         }
         return "-";
     }
-    
+
     public static NC_category getNC_category(ArrayList<NC_category> li, String nc_code) {
         for (int i = 0; i < li.size(); i++) {
             if (li.get(i).getGruppo_nc().equals(nc_code)) {
@@ -336,7 +334,7 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static String formatALNC_causal(String cod, ArrayList<NC_causal> array) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(array.get(i).getCausale_nc())) {
@@ -345,6 +343,7 @@ public class Utility {
         }
         return "-";
     }
+
     public static String formatAL(String cod, ArrayList<String[]> array, int index) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(((String[]) array.get(i))[0])) {
@@ -353,6 +352,7 @@ public class Utility {
         }
         return "-";
     }
+
     public static String formatALNC_causal_ncde(String cod, ArrayList<NC_causal> array, ArrayList<String[]> array_nc_descr) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(array.get(i).getCausale_nc())) {
@@ -365,7 +365,7 @@ public class Utility {
         }
         return "-";
     }
-    
+
     public static Branch get_Branch(String cod, ArrayList<Branch> array_branch) {
         for (int j = 0; j < array_branch.size(); j++) {
             if (cod.equals((array_branch.get(j)).getCod())) {
@@ -375,10 +375,21 @@ public class Utility {
 
         return null;
     }
-    public static double roundDouble(double d, int scale) {
-        d = new BigDecimal(d).setScale(scale, RoundingMode.HALF_UP).doubleValue();
+
+    public static double roundDouble(
+            double d, 
+            int scale
+    ) {
+//        try {
+//            System.out.println("rc.soop.rilasciofile.Utility.roundDouble(A) " + d);
+            d = new BigDecimal(d).setScale(scale, RoundingMode.HALF_UP).doubleValue();
+//            System.out.println("rc.soop.rilasciofile.Utility.roundDouble(B) " + d);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         return d;
     }
+
     public static String formatBankBranchReport(String cod, String type, ArrayList<String[]> array_bank, ArrayList<Branch> array_branch) {
         if ((cod != null)
                 && (type != null)) {
@@ -400,7 +411,7 @@ public class Utility {
 
         return "";
     }
-    
+
     public static Figures get_figures(ArrayList<Figures> li, String cod) {
         for (int i = 0; i < li.size(); i++) {
             if (li.get(i).getSupporto().equals(cod)) {
@@ -411,7 +422,7 @@ public class Utility {
         vuoto.setDe_supporto("-");
         return vuoto;
     }
-    
+
     public static CustomerKind get_customerKind(ArrayList<CustomerKind> out, String cod) {
         for (int i = 0; i < out.size(); i++) {
             if (out.get(i).getTipologia_clienti().equals(cod)) {
@@ -420,7 +431,7 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static String formatBankBranch(String cod, String type, ArrayList<String[]> array_bank, ArrayList<Branch> array_branch, ArrayList<String[]> credit_card) {
         if ((cod != null)
                 && (type != null)) {
@@ -454,7 +465,7 @@ public class Utility {
 
         return "";
     }
-    
+
     public static int parseIntR(String value) {
         if (value == null) {
             return 0;
@@ -472,7 +483,7 @@ public class Utility {
         }
         return d1;
     }
-    
+
     public static Users get_user(String cod, ArrayList<Users> li) {
         for (int i = 0; i < li.size(); i++) {
             if (li.get(i).getCod().equals(cod)) {
@@ -481,7 +492,7 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static double divisione_controllozero(double num, double den) {
         double out = 0.0;
         if (den == 0.0) {
@@ -494,7 +505,7 @@ public class Utility {
         }
         return out;
     }
-    
+
     public static String[] descr_for_report(String descr) {
         Iterable<String> parameters = Splitter.on(" ").split(descr);
         Iterator<String> it = parameters.iterator();
@@ -510,10 +521,10 @@ public class Utility {
         String[] d = {st1, st2};
         return d;
     }
-    
-    public static double parseDoubleR_CZ(GeneraFile gf,String value, boolean buy) {
+
+    public static double parseDoubleR_CZ(GeneraFile gf, String value, boolean buy) {
         if (!gf.isIs_CZ()) {
-            return parseDoubleR(gf,value);
+            return parseDoubleR(gf, value);
         }
 
         double d1;
@@ -523,12 +534,12 @@ public class Utility {
                 d1 = d1 * (-1.0);
             }
         } catch (NumberFormatException e) {
-            value = formatDoubleforMysql(gf,value);
-            return parseDoubleR_CZ(gf,value, buy);
+            value = formatDoubleforMysql(gf, value);
+            return parseDoubleR_CZ(gf, value, buy);
         }
         return d1;
     }
-    
+
     public static NC_causal getNC_causal(ArrayList<NC_causal> li, String nc_code) {
         for (int i = 0; i < li.size(); i++) {
             if (li.get(i).getCausale_nc().equals(nc_code)) {
@@ -537,13 +548,13 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static String subDays(String start, String pattern, int days) {
         DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern);
         DateTime dt = formatter.parseDateTime(start);
         return dt.minusDays(days).toString(pattern);
     }
-    
+
     public static String formatALCurrency(String cod, ArrayList<Currency> array) {
         for (int i = 0; i < array.size(); i++) {
             if (cod.equals(((Currency) array.get(i)).getCode())) {
@@ -552,7 +563,7 @@ public class Utility {
         }
         return "-";
     }
-    
+
     public static boolean removeDuplicatesAL(ArrayList l) {
         int sizeInit = l.size();
 
@@ -580,7 +591,7 @@ public class Utility {
 
         return sizeInit != l.size();
     }
-    
+
     public static double getControvalore(double primo, double secondo, boolean dividi) {
         if (dividi) {
             return primo / secondo;
@@ -596,7 +607,7 @@ public class Utility {
             return secondo / primo;
         }
     }
-    
+
     public static String getGiornoAdeguatoAnnoPrecedente(String giorno) { //dd/MM/yyyy
         DateTimeFormatter formatter = DateTimeFormat.forPattern(patternnormdate_filter);
         DateTime dtoggi = formatter.parseDateTime(giorno);
@@ -611,6 +622,7 @@ public class Utility {
         }
         return dtannoscorso.toString(patternnormdate_filter);
     }
+
     public static String formatStringtoStringDate_null(String dat, String pattern1, String pattern2) {
         try {
             if (dat.length() == 21) {
@@ -625,7 +637,7 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static DateTime getDT(String start, String pattern) {
         if (start.length() == 21) {
             start = start.substring(0, 19);
@@ -636,7 +648,7 @@ public class Utility {
         }
         return null;
     }
-    
+
     public static String formatType_new(String tipotr, String internetbooking,
             String rimborso, String cau1, String cau2, String cau3, ArrayList<NC_category> listcat, ArrayList<NC_causal> listcaus) {
         if (tipotr != null) {
@@ -672,10 +684,9 @@ public class Utility {
         }
         return "-";
     }
-    
-    
+
     public static String format_tofrom_brba_new(String fg_tofrom, String fg_brba, String coddest, ArrayList<String[]> array_credit_card,
-             ArrayList<String[]> array_bank) {
+            ArrayList<String[]> array_bank) {
 
         if (fg_tofrom.equals("T")) {
             if (fg_brba.equals("BR")) {
@@ -697,10 +708,10 @@ public class Utility {
         }
         return "";
     }
-    
+
     public static String get_Value_history_BB(ArrayList<String[]> history_BB, DateTime dt_tr, Figures f) {
         for (int x = 0; x < history_BB.size(); x++) {
-            String[] va = history_BB.get(x);
+            String[] va  = history_BB.get(x);
             DateTime dt1 = getDT(va[0], patternsqldate);
             DateTime dt2 = getDT(va[1], patternsqldate);
             if (dt_tr.isAfter(dt1) && dt_tr.isBefore(dt2)) {
@@ -709,6 +720,7 @@ public class Utility {
         }
         return f.getBuy_back_commission();
     }
+
     public static DateTime parseStringDate(String dat, String pattern1) {
         try {
             if (dat.length() == 21) {
@@ -719,10 +731,11 @@ public class Utility {
                 return formatter.parseDateTime(dat);
             }
         } catch (IllegalArgumentException ex) {
-            
+
         }
         return null;
     }
+
     public static String formatMysqltoDisplay(String ing) {
         String decimal = ",";
         String thousand = ".";
@@ -796,6 +809,7 @@ public class Utility {
         }
         return result;
     }
+
     public static String getValueDiff_R(String value1, String value2, String diff, String rate, boolean dividi) {
         double diff1 = fd(value1) - fd(value2);
         double out;

@@ -33,8 +33,8 @@ public class Db_Master {
 
     public Db_Master() {
         try {
-            String drivername = "org.mariadb.jdbc.Driver";
-            String typedb = "mariadb";
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
             String user = "maccorp";
             String pwd = "M4cc0Rp";
             Class.forName(drivername).newInstance();
@@ -44,6 +44,11 @@ public class Db_Master {
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + rb.getString("host_h"), p);
         } catch (Exception ex) {
             this.c = null;
@@ -71,7 +76,7 @@ public class Db_Master {
     public String getConf(String id) {
         try {
             String sql = "SELECT des FROM conf WHERE id = ? ";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -86,7 +91,7 @@ public class Db_Master {
     public String getPath(String cod) {
         try {
             String sql = "SELECT descr FROM path WHERE cod = ?";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -102,7 +107,7 @@ public class Db_Master {
         try {
             String ins = "INSERT INTO newsletter VALUES (\"" + nl.getCod() + "\",\"" + nl.getTitolo() + "\",\"" + nl.getDescr()
                     + "\",\"" + nl.getFileout() + "\",\"" + nl.getDest() + "\",\"" + nl.getDt_updatestart() + "\",\"" + nl.getDt_upload() + "\")";
-            this.c.createStatement().execute(ins);
+            this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).execute(ins);
 //            PreparedStatement ps = this.c.prepareStatement(ins);
 //            ps.setString(1, nl.getCod());
 //            ps.setString(2, nl.getTitolo());
@@ -124,7 +129,7 @@ public class Db_Master {
         ArrayList<Newsletters> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM newsletter_upl WHERE stato = '0'";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 Newsletters nw = new Newsletters();
                 nw.setCod(rs.getString(1));
@@ -147,7 +152,7 @@ public class Db_Master {
         ArrayList<Newsletters> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM newsletter_upl";
-            ResultSet rs = this.c.createStatement().executeQuery(sql);
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 Newsletters nw = new Newsletters();
                 nw.setCod(rs.getString(1));
@@ -169,7 +174,7 @@ public class Db_Master {
     private ArrayList<String> list_branchcode_all() {
         ArrayList<String> li = new ArrayList<>();
         try {
-            ResultSet rs = this.c.createStatement().executeQuery("SELECT distinct(cod) FROM branch WHERE fg_annullato='0' order by cast(cod AS decimal (10,0))");
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT distinct(cod) FROM branch WHERE fg_annullato='0' order by cast(cod AS decimal (10,0))");
             while (rs.next()) {
                 li.add(rs.getString(1));
             }
@@ -223,7 +228,7 @@ public class Db_Master {
     public void insert_aggiornamenti_mod(Aggiornamenti_mod am) {
         try {
             String ins = "INSERT INTO aggiornamenti_mod VALUES (?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(ins);
+            PreparedStatement ps = this.c.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, am.getCod());
             ps.setString(2, am.getFiliale());
             ps.setString(3, am.getDt_start());
@@ -242,7 +247,7 @@ public class Db_Master {
         ArrayList<String> out = new ArrayList<>();
         try {
             String sql = "SELECT * FROM users ORDER BY CAST(cod AS decimal (10,0))";
-            PreparedStatement ps = this.c.prepareStatement(sql);
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 out.add(rs.getString(2));
@@ -256,7 +261,7 @@ public class Db_Master {
     public boolean insert_new_News_recipients(Newsletters nl, String user) {
         try {
             String ins = "INSERT INTO newsletter_status VALUES (?,?,?,?)";
-            PreparedStatement ps = this.c.prepareStatement(ins);
+            PreparedStatement ps = this.c.prepareStatement(ins,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, nl.getCod());
             ps.setString(2, nl.getUser());
             ps.setString(3, nl.getStatus());
@@ -274,7 +279,7 @@ public class Db_Master {
     public boolean changeStatusNL(String cod, String stato) {
         try {
             String upd = "UPDATE newsletter_upl SET stato='" + stato + "' WHERE cod = '" + cod + "'";
-            return this.c.createStatement().executeUpdate(upd) > 0;
+            return this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeUpdate(upd) > 0;
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -314,7 +319,7 @@ public class Db_Master {
                 nw.setDt_read("-");
                 nw.setStatus("U");
                 String sql = "SELECT cod FROM users WHERE fg_stato = ? AND cod not in (SELECT distinct(user) FROM newsletter_status WHERE cod = ?)";
-                PreparedStatement ps = this.c.prepareStatement(sql);
+                PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 ps.setString(1, "1");
                 ps.setString(2, nw.getCod());
                 ResultSet rs = ps.executeQuery();

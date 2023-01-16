@@ -34,11 +34,11 @@ public class AllineaRealOsp {
         List<String> elenco_osp = osp.stream().filter(f1 -> f1.getSupporto().equals("01")).map(f1 -> f1.getCurrency()).collect(Collectors.toList());
         List<String> elenco_bsi = bsi.stream().map(f1 -> f1.getCurrency()).collect(Collectors.toList());
         
-        System.out.println("com.seta.mac_riallinea.AllineaRealOsp.allineaReport(bsi 1)" + bsi.size());
-        System.out.println("com.seta.mac_riallinea.AllineaRealOsp.allineaReport(osp 2)" + osp.size());
+        System.out.println("com.mac_riallinea.AllineaRealOsp.allineaReport(bsi 1)" + bsi.size());
+        System.out.println("com.mac_riallinea.AllineaRealOsp.allineaReport(osp 2)" + osp.size());
         
-        System.out.println("com.seta.mac_riallinea.AllineaRealOsp.allineaReport(bsi 1)" + elenco_bsi.size());
-        System.out.println("com.seta.mac_riallinea.AllineaRealOsp.allineaReport(osp 2)" + elenco_osp.size());
+        System.out.println("com.mac_riallinea.AllineaRealOsp.allineaReport(bsi 1)" + elenco_bsi.size());
+        System.out.println("com.mac_riallinea.AllineaRealOsp.allineaReport(osp 2)" + elenco_osp.size());
         
         
         if (elenco_osp.size() > elenco_bsi.size()) {

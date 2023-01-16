@@ -5,11 +5,11 @@
  */
 package rc.soop.maintenance;
 
-import it.refill.testarea.Db;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import static it.refill.testarea.Mactest.host_PROD;
+import rc.soop.aggiornamenti.Db;
+import static rc.soop.aggiornamenti.Mactest.host_PROD;
 
 /**
  *

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -35,17 +36,12 @@ public class Db_ATL {
     }
 
     public Db_ATL() {
-        String drivername = "org.mariadb.jdbc.Driver";
-        String typedb = "mariadb";
-        String user = "maccorp";
-        String pwd = "M4cc0Rp";
-
-        String host = "//macdb01.mactwo.loc:3306/macatl";
-        if (test) {
-            host = "//macdb01.mactwo.loc:3306/macatl_test";
-        }
-
         try {
+
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
+            String user = "maccorp";
+            String pwd = "M4cc0Rp";
             Class.forName(drivername).newInstance();
             Properties p = new Properties();
             p.put("user", user);
@@ -53,8 +49,14 @@ public class Db_ATL {
             p.put("useUnicode", "true");
             p.put("characterEncoding", "UTF-8");
             p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            String host = test ? rb.getString("db.ip") + "/macatl_test" : rb.getString("db.ip") + "/macatl";
             this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + host, p);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
         }
     }
@@ -72,7 +74,7 @@ public class Db_ATL {
     public int setDateCorrect() {
         int x;
         try {
-            try (Statement st1 = this.c.createStatement()) {
+            try (Statement st1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 x = st1.executeUpdate("UPDATE dati_fatture SET dateoper=datereg WHERE dateoper<>datereg");
             }
         } catch (SQLException ex) {
@@ -89,7 +91,7 @@ public class Db_ATL {
                     + "WHERE cod IN (SELECT cod FROM dati_fatture WHERE dateoper like '" + data
                     + "%' AND cod LIKE '" + filiale + "%')) AND clientcode NOT IN (SELECT DISTINCT(contoreg) from details_dati_fatture WHERE category = 'TUR' "
                     + "AND cod like'" + filiale + "%') GROUP BY clientcode;";
-            try (ResultSet rs1 = this.c.createStatement().executeQuery(sql2)) {
+            try (ResultSet rs1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql2)) {
                 while (rs1.next()) {
                     Atl_dati_clienti df1 = new Atl_dati_clienti(
                             rs1.getString(1), rs1.getString(2),
@@ -117,7 +119,7 @@ public class Db_ATL {
         try {
             String sql3 = "SELECT * FROM details_dati_fatture WHERE cod IN "
                     + "(SELECT cod FROM dati_fatture WHERE datereg like '" + data + "%' AND tipomov='C' AND cod LIKE '" + filiale + "%') ORDER by cod,numriga";
-            try (ResultSet rs3 = this.c.createStatement().executeQuery(sql3)) {
+            try (ResultSet rs3 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql3)) {
                 while (rs3.next()) {
                     df.add(new Atl_details_dati_fatture(rs3.getString(1), rs3.getString(2), rs3.getString(3), rs3.getString(4),
                             rs3.getString(5), rs3.getString(6), rs3.getString(7), rs3.getString(8), rs3.getString(9),
@@ -126,7 +128,7 @@ public class Db_ATL {
             }
 
             String sql1 = "SELECT * FROM dati_fatture WHERE datereg like '" + data + "%' AND tipomov='C' AND cod LIKE '" + filiale + "%' ORDER BY datereg";
-            try (ResultSet rs1 = this.c.createStatement().executeQuery(sql1)) {
+            try (ResultSet rs1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql1)) {
                 while (rs1.next()) {
                     String cod = rs1.getString(1);
 
@@ -155,7 +157,7 @@ public class Db_ATL {
             String sql3 = "SELECT * FROM details_dati_fatture WHERE cod IN "
                     + "(SELECT cod FROM dati_fatture WHERE datereg like '" + data + "%' "
                     + "AND tipomov='G' AND cod LIKE '" + filiale + "%') ORDER by cod,numriga";
-            try (ResultSet rs3 = this.c.createStatement().executeQuery(sql3)) {
+            try (ResultSet rs3 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql3)) {
                 while (rs3.next()) {
                     df.add(new Atl_details_dati_fatture(rs3.getString(1), rs3.getString(2),
                             rs3.getString(3), rs3.getString(4),
@@ -167,7 +169,7 @@ public class Db_ATL {
             }
 
             String sql1 = "SELECT * FROM dati_fatture WHERE datereg like '" + data + "%' AND tipomov='G' AND cod LIKE '" + filiale + "%' ORDER BY datereg";
-            try (ResultSet rs1 = this.c.createStatement().executeQuery(sql1)) {
+            try (ResultSet rs1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql1)) {
                 while (rs1.next()) {
                     String cod = rs1.getString(1);
                     Atl_dati_fatture df1 = new Atl_dati_fatture(rs1.getString(1), rs1.getString(2),
@@ -194,7 +196,7 @@ public class Db_ATL {
                     + "(SELECT cod FROM dati_fatture WHERE datereg like '" + data
                     + "%' AND cod LIKE '" + filiale + "%' AND (tipomov='F' OR tipomov='N')) ORDER by cod,nrigaiva";
 
-            try (ResultSet rs2 = this.c.createStatement().executeQuery(sql2)) {
+            try (ResultSet rs2 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql2)) {
                 while (rs2.next()) {
                     di.add(new Atl_detailsiva_dati_fatture(rs2.getString(1), rs2.getString(2), rs2.getString(3),
                             rs2.getString(4), rs2.getString(5), rs2.getString(6), rs2.getString(7)));
@@ -206,7 +208,7 @@ public class Db_ATL {
                     + "%' AND cod LIKE '" + filiale + "%' AND (tipomov='F' OR tipomov='N'))"
                     + " AND tipoconto <> 'I' ORDER by cod,numriga";
 
-            try (ResultSet rs3 = this.c.createStatement().executeQuery(sql3)) {
+            try (ResultSet rs3 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql3)) {
                 while (rs3.next()) {
                     df.add(new Atl_details_dati_fatture(rs3.getString(1), rs3.getString(2), rs3.getString(3), rs3.getString(4),
                             rs3.getString(5), rs3.getString(6), rs3.getString(7), rs3.getString(8), rs3.getString(9),
@@ -215,7 +217,7 @@ public class Db_ATL {
             }
 
             String sql1 = "SELECT * FROM dati_fatture WHERE datereg like '" + data + "%' AND (tipomov='F' OR tipomov='N') AND cod LIKE '" + filiale + "%' ORDER BY datereg";
-            try (ResultSet rs1 = this.c.createStatement().executeQuery(sql1)) {
+            try (ResultSet rs1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql1)) {
                 while (rs1.next()) {
                     String cod = rs1.getString(1);
                     Atl_dati_fatture df1 = new Atl_dati_fatture(rs1.getString(1), rs1.getString(2), rs1.getString(3), rs1.getString(4), rs1.getString(5), rs1.getString(6),

@@ -7,24 +7,24 @@ package rc.soop.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 import rc.soop.qlik.LoggerNew;
 import static rc.soop.rilasciofile.Action.estraiNumber;
 import static rc.soop.rilasciofile.Action.insertFile;
 import static rc.soop.rilasciofile.Utility.getHASH;
 import static rc.soop.rilasciofile.Utility.getStringBase64_IO;
-import static rc.soop.rilasciofile.Utility.isDirectory;
 import static rc.soop.rilasciofile.Utility.isFile;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
 import org.joda.time.DateTime;
 import rc.soop.esolver.Util;
 import rc.soop.rilasciofile.Fileinfo;
@@ -46,7 +46,7 @@ public class SftpMaccorp {
 //    public static final String se_pwd = "Dop77$$R.";
 
     public static final String se_ip = rb.getString("ftp.ip");
-    public static final int se_port = Util.parseIntR(rb.getString("ftp.pass"));
+    public static final int se_port = Util.parseIntR(rb.getString("ftp.port"));
     ///////////////////////////////////////////////////////////////
 
     private ArrayList<Fileinfo> allfile_MER, allfile_BAS;
@@ -56,14 +56,14 @@ public class SftpMaccorp {
     public SftpMaccorp() {
         String dtnow = new DateTime().toString("yyyyMMdd");
         Db db = new Db(false);
-        this.download_sftp_MER = db.getPath("download_sftp");
-        this.download_sftp_BAS = db.getPath("download_sftp_bass");
-        this.upload_mercury = db.getPath("upload_mercury") + dtnow + "/";
-        this.upload_bassilichi = db.getPath("upload_bassilichi") + dtnow + "/";
-        this.download_locale = db.getPath("download_locale") + File.separator + dtnow + File.separator;
+        this.download_sftp_MER = db.getPath("download_sftp", "url");
+        this.download_sftp_BAS = db.getPath("download_sftp_bass", "url");
+        this.upload_mercury = db.getPath("upload_mercury", "url") + dtnow + "/";
+        this.upload_bassilichi = db.getPath("upload_bassilichi", "url") + dtnow + "/";
+        this.download_locale = db.getPath("download_locale", "url") + File.separator + dtnow + File.separator;
         this.allfile_MER = db.getFile(MER);
         this.allfile_BAS = db.getFile(BAS);
-        this.logger = new LoggerNew("SFTP_MAC", db.getPath("Pathlog"));
+        this.logger = new LoggerNew("SFTP_MAC", db.getPath("Pathlog", "url"));
         db.closeDB();
     }
 
@@ -93,7 +93,7 @@ public class SftpMaccorp {
                             long size = v.get(i).getAttrs().getSize();
                             if (size > 0) {
                                 File download = new File(this.download_locale + MER + File.separator + v.get(i).getFilename());
-                                try ( OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(download))) {
+                                try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(download))) {
                                     sftpmercury.get(this.download_sftp_MER + v.get(i).getFilename(), outputStream);
                                     outputStream.flush();
                                 }
@@ -122,29 +122,30 @@ public class SftpMaccorp {
         File[] ls = download_dir.listFiles();
         this.logger.log.log(Level.WARNING, "FILES DOWNLOADED: {0}", ls.length);
         if (ls.length > 0) {
-            ChannelSftp sftpseta = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
-            if (sftpseta.isConnected()) {
-                if (!isDirectory(sftpseta, this.upload_mercury)) {
-                    try {
-                        sftpseta.mkdir(this.upload_mercury);
-                    } catch (Exception ex) {
-                        this.logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{MER.toUpperCase(), ex.getMessage()});
-                    }
-                }
-                for (File file : ls) {
-                    try {
-                        if (file.isFile()) {
-                            sftpseta.put(new FileInputStream(file), this.upload_mercury + file.getName());
-                            this.logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}", new Object[]{file.getName(), file.length(), getHASH(file), MER.toUpperCase()});
-                        }
-                    } catch (Exception e) {
-                        this.logger.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
-                    }
-                }
-                SftpConnection.closeConnection(sftpseta, this.logger);
-            } else {
-                this.logger.log.severe("SFTP SETA NON CONNESSO");
-            }
+            UPLOAD_AWS(ls, this.upload_mercury, MER);
+//            ChannelSftp sftpaws = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
+//            if (sftpaws.isConnected()) {
+//                if (!isDirectory(sftpaws, this.upload_mercury)) {
+//                    try {
+//                        sftpaws.mkdir(this.upload_mercury);
+//                    } catch (Exception ex) {
+//                        this.logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{MER.toUpperCase(), ex.getMessage()});
+//                    }
+//                }
+//                for (File file : ls) {
+//                    try {
+//                        if (file.isFile()) {
+//                            sftpaws.put(new FileInputStream(file), this.upload_mercury + file.getName());
+//                            this.logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}", new Object[]{file.getName(), file.length(), getHASH(file), MER.toUpperCase()});
+//                        }
+//                    } catch (Exception e) {
+//                        this.logger.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
+//                    }
+//                }
+//                SftpConnection.closeConnection(sftpaws, this.logger);
+//            } else {
+//                this.logger.log.severe("SFTP SETA NON CONNESSO");
+//            }
         }
     }
 
@@ -158,15 +159,10 @@ public class SftpMaccorp {
                     if (valoreinterno.getFilename().equals(".") || valoreinterno.getFilename().equals("..")) {
 
                     } else {
-//                        System.out.println("com.seta.sftpmaccorp.SftpMaccorp.sftpbassilichi(1) " + path + "/" + valoreinterno.getFilename());
                         listFiles(v, sftpbassilichi, path + "/" + valoreinterno.getFilename(), listafinale);
-                        //                        originale.add(v);
                     }
                 } else {
-//                    System.out.println("com.seta.sftpmaccorp.SftpMaccorp.sftpbassilichi(2) " + valoreinterno.getFilename());
-//                    System.out.println("com.seta.sftpmaccorp.SftpMaccorp.listFiles() "+ path + "/" + valoreinterno.getFilename());
                     listafinale.add(new Fileinfo(estraiNumber(path) + "_" + valoreinterno.getFilename(), valoreinterno.getAttrs().getSize(), path + "/" + valoreinterno.getFilename(), true));
-//                    originale.add(valoreinterno);
                 }
             }
 
@@ -215,7 +211,7 @@ public class SftpMaccorp {
                             if (file1.getSize() > 0) {
                                 try {
                                     File download = new File(this.download_locale + BAS + File.separator + file1.getName());
-                                    try ( OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(download))) {
+                                    try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(download))) {
                                         sftpnexi.get(file1.getPath(), outputStream);
                                         outputStream.flush();
                                     }
@@ -252,39 +248,124 @@ public class SftpMaccorp {
         this.logger.log.log(Level.WARNING, "FILES DOWNLOADED: {0}", ls.length);
 
         if (ls.length > 0) {
-            ChannelSftp sftpseta = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
-            if (sftpseta.isConnected()) {
-                if (!isDirectory(sftpseta, this.upload_bassilichi)) {
-                    try {
-                        System.out.println("com.seta.sftpmaccorp.SftpMaccorp.sftpbassilichi() " + this.upload_bassilichi);
-                        sftpseta.mkdir(this.upload_bassilichi);
-                    } catch (SftpException ex) {
-                        ex.printStackTrace();
-                        this.logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{BAS.toUpperCase(), ex.getMessage()});
+
+            UPLOAD_AWS(ls, this.upload_bassilichi, BAS);
+
+//            ChannelSftp sftpaws = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
+//            if (sftpaws.isConnected()) {
+//                if (!isDirectory(sftpaws, this.upload_bassilichi)) {
+//                    try {
+//                        sftpaws.mkdir(this.upload_bassilichi);
+//                    } catch (SftpException ex) {
+//                        ex.printStackTrace();
+//                        this.logger.log.log(Level.SEVERE, "ERRORE CREAZIONE CARTELLA {0}: {1}", new Object[]{BAS.toUpperCase(), ex.getMessage()});
+//                    }
+//                }
+//                for (File file : ls) {
+//                    try {
+//                        if (file.isFile()) {
+//                            sftpaws.put(new FileInputStream(file), this.upload_bassilichi + file.getName());
+//                            this.logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}", new Object[]{file.getName(), file.length(), getHASH(file), BAS.toUpperCase()});
+//                        }
+//                    } catch (Exception e) {
+//                        this.logger.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
+//                    }
+//                }
+//                SftpConnection.closeConnection(sftpaws, this.logger);
+//            } else {
+//                this.logger.log.severe("SFTP SETA NON CONNESSO");
+//            }
+        }
+    }
+
+    public static boolean UPLOAD_AWS(File file, String meseriferimento, String annoriferimento, LoggerNew l1) {
+        try {
+
+            Db db1 = new Db(false);
+            String pathdest = db1.getPath("upload", "url") + annoriferimento + "/" + meseriferimento + "/";
+            db1.closeDB();
+
+            FTPClient ftpClient = new FTPClient();
+            ftpClient.connect(se_ip, se_port);
+            ftpClient.login(se_user, se_pwd);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+
+            if (ftpClient.isConnected()) {
+                try {
+                    ftpClient.makeDirectory(pathdest);
+                    ftpClient.sendSiteCommand("chown -R 1003:1010 " + pathdest);
+                } catch (Exception e) {
+                }
+                try {
+                    try (InputStream is = new FileInputStream(file)) {
+                        ftpClient.appendFile((pathdest + file.getName()), is);
+                        ftpClient.sendSiteCommand("chown 1003:1010 " + pathdest + file.getName());
+                        l1.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}",
+                                new Object[]{pathdest + file.getName(), file.length(), getHASH(file), "REPORT"});
                     }
+                } catch (Exception e) {
+                    l1.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
+                }
+                ftpClient.disconnect();
+            } else {
+                l1.log.severe("FTP AWS NON CONNESSO");
+            }
+            return true;
+        } catch (Exception e) {
+            l1.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
+        }
+        return false;
+
+    }
+
+    private boolean UPLOAD_AWS(File[] ls, String pathdest, String cl) {
+
+        try {
+
+            FTPClient ftpClient = new FTPClient();
+            ftpClient.connect(se_ip, se_port);
+            ftpClient.login(se_user, se_pwd);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+
+            if (ftpClient.isConnected()) {
+                try {
+                    ftpClient.makeDirectory(pathdest);
+                    ftpClient.sendSiteCommand("chown -R 1003:1010 " + pathdest);
+                } catch (Exception e) {
                 }
                 for (File file : ls) {
                     try {
                         if (file.isFile()) {
-                            sftpseta.put(new FileInputStream(file), this.upload_bassilichi + file.getName());
-                            this.logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}", new Object[]{file.getName(), file.length(), getHASH(file), BAS.toUpperCase()});
+                            try (InputStream is = new FileInputStream(file)) {
+                                ftpClient.appendFile((pathdest + file.getName()), is);
+                                ftpClient.sendSiteCommand("chown -R 1003:1010 " + pathdest + file.getName());
+                                this.logger.log.log(Level.INFO, "{3}: FILE CARICATO: {0} - SIZE: {1} - HASH: {2}", new Object[]{pathdest + file.getName(), file.length(), getHASH(file), cl.toUpperCase()});
+                            }
                         }
-                    } catch (SftpException e) {
-                        this.logger.log.log(Level.SEVERE, "ERRORE SFTP UPLOAD: {0}", e.getMessage());
-                    } catch (FileNotFoundException e) {
+                    } catch (Exception e) {
                         this.logger.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
                     }
                 }
-                SftpConnection.closeConnection(sftpseta, this.logger);
+                ftpClient.disconnect();
             } else {
-                this.logger.log.severe("SFTP SETA NON CONNESSO");
+                this.logger.log.severe("FTP AWS NON CONNESSO");
             }
+            return true;
+        } catch (Exception e) {
+            this.logger.log.log(Level.SEVERE, "ERRORE FILE: {0}", e.getMessage());
         }
+        return false;
     }
 
-//    public static void main(String[] args) {
-//        new SftpMaccorp().sftpbassilichinexi(true);
-//        new SftpMaccorp().sftpmercury();
+//    public void main() {
+//
+////        ChannelSftp sftpaws = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.
+////        sftpaws.disconnect();
 //    }
-
+//    
+//    public static void main(String[] args) {
+//        new SftpMaccorp().main();
+//    }
 }

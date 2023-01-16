@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.refill.testarea;
+package rc.soop.testarea;
 
+import rc.soop.aggiornamenti.Utility;
+import rc.soop.aggiornamenti.Db;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,6 +15,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import static rc.soop.start.Utility.rb;
 
 /**
  *
@@ -20,8 +23,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  */
 public class Indici {
 
-//    private static final String host_TEST = "//machaproxy01.mactwo.loc:3306/maccorp";
-    private static final String host_PROD = "//machaproxy01.mactwo.loc:3306/maccorpita";
+    private static final String host_PROD = rb.getString("db.ip") + "/maccorpita";
 
     public static void main(String[] args) {
         try {
@@ -89,7 +91,6 @@ public class Indici {
 //            String[] f1 = Utility.formatAL(filialedafare, ip);
 //            System.out.println(f1[0]);
 //            System.out.println(f1[1]);
-
             for (int i = 0; i < ip.size(); i++) {
 
                 String[] f1 = ip.get(i);
@@ -122,7 +123,7 @@ public class Indici {
             }
 //            System.out.println(elencoindicitotali.size());
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

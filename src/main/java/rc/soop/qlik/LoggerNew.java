@@ -7,7 +7,7 @@ package rc.soop.qlik;
 
 /*
  *
- * @author setasrl
+ * @author Raffaele
  */
 import java.io.File;
 import java.text.SimpleDateFormat;

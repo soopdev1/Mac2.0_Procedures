@@ -7,13 +7,11 @@ package rc.soop.esolver;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import static rc.soop.esolver.ESolver.pathin;
-import static rc.soop.esolver.ESolver.pathout;
 import static rc.soop.esolver.ESolver.separator;
 import static rc.soop.esolver.ESolver.tag_GEN;
 import static rc.soop.esolver.ESolver.tag_RIG;
 import static rc.soop.esolver.ESolver.tag_TES;
 import static rc.soop.esolver.Util.checkTXT;
-import static rc.soop.esolver.Util.copyFile_R;
 import static rc.soop.esolver.Util.estraiEccezione;
 import static rc.soop.esolver.Util.fd;
 import static rc.soop.esolver.Util.formatStringtoStringDate;
@@ -34,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 

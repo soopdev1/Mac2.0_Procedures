@@ -114,7 +114,6 @@ public class CorreggiFx {
 //                            }
 //                        }
 //
-//                        System.out.println("com.seta.reload.CorreggiFx.main() " + yea + "-" + mon + "-" + day + " --- CALCOALTA BSI " + br_fx);
 //
 //                        if (br_fx == 0) {
 //
