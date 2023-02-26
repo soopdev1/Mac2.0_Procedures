@@ -2071,6 +2071,684 @@ public class DatabaseCons {
         }
     }
 
+    public Daily_value list_Daily_value_2023_report(String[] fil, String datad1, String datad2, String valutalocale,
+            ArrayList<String[]> cc, ArrayList<String[]> bc, ArrayList<String[]> listkind, ArrayList<NC_causal> nc_caus) {
+
+        if (datad1 != null && datad2 != null) {
+
+            try {
+
+                Daily_value d = new Daily_value();
+
+                double setPurchTotal = 0.0;
+                double setPurchComm = 0.0;
+                double setPurchGrossTot;
+                double setPurchSpread = 0.0;
+                double setPurchProfit;
+                double setSalesTotal = 0.0;
+                double setSalesComm = 0.0;
+                double setSalesGrossTot = 0.0;
+                double setSalesSpread = 0.0;
+                double setSalesProfit;
+                double setCashAdNetTot = 0.0;
+                double setCashAdComm = 0.0;
+                double setCashAdGrossTot;
+                double setCashAdSpread = 0.0;
+                double setCashAdProfit;
+
+                double refund = 0.0;
+                double refundshow = 0.0;
+
+//                ArrayList<NC_causal> nc_caus = query_nc_causal_filial(fil[0], null);
+//                ArrayList<String[]> listkind = nc_kind_order();
+                //refund
+                String sql0 = "SELECT value FROM ch_transaction_refund where status = '1' and method = 'BR' and branch_cod = '" + fil[0] + "'";
+                sql0 = sql0 + "AND dt_refund >= '" + datad1 + ":00' ";
+                sql0 = sql0 + "AND dt_refund <= '" + datad2 + ":59' ";
+
+                ResultSet rs0 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql0);
+                while (rs0.next()) {
+                    refund = refund + fd(rs0.getString("value"));
+                    refundshow = refundshow + parseDoubleR(this.gf, rs0.getString("value"));
+                }
+
+                //TRANSACTION
+                String sql = "SELECT tr1.cod,tr1.tipotr,tr1.pay,tr1.total,tr1.commission,tr1.round,tr1.spread_total,"
+                        + "tr1.pos,tr1.localfigures FROM ch_transaction tr1 WHERE tr1.del_fg='0' AND tr1.filiale = '" + fil[0] + "' ";
+
+                sql = sql + "AND tr1.data >= '" + datad1 + ":00' ";
+
+                sql = sql + "AND tr1.data <= '" + datad2 + ":59' ";
+
+                ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
+
+                int setNoTransPurch = 0;
+                int setNoTransCC = 0;
+                int setNoTransSales = 0;
+                int setTotal = 0;
+                int setTotPos = 0;
+                int setTotAcc = 0;
+
+                double poamount = 0.00;
+
+                ArrayList<DailyCOP> dclist = new ArrayList<>();
+
+                for (int x = 0; x < cc.size(); x++) {
+                    DailyCOP dc = new DailyCOP(cc.get(x)[1], cc.get(x)[0]);
+                    dclist.add(dc);
+                }
+
+                ArrayList<DailyBank> listdb = new ArrayList<>();
+
+                for (int x = 0; x < bc.size(); x++) {
+                    DailyBank dc = new DailyBank(bc.get(x)[1], bc.get(x)[0]);
+                    listdb.add(dc);
+                }
+                int ij = 1;
+                while (rs.next()) {
+                    setTotal++;
+                    if (rs.getString("tr1.tipotr").equals("B")) {
+                        setNoTransPurch++;
+
+                        ResultSet rsval = this.c.createStatement().executeQuery(
+                                "SELECT supporto,net,total,tot_com,roundvalue,pos FROM ch_transaction_valori WHERE cod_tr = '"
+                                + rs.getString("tr1.cod") + "'");
+
+                        while (rsval.next()) {
+                            if (rsval.getString("supporto").equals("04")) {//CASH ADVANCE
+                                setNoTransCC++;
+                                setCashAdNetTot = setCashAdNetTot + fd(rsval.getString("net"));
+
+                                if (this.gf.isIs_CZ()) {
+                                    setCashAdComm = setCashAdComm + fd(rsval.getString("tot_com"))
+                                            + parseDoubleR_CZ(this.gf, rsval.getString("roundvalue"), true);
+                                } else {
+                                    setCashAdComm = setCashAdComm + fd(rsval.getString("tot_com"))
+                                            + fd(rsval.getString("roundvalue"));
+                                }
+
+                                setNoTransPurch--;
+                                DailyCOP dc = DailyCOP.get_obj(dclist, rsval.getString("pos"));
+                                if (dc != null) {
+                                    double start = fd(dc.getCashAdNtrans());
+
+                                    start++;
+                                    dc.setCashAdNtrans(roundDoubleandFormat(start, 0));
+                                    double d1 = fd(dc.getCashAdAmount());
+                                    d1 = d1 + fd(rsval.getString("total"));
+                                    dc.setCashAdAmount(roundDoubleandFormat(d1, 2));
+                                }
+                            } else if (rsval.getString("supporto").equals("06")) {//CREDIT CARD
+
+                                DailyCOP dc = DailyCOP.get_obj(dclist, rsval.getString("pos"));
+                                if (dc != null) {
+                                    double start = fd(dc.getCcNtrans());
+                                    start++;
+                                    dc.setCcNtrans(roundDoubleandFormat(start, 0));
+                                    double d1 = fd(dc.getCcAmount());
+                                    d1 = d1 + fd(rsval.getString("net"));
+                                    dc.setCcAmount(roundDoubleandFormat(d1, 2));
+                                    poamount = poamount + fd(rsval.getString("net"));
+                                }
+
+                            } else if (rsval.getString("supporto").equals("07")) {// bancomat
+
+                                DailyCOP dc = DailyCOP.get_obj(dclist, rsval.getString("pos"));
+                                if (dc != null) {
+                                    double start = fd(dc.getBankNtrans());
+                                    start++;
+                                    dc.setBankNtrans(roundDoubleandFormat(start, 0));
+                                    double d1 = fd(dc.getBankAmount());
+                                    d1 = d1 + fd(rsval.getString("net"));
+                                    dc.setBankAmount(roundDoubleandFormat(d1, 2));
+                                    poamount = poamount + fd(rsval.getString("net"));
+                                }
+
+                            } else if (rsval.getString("supporto").equals("08")) {
+                                DailyBank dc = DailyBank.get_obj(listdb, rsval.getString("pos"));
+                                if (dc != null) {
+                                    double start = fd(dc.getNtrans());
+                                    start++;
+                                    dc.setNtrans(roundDoubleandFormat(start, 0));
+                                    double d1 = fd(dc.getAmount());
+                                    d1 = d1 + fd(rsval.getString("net"));
+                                    dc.setAmount(roundDoubleandFormat(d1, 2));
+                                    poamount = poamount + fd(rsval.getString("net"));
+                                }
+                            } else {
+                                setPurchTotal = setPurchTotal + fd(rsval.getString("net"));
+                                if (this.gf.isIs_CZ()) {
+                                    setPurchComm = setPurchComm + fd(rsval.getString("tot_com")) + parseDoubleR_CZ(this.gf, rsval.getString("roundvalue"), true);
+                                } else {
+                                    setPurchComm = setPurchComm + fd(rsval.getString("tot_com")) + fd(rsval.getString("roundvalue"));
+                                }
+
+                            }
+                        }
+
+                    } else {
+                        setNoTransSales++;
+                        setSalesTotal = setSalesTotal + fd(rs.getString("tr1.pay"));
+                        setSalesGrossTot = setSalesGrossTot + fd(rs.getString("tr1.total"));
+                        //26012018
+                        //setSalesTotal = setSalesTotal + fd(rs.getString("tr1.pay"));
+
+                        setSalesComm = setSalesComm + fd(rs.getString("tr1.commission"))
+                                + fd(rs.getString("tr1.round"));
+                        ij++;
+                        setSalesSpread = setSalesSpread + fd(rs.getString("tr1.spread_total"));
+
+                        if (rs.getString("tr1.localfigures").equals("06")) {//CREDIT CARD
+                            DailyCOP dc = DailyCOP.get_obj(dclist, rs.getString("tr1.pos"));
+                            if (dc != null) {
+                                double start = fd(dc.getCcNtrans());
+                                start++;
+                                dc.setCcNtrans(roundDoubleandFormat(start, 0));
+                                double d1 = fd(dc.getCcAmount());
+                                d1 = d1 + fd(rs.getString("tr1.pay"));
+                                dc.setCcAmount(roundDoubleandFormat(d1, 2));
+                                poamount = poamount + fd(rs.getString("tr1.pay"));
+                            }
+                            setTotPos++;
+                        } else if (rs.getString("tr1.localfigures").equals("07")) {// bancomat
+
+                            DailyCOP dc = DailyCOP.get_obj(dclist, rs.getString("tr1.pos"));
+                            if (dc != null) {
+                                double start = fd(dc.getBankNtrans());
+                                start++;
+                                dc.setBankNtrans(roundDoubleandFormat(start, 0));
+                                double d1 = fd(dc.getBankAmount());
+                                d1 = d1 + fd(rs.getString("tr1.pay"));
+                                dc.setBankAmount(roundDoubleandFormat(d1, 2));
+                                poamount = poamount + fd(rs.getString("tr1.pay"));
+                            }
+                            setTotPos++;
+                        } else if (rs.getString("localfigures").equals("08")) {
+
+                            DailyBank dc = DailyBank.get_obj(listdb, rs.getString("tr1.pos"));
+                            if (dc != null) {
+                                double start = fd(dc.getNtrans());
+                                start++;
+                                dc.setNtrans(roundDoubleandFormat(start, 0));
+                                double d1 = fd(dc.getAmount());
+                                d1 = d1 + fd(rs.getString("tr1.pay"));
+                                dc.setAmount(roundDoubleandFormat(d1, 2));
+                                poamount = poamount + fd(rs.getString("tr1.pay"));
+                            }
+
+                            setTotAcc++;
+                        }
+
+                        ResultSet rsval = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_UPDATABLE).executeQuery(
+                                        "SELECT supporto,total,tot_com,roundvalue,pos FROM ch_transaction_valori WHERE cod_tr = '" + rs.getString("tr1.cod") + "'");
+                        while (rsval.next()) {
+                            if (rsval.getString("supporto").equals("04")) {//CASH ADVANCE
+                                setCashAdNetTot = setCashAdNetTot + fd(rsval.getString("total"));
+
+                                if (this.gf.isIs_CZ()) {
+                                    setCashAdComm = setCashAdComm + fd(rsval.getString("tot_com"))
+                                            + parseDoubleR_CZ(this.gf, rsval.getString("roundvalue"), true);
+                                } else {
+                                    setCashAdComm = setCashAdComm + fd(rsval.getString("tot_com"))
+                                            + fd(rsval.getString("roundvalue"));
+                                }
+
+                                DailyCOP dc = DailyCOP.get_obj(dclist,
+                                        rsval.getString("pos"));
+                                if (dc != null) {
+                                    double start = fd(dc.getCashAdNtrans());
+                                    start++;
+                                    dc.setCashAdNtrans(roundDoubleandFormat(start, 0));
+                                    double d1 = fd(dc.getCashAdAmount());
+                                    d1 = d1 + fd(
+                                            rsval.getString("total"));
+                                    dc.setCashAdAmount(roundDoubleandFormat(d1, 2));
+                                }
+
+                            }
+
+                        }
+                    }
+
+                }
+
+                setPurchGrossTot = setPurchTotal + setPurchComm;
+                //setSalesGrossTot = setSalesTotal - setSalesComm;
+                setCashAdGrossTot = setCashAdNetTot + setCashAdComm;
+
+                setPurchProfit = setPurchComm;
+                setSalesProfit = setSalesComm + setSalesSpread;
+                setCashAdProfit = setCashAdComm;
+
+                //NO CHANGE
+                String sql1 = "SELECT causale_nc,supporto,total,pos,fg_inout,quantita FROM nc_transaction WHERE del_fg='0' AND filiale = '" + fil[0] + "' ";
+                sql1 = sql1 + "AND data >= '" + datad1 + ":00' ";
+                sql1 = sql1 + "AND data <= '" + datad2 + ":59' ";
+
+                ResultSet rs1 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql1);
+                double totalnotesnochange = 0.00;
+
+                //ArrayList<String[]> list_nc_descr = list_nc_descr();
+                ArrayList<DailyKind> dklist = new ArrayList<>();
+                ArrayList<DailyKind> dkATL = new ArrayList<>();
+
+                for (int i = 0; i < listkind.size(); i++) {
+                    rs1.beforeFirst();
+
+                    String kind = listkind.get(i)[0];
+                    int setToNrTran = 0;
+                    double setToTotal = 0.00;
+                    double setToLocalCurr = 0.00;
+                    double setToCC = 0.00;
+                    double setToB = 0.00;
+                    int setFromNrTran = 0;
+                    double setFromTotal = 0.00;
+                    double setFromLocalCurr = 0.00;
+                    double setFromCC = 0.00;
+                    double setFromB = 0.00;
+                    while (rs1.next()) {
+                        NC_causal nc2 = getNC_causal(nc_caus, rs1.getString("causale_nc"));
+                        if (nc2 == null) {
+                            continue;
+                        }
+                        String kindrs = nc2.getFg_tipo_transazione_nc();
+                        if (kind.equals(kindrs)) {
+                            String supporto = rs1.getString("supporto");
+                            if (kindrs.equals("8")) {
+                                if (rs1.getString("fg_inout").equals("1") || rs1.getString("fg_inout").equals("3")) {
+
+                                    setFromNrTran = setFromNrTran + parseIntR(rs1.getString("quantita"));
+                                    setFromTotal = setFromTotal + fd(rs1.getString("total"));
+                                    switch (supporto) {
+                                        case "01":
+                                        case "...":
+                                            setFromLocalCurr = setFromLocalCurr + fd(rs1.getString("total"));
+                                            break;
+                                        case "04":
+                                        case "06":
+                                        case "07":
+                                            if (supporto.equals("06")) {
+                                                setFromCC = setFromCC + fd(rs1.getString("total"));
+                                                
+                                                DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                                if (dc != null) {
+                                                    double start = fd(dc.getNC_ccNtrans());
+                                                    start++;
+                                                    dc.setNC_ccNtrans(roundDoubleandFormat(start, 0));
+                                                    double d1 = fd(dc.getNC_ccAmount());
+                                                    d1 = d1 + fd(rs1.getString("total"));
+                                                    dc.setNC_ccAmount(roundDoubleandFormat(d1, 2));
+//                                                poamount = poamount + fd(rs1.getString("total"));
+                                                }
+                                                
+                                            } else if (supporto.equals("07")) {
+                                                setFromB = setFromB + +fd(rs1.getString("total"));
+                                                DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                                if (dc != null) {
+                                                    double start = fd(dc.getNC_bankNtrans());
+                                                    start++;
+                                                    dc.setNC_bankNtrans(roundDoubleandFormat(start, 0));
+                                                    double d1 = fd(dc.getNC_bankAmount());
+                                                    d1 = d1 + fd(rs1.getString("total"));
+                                                    dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
+//                                                poamount = poamount + fd(rs1.getString("total"));
+                                                }
+                                            }   break;
+                                        case "08":
+                                            DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                            if (dc != null) {
+                                                double start = fd(dc.getNC_bankNtrans());
+                                                start++;
+                                                dc.setNC_bankNtrans(roundDoubleandFormat(start, 0));
+                                                double d1 = fd(dc.getNC_bankAmount());
+                                                d1 = d1 + fd(rs1.getString("total"));
+                                                dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
+//                                            poamount = poamount + fd(rs1.getString("total"));
+                                            }   break;
+                                        default:
+                                            break;
+                                    }
+                                } else {
+                                    if (!nc2.getNc_de().equals("14")) {
+                                        setToNrTran = setToNrTran + parseIntR(rs1.getString("quantita"));
+                                        setToTotal = setToTotal + fd(rs1.getString("total"));
+                                        if (supporto.equals("01") || supporto.equals("...")) {
+                                            setToLocalCurr = setToLocalCurr + fd(rs1.getString("total"));
+                                        } else if (supporto.equals("04") || supporto.equals("06") || supporto.equals("07")) {
+                                            if (supporto.equals("06")) {
+                                                setToCC = setToCC + fd(rs1.getString("total"));
+                                            } else if (supporto.equals("07")) {
+                                                setToB = setToB + fd(rs1.getString("total"));
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+
+                                if (rs1.getString("fg_inout").equals("1") || rs1.getString("fg_inout").equals("3")) {
+
+                                    setFromNrTran++;
+                                    setFromTotal = setFromTotal + fd(rs1.getString("total"));
+                                    if (supporto.equals("01") || supporto.equals("...")) {
+                                        setFromLocalCurr = setFromLocalCurr + fd(rs1.getString("total"));
+                                    } else if (supporto.equals("04") || supporto.equals("06") || supporto.equals("07")) {
+                                        if (supporto.equals("06")) {
+                                            setFromCC = setFromCC + fd(rs1.getString("total"));
+                                            DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                            if (dc != null) {
+                                                double start = fd(dc.getNC_ccNtrans());
+                                                start++;
+                                                dc.setNC_ccNtrans(roundDoubleandFormat(start, 0));
+                                                double d1 = fd(dc.getNC_ccAmount());
+                                                d1 = d1 + fd(rs1.getString("total"));
+                                                dc.setNC_ccAmount(roundDoubleandFormat(d1, 2));
+//                                                poamount = poamount + fd(rs1.getString("total"));
+                                            }
+                                        } else if (supporto.equals("07")) {
+                                            setFromB = setFromB + +fd(rs1.getString("total"));
+                                            DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                            if (dc != null) {
+                                                double start = fd(dc.getNC_bankNtrans());
+                                                start++;
+                                                dc.setNC_bankNtrans(roundDoubleandFormat(start, 0));
+                                                double d1 = fd(dc.getNC_bankAmount());
+                                                d1 = d1 + fd(rs1.getString("total"));
+                                                dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
+//                                                poamount = poamount + fd(rs1.getString("total"));
+                                            }
+                                        }
+                                    } else if (supporto.equals("08")) {
+                                        //poamount = poamount + fd(rs1.getString("total"));
+                                        DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
+                                        if (dc != null) {
+                                            double start = fd(dc.getNC_bankNtrans());
+                                            start++;
+                                            dc.setNC_bankNtrans(roundDoubleandFormat(start, 0));
+                                            double d1 = fd(dc.getNC_bankAmount());
+                                            d1 = d1 + fd(rs1.getString("total"));
+                                            dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
+//                                            poamount = poamount + fd(rs1.getString("total"));
+                                        }
+                                    }
+                                } else {
+
+                                    if (!nc2.getNc_de().equals("14")) { //solo gli acquisti non vengono considerati
+                                        setToNrTran++;
+                                        setToTotal = setToTotal + fd(rs1.getString("total"));
+                                        if (supporto.equals("01") || supporto.equals("...")) {
+                                            setToLocalCurr = setToLocalCurr + fd(rs1.getString("total"));
+                                        } else if (supporto.equals("04") || supporto.equals("06") || supporto.equals("07")) {
+                                            if (supporto.equals("06")) {
+                                                setToCC = setToCC + fd(rs1.getString("total"));
+                                            } else if (supporto.equals("07")) {
+                                                setToB = setToB + fd(rs1.getString("total"));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                    DailyKind dk = new DailyKind();
+                    dk.setKind(listkind.get(i)[1]);
+
+                    dk.setTo(true);
+
+                    if (kind.equals("3") || kind.equals("8")) {
+                        dk.setFrom(false);
+                    } else {
+                        dk.setFrom(true);
+                    }
+                    dk.setToNrTran(setToNrTran + "");
+                    dk.setToTotal(roundDoubleandFormat(setToTotal, 2));
+                    dk.setToLocalCurr(roundDoubleandFormat(setToLocalCurr, 2));
+                    dk.setToCC(roundDoubleandFormat(setToCC, 2));
+                    dk.setToB(roundDoubleandFormat(setToB, 2));
+                    dk.setFromNrTran(setFromNrTran + "");
+                    dk.setFromTotal(roundDoubleandFormat(setFromTotal, 2));
+                    dk.setFromLocalCurr(roundDoubleandFormat(setFromLocalCurr, 2));
+                    dk.setFromCC(roundDoubleandFormat(setFromCC, 2));
+                    dk.setFromB(roundDoubleandFormat(setFromB, 2));
+                    dk.setEtichetta1(listkind.get(i)[2]);
+                    dk.setEtichetta2(listkind.get(i)[3]);
+
+                    if (kind.equals("8")) {
+                        dkATL.add(dk);
+                    } else {
+                        dklist.add(dk);
+                        totalnotesnochange = totalnotesnochange + setToLocalCurr + setFromLocalCurr;
+                    }
+                }
+
+                d.setDati(dklist);
+                d.setDatiatl(dkATL);
+
+                double setBaPurchTotal = 0.00;
+                double setBaPurchSpread = 0.00;
+                double setBaPurchCreditCard = 0.00;
+                double setBaPurchTransfNotes = 0.00;
+                double setBaPurchTransfOther = 0.00;
+                double setBaSalesTotal = 0.00;
+                double setBaSalesSpread = 0.00;
+                double setBaSalesCreditCard = 0.00;
+                double setBaSalesTransfNotes = 0.00;
+                double setBaSalesTransfOther = 0.00;
+                double setBraPurchTotal = 0.00;
+                double setBraPurchSpread = 0.00;
+                double setBraPurchLocalCurr = 0.00;
+                double setBraSalesTotal = 0.00;
+                double setBraSalesSpread = 0.00;
+                double setBraSalesLocalCurr = 0.00;
+
+                //EXTERNAL TRANSFER
+                String sql2 = "SELECT * FROM et_change WHERE fg_annullato = '0' AND filiale = '" + fil[0] + "' ";
+                sql2 = sql2 + "AND dt_it >= '" + datad1 + ":00' ";
+                sql2 = sql2 + "AND dt_it <= '" + datad2 + ":59' ";
+                ResultSet rs2 = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql2);
+
+                while (rs2.next()) {
+
+                    ResultSet rs2val = this.c.createStatement().executeQuery("SELECT * FROM et_change_valori WHERE cod = '" + rs2.getString("cod") + "'");
+
+                    if (rs2.getString("fg_tofrom").equals("T")) { //sales
+
+                        if (rs2.getString("fg_brba").equals("BA")) { //BANK
+                            while (rs2val.next()) {
+                                setBaSalesSpread = setBaSalesSpread + fd(rs2val.getString("ip_spread"));
+                                if (rs2val.getString("kind").equals("01")) {
+                                    if (rs2val.getString("currency").equals(valutalocale)) {
+                                        setBaSalesTransfNotes = setBaSalesTransfNotes + fd(rs2val.getString("ip_total"));
+                                    } else {
+                                        setBaSalesTotal = setBaSalesTotal + fd(rs2val.getString("ip_total"));
+                                    }
+                                } else if (rs2val.getString("kind").equals("02") || rs2val.getString("kind").equals("03")) {
+                                    setBaSalesTotal = setBaSalesTotal + fd(rs2val.getString("ip_total"));
+                                } else if (rs2val.getString("kind").equals("04")) {
+                                    setBaSalesCreditCard = setBaSalesCreditCard + fd(rs2val.getString("ip_total"));
+                                } else {
+
+                                    setBaSalesTransfOther = setBaSalesTransfOther + fd(rs2val.getString("ip_total"));
+                                }
+                            }
+                        } else {//BRANCH
+                            while (rs2val.next()) {
+                                setBraSalesSpread = setBraSalesSpread + fd(rs2val.getString("ip_spread"));
+
+                                if (rs2val.getString("currency").equals(valutalocale) && rs2val.getString("kind").equals("01")) {
+                                    setBraSalesLocalCurr = setBraSalesLocalCurr + fd(rs2val.getString("ip_total"));
+                                } else {
+                                    setBraSalesTotal = setBraSalesTotal + fd(rs2val.getString("ip_total"));
+                                }
+                            }
+
+                        }
+                    } else if (rs2.getString("fg_brba").equals("BA")) { //BANK
+                        while (rs2val.next()) {
+
+                            setBaPurchSpread = setBaPurchSpread + fd(rs2val.getString("ip_spread"));
+
+                            if (rs2val.getString("kind").equals("01")) {
+                                if (rs2val.getString("currency").equals(valutalocale)) {
+                                    setBaPurchTransfNotes = setBaPurchTransfNotes + fd(rs2val.getString("ip_total"));
+                                } else {
+                                    setBaPurchTotal = setBaPurchTotal + fd(rs2val.getString("ip_total"));
+                                }
+                            } else if (rs2val.getString("kind").equals("02") || rs2val.getString("kind").equals("03")) {
+                                setBaPurchTotal = setBaPurchTotal + fd(rs2val.getString("ip_total"));
+                            } else if (rs2val.getString("kind").equals("04")) {
+                                setBaPurchCreditCard = setBaPurchCreditCard + fd(rs2val.getString("ip_total"));
+                            } else {
+                                setBaPurchTransfOther = setBaPurchTransfOther + fd(rs2val.getString("ip_total"));
+                            }
+
+                        }
+                    } else {//BRANCH
+                        while (rs2val.next()) {
+
+                            setBraPurchSpread = setBraPurchSpread + fd(rs2val.getString("ip_spread"));
+                            if (rs2val.getString("currency").equals(valutalocale) && rs2val.getString("kind").equals("01")) {
+                                setBraPurchLocalCurr = setBraPurchLocalCurr + fd(rs2val.getString("ip_total"));
+                            } else {
+                                setBraPurchTotal = setBraPurchTotal + fd(rs2val.getString("ip_total"));
+                            }
+                        }
+
+                    }
+                }
+
+                d.setPurchTotal(roundDoubleandFormat(setPurchTotal, 2));
+                d.setPurchComm(roundDoubleandFormat(setPurchComm, 2));
+                d.setPurchGrossTot(roundDoubleandFormat(setPurchGrossTot, 2));
+                d.setPurchSpread(roundDoubleandFormat(setPurchSpread, 2));
+                d.setPurchProfit(roundDoubleandFormat(setPurchProfit, 2));
+
+                d.setSalesTotal(roundDoubleandFormat(setSalesTotal, 2));
+                d.setSalesComm(roundDoubleandFormat(setSalesComm, 2));
+                d.setSalesGrossTot(roundDoubleandFormat(setSalesGrossTot, 2));
+                d.setSalesSpread(roundDoubleandFormat(setSalesSpread, 2));
+                d.setSalesProfit(roundDoubleandFormat(setSalesProfit, 2));
+
+                d.setCashAdNetTot(roundDoubleandFormat(setCashAdNetTot, 2));
+                d.setCashAdComm(roundDoubleandFormat(setCashAdComm, 2));
+                d.setCashAdGrossTot(roundDoubleandFormat(setCashAdGrossTot, 2));
+                d.setCashAdSpread(roundDoubleandFormat(setCashAdSpread, 2));
+                d.setCashAdProfit(roundDoubleandFormat(setCashAdProfit, 2));
+
+                d.setDatiCOP(dclist);
+
+                d.setBaPurchTotal(roundDoubleandFormat(setBaPurchTotal, 2));
+                d.setBaPurchSpread(roundDoubleandFormat(setBaPurchSpread, 2));
+                d.setBaPurchCreditCard(roundDoubleandFormat(setBaPurchCreditCard, 2));
+                d.setBaPurchTransfNotes(roundDoubleandFormat(setBaPurchTransfNotes, 2));
+                d.setBaPurchTransfOther(roundDoubleandFormat(setBaPurchTransfOther, 2));
+                d.setBaSalesTotal(roundDoubleandFormat(setBaSalesTotal, 2));
+                d.setBaSalesSpread(roundDoubleandFormat(setBaSalesSpread, 2));
+                d.setBaSalesCreditCard(roundDoubleandFormat(setBaSalesCreditCard, 2));
+                d.setBaSalesTransfNotes(roundDoubleandFormat(setBaSalesTransfNotes, 2));
+                d.setBaSalesTransfOther(roundDoubleandFormat(setBaSalesTransfOther, 2));
+
+                d.setBraPurchTotal(roundDoubleandFormat(setBraPurchTotal, 2));
+                d.setBraPurchSpread(roundDoubleandFormat(setBraPurchSpread, 2));
+                d.setBraPurchLocalCurr(roundDoubleandFormat(setBraPurchLocalCurr, 2));
+                d.setBraSalesTotal(roundDoubleandFormat(setBraSalesTotal, 2));
+                d.setBraSalesSpread(roundDoubleandFormat(setBraSalesSpread, 2));
+                d.setBraSalesLocalCurr(roundDoubleandFormat(setBraSalesLocalCurr, 2));
+
+                d.setRefund(roundDoubleandFormat(refundshow, 2));
+
+                double setGroffTurnover = setPurchTotal + setSalesTotal + setCashAdNetTot;
+                double setGrossProfit = setPurchComm + setSalesComm + setCashAdComm + setSalesSpread + setBaSalesSpread + setBraSalesSpread;
+                double setLastCashOnPrem = 0.0;
+                double setFx = 0.0;
+                
+                ArrayList<Office_sp> li = list_query_officesp2(fil[0],
+                        subDays(datad1.substring(0, 10), patternsql, 1));
+                if (!li.isEmpty()) {
+                    Office_sp o = li.get(0);
+                    d.setOfficesp(o.getCodice());
+                    setLastCashOnPrem = fd(o.getTotal_cod());
+                } else {
+                    d.setOfficesp(null);
+                }
+                
+                Office_sp o = list_query_last_officesp(fil[0], datad2);
+//                if (o != null) {
+//                    double[] d1 = list_dettagliotransazioni(fil, o.getData(), datad2, valutalocale);
+                    setFx = fd(o.getTotal_fx())
+//                            + d1[1]
+                            ;
+//                }
+                
+                
+                String oper = get_national_office().getChangetype();
+                boolean dividi = oper.equals("/");
+
+                double setCashOnPremFromTrans
+                        = setSalesTotal
+                        - setPurchTotal
+                        + setBaPurchTransfNotes
+                        - setBaSalesTransfNotes
+                        + setBraPurchLocalCurr
+                        - setBraSalesLocalCurr
+                        + totalnotesnochange
+                        + setLastCashOnPrem
+                        - refund
+                        - setCashAdNetTot
+                        - poamount;
+
+                double setFxClosureErrorDeclared = 0.0;
+                double setCashOnPremError = 0.0;
+                ResultSet rs10 = this.c.createStatement().executeQuery("SELECT valuta,kind,total_user,total_system,rate FROM oc_errors where filiale = '" + fil[0] 
+                        + "' AND cod IN (SELECT cod FROM oc_lista where data like '" + datad1.substring(0, 10) + "%' AND errors='Y') AND tipo='CH' AND (kind='01' OR kind='02' OR kind='03')");
+                while (rs10.next()) {
+                    if (rs10.getString("valuta").equals(valutalocale) && rs10.getString("kind").equals("01")) {
+                        double eurerr = fd(rs10.getString("total_user")) - fd(rs10.getString("total_system"));
+                        setCashOnPremError = setCashOnPremError + eurerr;
+                    } else {
+                        double fxerr = fd(rs10.getString("total_user")) - fd(rs10.getString("total_system"));
+                        setFxClosureErrorDeclared = setFxClosureErrorDeclared + getControvalore(fxerr, fd(rs10.getString("rate")), dividi);
+                    }
+                }
+
+                double setCashOnPrem = setCashOnPremFromTrans + setCashOnPremError;
+                d.setGroffTurnover(roundDoubleandFormat(setGroffTurnover, 2));
+                d.setGrossProfit(roundDoubleandFormat(setGrossProfit, 2));
+                d.setLastCashOnPrem(roundDoubleandFormat(setLastCashOnPrem, 2));
+                d.setCashOnPrem(roundDoubleandFormat(setCashOnPrem, 2));
+                d.setFx(roundDoubleandFormat(setFx, 2));
+                d.setCashOnPremFromTrans(roundDoubleandFormat(setCashOnPremFromTrans, 2));
+
+                if (setCashOnPremError == 0) {
+                    d.setCashOnPremError(roundDoubleandFormat(setCashOnPremError, 2).replaceAll("-", ""));
+                } else {
+                    d.setCashOnPremError(roundDoubleandFormat(setCashOnPremError, 2));
+                }
+
+                d.setFxClosureErrorDeclared(roundDoubleandFormat(setFxClosureErrorDeclared, 2));
+                d.setNoTransPurch(String.valueOf(setNoTransPurch));
+                d.setNoTransCC(String.valueOf(setNoTransCC));
+                d.setNoTransSales(String.valueOf(setNoTransSales));
+
+                d.setTotal(String.valueOf(setNoTransPurch + setNoTransCC + setNoTransSales));
+
+                d.setTotPos(String.valueOf(setTotPos));
+                d.setTotAcc(String.valueOf(setTotAcc));
+                d.setDatiBank(listdb);
+                d.setId_filiale(fil[0]);
+                d.setDe_filiale(fil[1]);
+                d.setData(formatStringtoStringDate(datad1.substring(0, 10), patternsql, patternnormdate_filter));
+                return d;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return null;
+    }
+
     public Daily_value list_Daily_value(String[] fil, String datad1, String datad2, boolean now, boolean contuk) {
 
         if (datad1 != null && datad2 != null) {
@@ -3376,7 +4054,7 @@ public class DatabaseCons {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String[] o1 = {
-                    StringUtils.leftPad(rs.getString(1), 3, "0"), 
+                    StringUtils.leftPad(rs.getString(1), 3, "0"),
                     visualizzaStringaMySQL(rs.getString(2)), rs.getString(3), rs.getString(4)};
                 out.add(o1);
             }

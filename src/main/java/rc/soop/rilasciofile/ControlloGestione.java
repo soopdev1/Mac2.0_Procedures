@@ -39,6 +39,13 @@ public class ControlloGestione {
             String monthstring, ArrayList<Branch> allbr, DateTime dtstart, DatabaseCons db,
             ArrayList<NC_category> listnccat) {
         try {
+
+            ArrayList<String[]> cc = db.credit_card_enabled();
+            ArrayList<String[]> bc = db.list_bankAccount();
+            String valutalocale = db.get_local_currency()[0];
+
+            ArrayList<String[]> listkind = db.nc_kind_order();
+            ArrayList<NC_causal> nc_caus = db.query_nc_causal_filial("000", null);
             DateTimeFormatter formatter = DateTimeFormat.forPattern(patternnormdate_filter);
             DateTimeFormatter formattersql = DateTimeFormat.forPattern(patternsql);
 
@@ -98,7 +105,7 @@ public class ControlloGestione {
             c.setFormula("N");
             elencovalori.add(c);
 
-            String pathtemp = db.getPath("temp");
+//            String pathtemp = db.getPath("temp");
             ArrayList<String[]> list_group = db.list_branch_group();
 
             ArrayList<GM> listarisultati = new ArrayList<>();
@@ -233,9 +240,8 @@ public class ControlloGestione {
                 wuytd.setDatastart(dtstart);
                 wuytd.setDataend(dtstart);
 
-                Branchbudget bb1 = db.get_branch_budget(filiale1, mesemysql);
-                ArrayList<Branchbudget> listabudget = db.get_branch_budget_YTD(filiale1, yearstring);
-
+//                Branchbudget bb1 = db.get_branch_budget(filiale1, mesemysql);
+//                ArrayList<Branchbudget> listabudget = db.get_branch_budget_YTD(filiale1, yearstring);
                 GM area = new GM();
                 area.setArea(b1.getBrgr_01());
                 area.setRiga1("TOT");
@@ -269,11 +275,11 @@ public class ControlloGestione {
                 fil1.setDescr("");
                 fil1.setFormula("Y");
 
-                if (bb1 == null) {
-                    fil1.setBudget("0.00");
-                } else {
-                    fil1.setBudget(bb1.getBudg1());
-                }
+//                if (bb1 == null) {
+                fil1.setBudget("0.00");
+//                } else {
+//                    fil1.setBudget(bb1.getBudg1());
+//                }
 
                 area.setBudget(roundDoubleandFormat(fd(area.getBudget()) + fd(fil1.getBudget()), 2));
                 tot.setBudget(roundDoubleandFormat(fd(tot.getBudget()) + fd(fil1.getBudget()), 2));
@@ -285,7 +291,8 @@ public class ControlloGestione {
                 double ytd_finemese;
                 double annoprec_ytd = 0.00;
 
-                Daily_value dv_tuttoanno = db.list_Daily_value(ff, primogiornoanno + " 00:00", dataultimogiornomeseprecedente + " 23:59", false, true);
+                Daily_value dv_tuttoanno = db.list_Daily_value_2023_report(ff, primogiornoanno + " 00:00",
+                        dataultimogiornomeseprecedente + " 23:59", valutalocale, cc, bc, listkind, nc_caus);
                 if (dv_tuttoanno != null) {
                     YTDbuy = fd(dv_tuttoanno.getPurchTotal()) + fd(dv_tuttoanno.getPurchComm());
                     YTDcc = fd(dv_tuttoanno.getCashAdNetTot()) + fd(dv_tuttoanno.getCashAdComm());
@@ -312,7 +319,8 @@ public class ControlloGestione {
 
                 }
 
-                Daily_value dv_tuttoanno_precedente = db.list_Daily_value(ff, primogiornoannoprec + " 00:00", dataultimogiornomeseprecedenteannoprecedente + " 23:59", false, true);
+                Daily_value dv_tuttoanno_precedente = db.list_Daily_value_2023_report(ff, primogiornoannoprec + " 00:00",
+                        dataultimogiornomeseprecedenteannoprecedente + " 23:59", valutalocale, cc, bc, listkind, nc_caus);
                 if (dv_tuttoanno_precedente != null) {
                     annoprec_ytd = fd(dv_tuttoanno_precedente.getGrossProfit());
                     YTDbuy_prevyear = fd(dv_tuttoanno_precedente.getPurchTotal()) + fd(dv_tuttoanno_precedente.getPurchComm());
@@ -338,10 +346,9 @@ public class ControlloGestione {
 
                 double ytd_budget = 0.00;
 
-                for (int x = 0; x < listabudget.size(); x++) {
-                    ytd_budget = ytd_budget + fd(listabudget.get(x).getBudg1());
-                }
-
+//                for (int x = 0; x < listabudget.size(); x++) {
+//                    ytd_budget = ytd_budget + fd(listabudget.get(x).getBudg1());
+//                }
                 double tot_varmtd = 0.00;
                 double totold_varmtd = 0.00;
                 double varmtd = 0.00;
@@ -355,7 +362,8 @@ public class ControlloGestione {
                     if (!giornidacontrollare.get(v).equals("")) {
                         String giornoannoscorsoadeguato = getGiornoAdeguatoAnnoPrecedente(giornidacontrollare.get(v));
                         String datadac_giornoannoscorsoadeguato = formatStringtoStringDate_null(giornoannoscorsoadeguato, patternnormdate_filter, patternsql);
-                        Daily_value dv_giornoannoscorsoadeguato = db.list_Daily_value(ff, datadac_giornoannoscorsoadeguato + " 00:00", datadac_giornoannoscorsoadeguato + " 23:59", false, true);
+                        Daily_value dv_giornoannoscorsoadeguato = db.list_Daily_value_2023_report(ff, datadac_giornoannoscorsoadeguato + " 00:00",
+                                datadac_giornoannoscorsoadeguato + " 23:59", valutalocale, cc, bc, listkind, nc_caus);
                         annoprec_adeguato = annoprec_adeguato + fd(dv_giornoannoscorsoadeguato.getGrossProfit());
 
                         if (formatter.parseDateTime(giornidacontrollare.get(v)).isBefore(dtnow)) {
@@ -373,7 +381,7 @@ public class ControlloGestione {
                             ultimogiornocontrollato = formatter.parseDateTime(giornidacontrollare.get(v));
                             annoprec_alldata = annoprec_alldata + fd(dv_giornoannoscorsoadeguato.getGrossProfit());
                             String datadac = formatStringtoStringDate_null(giornidacontrollare.get(v), patternnormdate_filter, patternsql);
-                            Daily_value dv = db.list_Daily_value(ff, datadac + " 00:00", datadac + " 23:59", false, true);
+                            Daily_value dv = db.list_Daily_value_2023_report(ff, datadac + " 00:00", datadac + " 23:59",valutalocale, cc, bc, listkind, nc_caus);
 
                             ArrayList<DailyKind> lik = dv.getDati();
                             for (int t = 0; t < lik.size(); t++) {

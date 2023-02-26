@@ -132,4 +132,19 @@ public class GeneraVatRef {
         db.verifica_Delete();
         db.closeDB();
     }
+
+//    public static void main(String[] args) {
+//        GeneraFile gf = new GeneraFile();
+//        gf.setIs_IT(true);
+//        gf.setIs_UK(false);
+//        gf.setIs_CZ(false);
+//        DatabaseCons db = new DatabaseCons(gf);
+//        String data1 = new DateTime(2023, 1, 27, 0, 0).toString(patternsql);
+//        ArrayList<String> br1 = db.list_branchcode_completeAFTER311217();
+//        ArrayList<NC_transaction> result = db.query_NC_transaction_NEW(data1, data1, br1, "SI");
+//        insert_Qlik_VAT(gf, result);
+//        db.verifica_Delete();
+//        db.closeDB();
+//    }
+    
 }

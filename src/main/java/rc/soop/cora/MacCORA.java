@@ -136,7 +136,9 @@ public class MacCORA {
         }
     }
 
-//    public static void main(String[] args) {
+    public static void main(String[] args) {
+        generaannuale();
+    }
 //        int scelta;
 //        try {
 //            scelta = Integer.parseInt(args[0]);

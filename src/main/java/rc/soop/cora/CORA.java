@@ -146,7 +146,7 @@ public class CORA {
             writer.println(coda.toString());
             writer.close();
             return txt;
-        } catch (FileNotFoundException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return null;
@@ -393,6 +393,7 @@ public class CORA {
             return false;
         }
     }
+
 }
 
 class oggettoFile {

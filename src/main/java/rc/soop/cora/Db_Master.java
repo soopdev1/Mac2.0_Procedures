@@ -584,10 +584,15 @@ public class Db_Master {
             try (ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(query)) {
                 while (rs.next()) {
                     Client cL = query_Client_transaction(rs.getString("cod"), rs.getString("cl_cod"));
+                    System.out.println(" - "+rs.getString("cod"));
                     boolean add = true;
                     for (int i = 0; i < cl.size(); i++) {
+                        
+                        
+                        
                         Client dacontrollare = cl.get(i);
-                        if (dacontrollare.getCode().equalsIgnoreCase(cL.getCode())) {
+                        if (dacontrollare.getCode()
+                                .equalsIgnoreCase(cL.getCode())) {
                             add = false;
                             break;
                         } else if (dacontrollare.getCodfisc().equals("---")) {

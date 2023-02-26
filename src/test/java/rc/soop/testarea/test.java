@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -21,9 +23,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import rc.soop.aggiornamenti.Db;
+import static rc.soop.aggiornamenti.Mactest.host_PROD;
+import static rc.soop.aggiornamenti.Mactest.host_PROD_CZ;
+import rc.soop.aggiornamenti.StatusBranch;
 import rc.soop.esolver.Branch;
 import static rc.soop.esolver.Util.patternnormdate_filter;
 import static rc.soop.esolver.Util.patternsql;
+import rc.soop.riallinea.Util;
 import rc.soop.rilasciofile.ControlloGestione;
 import rc.soop.rilasciofile.DatabaseCons;
 import rc.soop.rilasciofile.GeneraFile;
@@ -38,16 +45,89 @@ import static rc.soop.start.Utility.rb;
  * @author rcosco
  */
 public class test {
-
+    
     public static void main(String[] args) {
-
+        
         try {
-
-            String datecreation1 = new DateTime().toString("yyyyMMddHHmmss");
-            String datecreation2 = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
-            System.out.println("rc.soop.testarea.test.main() "+datecreation1);
-            System.out.println("rc.soop.testarea.test.main() "+datecreation2);
             
+            List<String> dafare = new ArrayList<>();
+
+//            dafare.add("033");
+//            dafare.add("047");
+//            dafare.add("072");
+//            dafare.add("139");
+//            dafare.add("159");
+//            dafare.add("162");
+//            dafare.add("196");
+//            dafare.add("202");
+//            dafare.add("203");
+//            dafare.add("800");
+//            dafare.add("801");
+//            dafare.add("802");
+//            dafare.add("803");
+//            dafare.add("306");
+//            dafare.add("307");
+//            dafare.add("312");
+//            dafare.add("321");
+//            dafare.add("322");
+//            ArrayList<StatusBranch> liout = new ArrayList<>();
+//            Db db = new Db(host_PROD_CZ, false);
+            Db db = new Db(host_PROD, false);
+            ArrayList<String[]> ip = db.getIpFiliale();
+            db.closeDB();
+            
+            for (String[] f1 : ip) {
+
+//                if (dafare.contains(f1[0])) {
+//            System.out.println("rc.soop.testarea.test.main() "+f1[0]);
+//            System.out.println("rc.soop.testarea.test.main() "+f1[1]);
+                Db dbfil = new Db("//" + f1[1] + ":3306/maccorp", true);
+                if (dbfil.getC() != null) {
+                    System.out.println("rc.soop.testarea.test.main(RAGG) " + f1[0]);
+                    
+                    String sql1 = "SELECT cod FROM sito_prenotazioni s WHERE s.timestamp LIKE '2023-01-28%'";
+                    
+                    try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql1)) {
+                        while (rs1.next()) {
+                            System.out.println("rc.soop.testarea.test.main() " + rs1.getString(1));
+                        }
+                    }
+//                                }
+//                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+
+//                        String sql = "SELECT cod FROM aggiornamenti_mod WHERE fg_stato='1' AND cod LIKE '230128%'";
+////                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' ";
+//                        try {
+//                            try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql)) {
+//                                while (rs1.next()) {
+//                                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' WHERE cod='" + rs1.getString(1) + "'";
+//                                    try ( Statement st2 = dbfil.getC().createStatement()) {
+//                                        st2.executeUpdate(update);
+//                                    }
+//                                }
+//                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+////                        if (st1.executeLargeUpdate(update) > 0) {
+////                            System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+////                        } else {
+////                            System.out.println("rc.soop.testarea.test.main(KOOO2) " + f1[0]);
+////                        }
+//                            }
+//                        } catch (Exception e) {
+//                            System.out.println("rc.soop.testarea.test.main(KOOO3) " + f1[0] + " -- " + Util.estraiEccezione(e));
+//                        }
+                    dbfil.closeDB();
+                } else {
+                    System.out.println("rc.soop.testarea.test.main(KOOO1) " + f1[0]);
+                }
+//                } else {
+//                    System.out.println("rc.soop.testarea.test.main(GIA' FATTA) " + f1[0]);
+//                }
+            }
+
+//            String datecreation1 = new DateTime().toString("yyyyMMddHHmmss");
+//            String datecreation2 = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
+//            System.out.println("rc.soop.testarea.test.main() "+datecreation1);
+//            System.out.println("rc.soop.testarea.test.main() "+datecreation2);
 //            GeneraFile gf = new GeneraFile();
 //            gf.setIs_IT(true);
 //            gf.setIs_UK(false);
@@ -134,7 +214,6 @@ public class test {
             ex.printStackTrace();
         }
     }
-
 ;
 
 }

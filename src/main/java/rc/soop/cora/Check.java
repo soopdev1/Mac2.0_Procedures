@@ -61,14 +61,14 @@ public class Check {
         String path = db.getPath("temp");
         db.closeDB();
 //        DateTime dtSTART = new DateTime(2021, 10, 31, 0, 0).withMillisOfDay(0);
-        DateTime dtSTART = new DateTime().minusDays(10);
+        DateTime dtSTART = new DateTime().minusMonths(1);
         
         
         
-        System.out.println("com.fl.upload.GeneraFile.main(START) " + new DateTime());
+        
 
         String from = dtSTART.toString(pattermonthnorm);
-
+        System.out.println("com.fl.upload.GeneraFile.main(START) " + pattermonthnorm);
         DateTimeFormatter formatter = DateTimeFormat.forPattern(patternsql);
         oggettoFile out = null;
         String rif = formatStringtoStringDate_null(from, pattermonthnorm, patternmonthsql);

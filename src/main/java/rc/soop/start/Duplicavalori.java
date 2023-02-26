@@ -19,7 +19,7 @@ import static rc.soop.start.Utility.rb;
  */
 public class Duplicavalori {
 
-    private static final String hostIT = rb.getString("db.ip") + "/maccorpita";
+    private static final String hostIT = rb.getString("db.ip") + "/maccorp";
     //  private static final String hostCZ = rb.getString("db.ip") + "/maccorpczprod";
     //  private static final String hostUK = rb.getString("db.ip") + "/maccorpuk";
 
@@ -32,7 +32,7 @@ public class Duplicavalori {
 
 //        listafiliali.remove("000");
         ArrayList<String> listafiliali = new ArrayList<>();
-        listafiliali.add("203");
+        listafiliali.add("900");
 //        listafiliali.add("198");
 //        listafiliali.add("322");
 //        listafiliali.add("319");
@@ -89,7 +89,7 @@ public class Duplicavalori {
             if (!nuovafiliale.equals("000")) {
                 tabelle.forEach(table -> {
                     try {
-                        Db_Master dbc = new Db_Master(false,false);
+                        Db_Master dbc = new Db_Master(hostcentrale);
                         ResultSet rsold = dbc.getDatiPerFiliale(table, nuovafiliale);
                         if (rsold.next()) {
                             String deelte = "DELETE FROM " + table + " WHERE filiale = '" + nuovafiliale + "'";
@@ -130,7 +130,7 @@ public class Duplicavalori {
                             System.out.println(ps.toString() + " : " + esito);
                         }
                         dbc.closeDB();
-                    } catch (InterruptedException | SQLException ex) {
+                    } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 });

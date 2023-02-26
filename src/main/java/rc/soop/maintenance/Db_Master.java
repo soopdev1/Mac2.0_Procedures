@@ -90,6 +90,30 @@ public class Db_Master {
             this.c = null;
         }
     }
+    public Db_Master(String hostcentrale) {
+        try {
+            String drivername = rb.getString("db.driver");
+            String typedb = rb.getString("db.tipo");
+            String user = "maccorp";
+            String pwd = "M4cc0Rp";
+            Class.forName(drivername).newInstance();
+            Properties p = new Properties();
+            p.put("user", user);
+            p.put("password", pwd);
+            p.put("useUnicode", "true");
+            p.put("characterEncoding", "UTF-8");
+            p.put("useSSL", "false");
+            p.put("connectTimeout", "1000");
+            p.put("useUnicode", "true");
+            p.put("useJDBCCompliantTimezoneShift", "true");
+            p.put("useLegacyDatetimeCode", "false");
+            p.put("serverTimezone", "Europe/Rome");
+            this.c = DriverManager.getConnection("jdbc:" + typedb + ":" + hostcentrale, p);
+        } catch (Exception ex) {
+            log.severe(ex.getStackTrace()[0].getMethodName() + ": " + ex.getMessage());
+            this.c = null;
+        }
+    }
 
     public Db_Master(boolean cz, boolean uk) {
         try {
