@@ -58,6 +58,10 @@ public class MacOAM {
         }
         return LOGGER;
     }
+    
+    public static void main(String[] args) {
+        engine();
+    }
 
     public static void engine() {
         log.warning("STARTING...");

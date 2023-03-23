@@ -6,6 +6,7 @@ import rc.soop.gs.Filiale;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
+import static rc.soop.gs.Client.print2022;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -21,9 +22,10 @@ public class invioGSondemand {
 
         Db_Master db1 = new Db_Master();
         List<Filiale> input = db1.getConfList();
-        List<DatiInvio> dati = db1.query_datiinvio(input, new DateTime());
+        List<DatiInvio> dati = db1.query_datiinvio(input, new DateTime(2022, 12, 1, 0, 0), new DateTime(2022, 12, 31, 0, 0));
         db1.closeDB();
-        invia2022(dati);
+        print2022(dati);
+
 //        Db_Master db1 = new Db_Master();
 //        List<Filiale> input = new ArrayList<>();
 //        input.add(new Filiale("189", "MIC_A0199"));

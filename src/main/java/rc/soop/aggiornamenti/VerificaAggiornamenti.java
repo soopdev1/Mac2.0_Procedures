@@ -37,7 +37,9 @@ public class VerificaAggiornamenti {
         Db db = new Db(host_PROD, false);
         try {
             DateTime dt_now = new DateTime();
-            File txt = new File(RandomStringUtils.randomAlphanumeric(50) + ".txt");
+
+            File txt = new File(db.getPath("temp")
+                    + RandomStringUtils.randomAlphanumeric(50) + ".txt");
 
             AtomicInteger content;
             try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
@@ -87,7 +89,8 @@ public class VerificaAggiornamenti {
 
         try {
             ResultSet rs = db.getC().createStatement().executeQuery(sql_LE1);
-            File txt = new File(RandomStringUtils.randomAlphanumeric(50) + ".txt");
+            File txt = new File(db.getPath("temp")
+                    + RandomStringUtils.randomAlphanumeric(50) + ".txt");
             AtomicInteger content;
             try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 content = new AtomicInteger(0);
@@ -135,7 +138,7 @@ public class VerificaAggiornamenti {
                 sendMail(txt);
             }
             txt.deleteOnExit();
-        } catch (SQLException | IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         db.closeDB();
@@ -148,7 +151,8 @@ public class VerificaAggiornamenti {
             String el1 = StringUtils.replace(filialidanoncontrollare.toString(), "[", "(");
             el1 = StringUtils.replace(el1, "]", ")");
 
-            File txt = new File(randomAlphanumeric(50) + ".txt");
+            File txt = new File(db.getPath("temp")
+                    + randomAlphanumeric(50) + ".txt");
             AtomicInteger index = new AtomicInteger(0);
             try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 String sql1 = "SELECT b.cod FROM branch b WHERE b.fg_annullato='0' AND b.cod NOT IN " + el1;
@@ -188,18 +192,18 @@ public class VerificaAggiornamenti {
                                 sb1.setRagg(false);
                             }
                         }
-                        
+
                         if (sb1.getAggfrom() >= limitAGG || sb1.getAggto() >= limitAGG) {
-                            try {                                
+                            try {
                                 String print = "FILIALE " + sb1.getCod() + " - DA RICEVERE/CARICARE: " + sb1.getAggfrom()
                                         + " ; DA INVIARE/ESEGUIRE: " + sb1.getAggto() + " - RAGGIUNGIBILITA': " + sb1.isRagg();
                                 writer.write(print);
                                 writer.newLine();
-                                index.addAndGet(1);                                
+                                index.addAndGet(1);
                             } catch (Exception ex) {
                                 ex.printStackTrace();
                             }
-                            
+
                         }
                     }
                 }
@@ -208,8 +212,8 @@ public class VerificaAggiornamenti {
             if (index.get() > 0) {
                 sendMail(txt);
             }
-            txt.deleteOnExit();            
-            
+            txt.deleteOnExit();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -224,7 +228,8 @@ public class VerificaAggiornamenti {
             db.closeDB();
             AtomicInteger index = new AtomicInteger(0);
             List<StatusBranch> complete = agg(null);
-            File txt = new File(RandomStringUtils.randomAlphanumeric(50) + ".txt");
+            File txt = new File(db.getPath("temp")
+                    + RandomStringUtils.randomAlphanumeric(50) + ".txt");
             try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 complete.forEach(agg -> {
                     if (agg.getAggfrom() >= limitAGG || agg.getAggto() >= limitAGG) {
@@ -253,5 +258,4 @@ public class VerificaAggiornamenti {
 //    public static void main(String[] args) {
 //       
 //    }
-
 }

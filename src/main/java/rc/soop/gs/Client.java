@@ -161,7 +161,7 @@ public class Client {
     private static final String US_REST = "maccorpita35";
     private static final String PASS_REST = "A0D5dUS1";
 
-    private static void print2022(List<DatiInvio> dati) {
+    public static void print2022(List<DatiInvio> dati) {
         Entity2022 ent = new Entity2022();
         ent.setUsername(US_REST);
         ent.setPassword(PASS_REST);

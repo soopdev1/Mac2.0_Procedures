@@ -19,7 +19,7 @@ import static rc.soop.start.Utility.rb;
  */
 public class Duplicavalori {
 
-    private static final String hostIT = rb.getString("db.ip") + "/maccorp";
+    private static final String hostIT = rb.getString("db.ip") + "/maccorpita";
     //  private static final String hostCZ = rb.getString("db.ip") + "/maccorpczprod";
     //  private static final String hostUK = rb.getString("db.ip") + "/maccorpuk";
 

@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -66,7 +67,7 @@ public class Utility {
                 return formatter.parseDateTime(dat);
             } else if (dat.length() == pattern1.length() - 3) {
                 DateTimeFormatter formatter = DateTimeFormat.forPattern(pattern1);
-                return formatter.parseDateTime(dat+":00");
+                return formatter.parseDateTime(dat + ":00");
             }
         } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
@@ -124,21 +125,22 @@ public class Utility {
     }
 
     public static boolean sendMail(File fileDaAllegare) {
+        ResourceBundle rb = ResourceBundle.getBundle("esolver.conf");
         Properties props = new Properties();
-        props.put("mail.smtp.host", "mail.maccorp.it");
-        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.host", rb.getString("mail.smtp"));
+        props.put("mail.smtp.socketFactory.port", rb.getString("mail.smtp.port"));
         props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.port", "465");
+        props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
         Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("cloud@maccorp.it", "Service.2018");
+                return new PasswordAuthentication(rb.getString("mail.sender"), rb.getString("mail.pass"));
             }
         });
         try {
             Message message = new MimeMessage(session);
-            InternetAddress froms = new InternetAddress("cloud@maccorp.it");
+            InternetAddress froms = new InternetAddress(rb.getString("mail.sender"));
             froms.setPersonal("Noreply Mac2.0");
             message.setFrom(froms);
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("mac2.0@smartoop.it"));
@@ -158,7 +160,7 @@ public class Utility {
             message.setContent(mp);
             Transport.send(message);
             return true;
-        } catch (MessagingException | UnsupportedEncodingException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return false;

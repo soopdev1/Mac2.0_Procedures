@@ -34,7 +34,10 @@ import static rc.soop.start.Utility.rb;
 public class Mactest {
 
     public static void main(String[] args) {
-
+        
+        VerificaAggiornamenti.verifica_Aggiornamenti22();
+//        VerificaAggiornamenti.ultimo_Aggiornamento22();
+        
 ////        agg(null);
         
 

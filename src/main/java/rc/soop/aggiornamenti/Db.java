@@ -715,5 +715,20 @@ public class Db {
         }
         return li;
     }
+    
+    public String getPath(String cod) {
+        try {
+            String sql = "SELECT descr FROM path WHERE cod = ?";
+            PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            ps.setString(1, cod);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
 }

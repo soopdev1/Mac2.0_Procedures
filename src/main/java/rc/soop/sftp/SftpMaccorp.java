@@ -85,6 +85,7 @@ public class SftpMaccorp {
         new File(this.download_locale + MER).mkdirs();
         //inizio download da SFTP MERCURY
         if (sftpmercury != null && sftpmercury.isConnected()) {
+            System.out.println("rc.soop.sftp.SftpMaccorp.sftpmercury(CONNESSO)");
             try {
                 ArrayList<LsEntry> v = new ArrayList<>(sftpmercury.ls(this.download_sftp_MER));
                 for (int i = 0; i < v.size(); i++) {
@@ -359,6 +360,9 @@ public class SftpMaccorp {
         return false;
     }
 
+    public static void main(String[] args) {
+        new SftpMaccorp().sftpmercury();
+    }
 //    public void main() {
 //
 ////        ChannelSftp sftpaws = SftpConnection.connect(se_user, se_pwd, se_ip, se_port, this.logger);//inizio dell'upload dei file.

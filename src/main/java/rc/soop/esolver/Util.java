@@ -58,6 +58,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -526,7 +528,7 @@ public class Util {
         if (txt != null) {
             try {
                 String st;
-                try (FileReader fr = new FileReader(txt); BufferedReader br = new BufferedReader(fr)) {
+                try ( FileReader fr = new FileReader(txt);  BufferedReader br = new BufferedReader(fr)) {
                     while ((st = br.readLine()) != null) {
                         return !st.trim().equals("");
                     }
@@ -686,7 +688,7 @@ public class Util {
         }
         if (!response) {
             try {
-                try (FileChannel sourceChannel = new FileInputStream(ing).getChannel(); FileChannel destChannel = new FileOutputStream(out).getChannel()) {
+                try ( FileChannel sourceChannel = new FileInputStream(ing).getChannel();  FileChannel destChannel = new FileOutputStream(out).getChannel()) {
                     destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
                 }
                 if (out.length() > 0 && out.canRead()) {
@@ -700,7 +702,7 @@ public class Util {
 
         if (!response) {
             try {
-                try (InputStream is = new FileInputStream(ing); OutputStream os = new FileOutputStream(out)) {
+                try ( InputStream is = new FileInputStream(ing);  OutputStream os = new FileOutputStream(out)) {
                     byte[] buffer = new byte[4096];
                     int length;
                     while ((length = is.read(buffer)) > 0) {
@@ -724,7 +726,39 @@ public class Util {
 
     }
 
-    public static boolean rilasciaFileEsolver(File ing) {
+    public static boolean rilasciaFileEsolver(File file) {
+
+        try {
+            String se_user = rb.getString("ftp.user");
+            String se_pwd = rb.getString("ftp.pass");
+            String se_ip = rb.getString("ftp.ip");
+            int se_port = Util.parseIntR(rb.getString("ftp.port"));
+            FTPClient ftpClient = new FTPClient();
+            ftpClient.connect(se_ip, se_port);
+            ftpClient.login(se_user, se_pwd);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            if (ftpClient.isConnected()) {
+                try {
+                    try ( InputStream is = new FileInputStream(file)) {
+                        ftpClient.appendFile(file.getName(), is);
+                    }
+                } catch (Exception e) {
+                    log.log(Level.SEVERE, "rilasciaFileEsolverFTP UPLOAD {0}", estraiEccezione(e));
+                    return false;
+               }
+                ftpClient.disconnect();
+                return true;
+            } else {
+                log.log(Level.SEVERE, "FTP {0} NON CONNESSO", se_ip);
+            }
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "rilasciaFileEsolverFTP {0}", estraiEccezione(e));
+        }
+        return false;
+    }
+
+    public static boolean rilasciaFileEsolverOLD(File ing) {
         try {
             ChannelSftp es1 = SftpConnection.connect(
                     "admin",
@@ -735,7 +769,7 @@ public class Util {
             );
             if (es1 != null && es1.isConnected()) {
                 es1.cd("/mnt/array1/Esolver/");
-                try (InputStream is = new FileInputStream(ing)) {
+                try ( InputStream is = new FileInputStream(ing)) {
                     es1.put(is, ing.getName());
                 }
                 SftpConnection.closeConnection(es1, log);

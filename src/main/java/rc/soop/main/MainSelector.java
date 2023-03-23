@@ -221,10 +221,10 @@ public class MainSelector {
                 SftpATM.engine();
                 break;
             case 27: {// RILASCIO FILE MERCURY-BASSILICHI/NEXI
-                try {
-                    new SftpMaccorp().sftpbassilichinexi(true);
-                } catch (Exception e) {
-                }
+//                try {
+//                    new SftpMaccorp().sftpbassilichinexi(true);
+//                } catch (Exception e) {
+//                }
                 try {
                     new SftpMaccorp().sftpmercury();
                 } catch (Exception e) {

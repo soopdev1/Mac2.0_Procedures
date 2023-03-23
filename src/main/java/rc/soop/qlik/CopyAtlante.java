@@ -5,17 +5,6 @@
  */
 package rc.soop.qlik;
 
-import com.hierynomus.msdtyp.AccessMask;
-import com.hierynomus.msfscc.FileAttributes;
-import com.hierynomus.mssmb2.SMB2CreateDisposition;
-import com.hierynomus.mssmb2.SMB2CreateOptions;
-import com.hierynomus.mssmb2.SMB2ShareAccess;
-import com.hierynomus.security.jce.JceSecurityProvider;
-import com.hierynomus.smbj.SMBClient;
-import com.hierynomus.smbj.SmbConfig;
-import com.hierynomus.smbj.auth.AuthenticationContext;
-import com.hierynomus.smbj.connection.Connection;
-import com.hierynomus.smbj.share.DiskShare;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,13 +16,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Security;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -41,7 +27,6 @@ import org.apache.commons.net.ftp.FTPFileFilter;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.joda.time.DateTime;
 import rc.soop.esolver.Util;
 
