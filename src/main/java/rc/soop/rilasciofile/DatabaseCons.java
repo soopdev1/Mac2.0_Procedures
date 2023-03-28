@@ -2217,6 +2217,7 @@ public class DatabaseCons {
                                     poamount = poamount + fd(rsval.getString("net"));
                                 }
                             } else {
+                                setPurchSpread = setPurchSpread + fd(rsval.getString("spread"));
                                 setPurchTotal = setPurchTotal + fd(rsval.getString("net"));
                                 if (this.gf.isIs_CZ()) {
                                     setPurchComm = setPurchComm + fd(rsval.getString("tot_com")) + parseDoubleR_CZ(this.gf, rsval.getString("roundvalue"), true);
@@ -2318,9 +2319,9 @@ public class DatabaseCons {
                 //setSalesGrossTot = setSalesTotal - setSalesComm;
                 setCashAdGrossTot = setCashAdNetTot + setCashAdComm;
 
-                setPurchProfit = setPurchComm;
+                setPurchProfit = setPurchComm + setPurchSpread;
                 setSalesProfit = setSalesComm + setSalesSpread;
-                setCashAdProfit = setCashAdComm;
+                setCashAdProfit = setCashAdComm + setCashAdSpread;
 
                 //NO CHANGE
                 String sql1 = "SELECT causale_nc,supporto,total,pos,fg_inout,quantita FROM nc_transaction WHERE del_fg='0' AND filiale = '" + fil[0] + "' ";
@@ -2371,7 +2372,7 @@ public class DatabaseCons {
                                         case "07":
                                             if (supporto.equals("06")) {
                                                 setFromCC = setFromCC + fd(rs1.getString("total"));
-                                                
+
                                                 DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
                                                 if (dc != null) {
                                                     double start = fd(dc.getNC_ccNtrans());
@@ -2382,7 +2383,7 @@ public class DatabaseCons {
                                                     dc.setNC_ccAmount(roundDoubleandFormat(d1, 2));
 //                                                poamount = poamount + fd(rs1.getString("total"));
                                                 }
-                                                
+
                                             } else if (supporto.equals("07")) {
                                                 setFromB = setFromB + +fd(rs1.getString("total"));
                                                 DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
@@ -2395,7 +2396,8 @@ public class DatabaseCons {
                                                     dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
 //                                                poamount = poamount + fd(rs1.getString("total"));
                                                 }
-                                            }   break;
+                                            }
+                                            break;
                                         case "08":
                                             DailyCOP dc = DailyCOP.get_obj(dclist, rs1.getString("pos"));
                                             if (dc != null) {
@@ -2406,7 +2408,8 @@ public class DatabaseCons {
                                                 d1 = d1 + fd(rs1.getString("total"));
                                                 dc.setNC_bankAmount(roundDoubleandFormat(d1, 2));
 //                                            poamount = poamount + fd(rs1.getString("total"));
-                                            }   break;
+                                            }
+                                            break;
                                         default:
                                             break;
                                     }
@@ -2664,7 +2667,7 @@ public class DatabaseCons {
                 double setGrossProfit = setPurchComm + setSalesComm + setCashAdComm + setSalesSpread + setBaSalesSpread + setBraSalesSpread;
                 double setLastCashOnPrem = 0.0;
                 double setFx = 0.0;
-                
+
                 ArrayList<Office_sp> li = list_query_officesp2(fil[0],
                         subDays(datad1.substring(0, 10), patternsql, 1));
                 if (!li.isEmpty()) {
@@ -2674,16 +2677,14 @@ public class DatabaseCons {
                 } else {
                     d.setOfficesp(null);
                 }
-                
+
                 Office_sp o = list_query_last_officesp(fil[0], datad2);
 //                if (o != null) {
 //                    double[] d1 = list_dettagliotransazioni(fil, o.getData(), datad2, valutalocale);
-                    setFx = fd(o.getTotal_fx())
-//                            + d1[1]
-                            ;
+                setFx = fd(o.getTotal_fx()) //                            + d1[1]
+                        ;
 //                }
-                
-                
+
                 String oper = get_national_office().getChangetype();
                 boolean dividi = oper.equals("/");
 
@@ -2702,7 +2703,7 @@ public class DatabaseCons {
 
                 double setFxClosureErrorDeclared = 0.0;
                 double setCashOnPremError = 0.0;
-                ResultSet rs10 = this.c.createStatement().executeQuery("SELECT valuta,kind,total_user,total_system,rate FROM oc_errors where filiale = '" + fil[0] 
+                ResultSet rs10 = this.c.createStatement().executeQuery("SELECT valuta,kind,total_user,total_system,rate FROM oc_errors where filiale = '" + fil[0]
                         + "' AND cod IN (SELECT cod FROM oc_lista where data like '" + datad1.substring(0, 10) + "%' AND errors='Y') AND tipo='CH' AND (kind='01' OR kind='02' OR kind='03')");
                 while (rs10.next()) {
                     if (rs10.getString("valuta").equals(valutalocale) && rs10.getString("kind").equals("01")) {
@@ -2854,7 +2855,7 @@ public class DatabaseCons {
                         setNoTransPurch++;
 
                         ResultSet rsval = this.c.createStatement().executeQuery(
-                                "SELECT supporto,net,total,tot_com,roundvalue,pos FROM ch_transaction_valori WHERE cod_tr = '"
+                                "SELECT supporto,net,total,tot_com,roundvalue,pos,spread FROM ch_transaction_valori WHERE cod_tr = '"
                                 + rs.getString("tr1.cod") + "'");
 
                         while (rsval.next()) {
@@ -2919,6 +2920,7 @@ public class DatabaseCons {
                                     poamount = poamount + fd(rsval.getString("net"));
                                 }
                             } else {
+                                setPurchSpread = setPurchSpread + fd(rsval.getString("spread"));
                                 setPurchTotal = setPurchTotal + fd(rsval.getString("net"));
                                 if (this.gf.isIs_CZ()) {
                                     setPurchComm = setPurchComm + fd(rsval.getString("tot_com")) + parseDoubleR_CZ(this.gf, rsval.getString("roundvalue"), true);
@@ -3020,9 +3022,9 @@ public class DatabaseCons {
                 //setSalesGrossTot = setSalesTotal - setSalesComm;
                 setCashAdGrossTot = setCashAdNetTot + setCashAdComm;
 
-                setPurchProfit = setPurchComm;
+                setPurchProfit = setPurchComm + setPurchSpread;
                 setSalesProfit = setSalesComm + setSalesSpread;
-                setCashAdProfit = setCashAdComm;
+                setCashAdProfit = setCashAdComm + setCashAdSpread;
 
                 //NO CHANGE
                 String sql1 = "SELECT causale_nc,supporto,total,pos,fg_inout,quantita FROM nc_transaction WHERE del_fg='0' AND filiale = '" + fil[0] + "' ";
@@ -3372,7 +3374,8 @@ public class DatabaseCons {
                 d.setRefund(roundDoubleandFormat(refundshow, 2));
 
                 double setGroffTurnover = setPurchTotal + setSalesTotal + setCashAdNetTot;
-                double setGrossProfit = setPurchComm + setSalesComm + setCashAdComm + setSalesSpread + setBaSalesSpread + setBraSalesSpread;
+                //double setGrossProfit = setPurchComm + setSalesComm + setCashAdComm + setSalesSpread + setBaSalesSpread + setBraSalesSpread;
+                double setGrossProfit = setPurchProfit + setCashAdProfit + setSalesProfit + setBaSalesSpread + setBaPurchSpread;
                 double setLastCashOnPrem = 0.0;
                 double setFx = 0.0;
                 ArrayList<Office_sp> li = list_query_officesp2(fil[0], subDays(datad1.substring(0, 10), patternsql, 1));

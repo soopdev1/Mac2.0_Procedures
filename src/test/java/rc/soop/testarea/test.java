@@ -45,13 +45,38 @@ import static rc.soop.start.Utility.rb;
  * @author rcosco
  */
 public class test {
-    
-    public static void main(String[] args) {
-        
-        try {
-            
-            List<String> dafare = new ArrayList<>();
 
+    public static void main(String[] args) {
+
+        try {
+            GeneraFile gf = new GeneraFile();
+            gf.setIs_IT(true);
+            gf.setIs_UK(false);
+            gf.setIs_CZ(false);
+            DatabaseCons db = new DatabaseCons(gf);
+            String path = db.getPath("temp");
+            DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+            DateTime ieri = new DateTime(2023, 3, 3, 0, 0);
+            String datecreation = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
+//        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue();
+//        System.out.println("com.fl.upload.GeneraFile.rilasciafile() "+);
+//            String mesemysql = iniziomese.toString(patternmonthsql);
+            ArrayList<Branch> allenabledbr = db.list_branch();
+            ArrayList<String> br1 = db.list_branchcode_completeAFTER311217();
+//            String meseriferimento = iniziomese.monthOfYear().getAsText(Locale.ITALY).toUpperCase();
+//            String annoriferimento = iniziomese.year().getAsText(Locale.ITALY).toUpperCase();
+
+            String data1 = iniziomese.toString(patternsql);
+            String data2 = ieri.toString(patternsql);
+
+            String nomereport = "MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 DA " + data1 + " A " + data2 + "_" + datecreation + ".xlsx";
+            File Output = new File(path + nomereport);
+            String base64 = ControlloGestione.management_change_accounting1(Output, br1,
+                    iniziomese, ieri, allenabledbr, db);
+
+            db.closeDB();
+            System.out.println("rc.soop.testarea.test.main() " + Output.getPath());
+//            List<String> dafare = new ArrayList<>();
 //            dafare.add("033");
 //            dafare.add("047");
 //            dafare.add("072");
@@ -72,58 +97,57 @@ public class test {
 //            dafare.add("322");
 //            ArrayList<StatusBranch> liout = new ArrayList<>();
 //            Db db = new Db(host_PROD_CZ, false);
-            Db db = new Db(host_PROD, false);
-            ArrayList<String[]> ip = db.getIpFiliale();
-            db.closeDB();
-            
-            for (String[] f1 : ip) {
-
-//                if (dafare.contains(f1[0])) {
-//            System.out.println("rc.soop.testarea.test.main() "+f1[0]);
-//            System.out.println("rc.soop.testarea.test.main() "+f1[1]);
-                Db dbfil = new Db("//" + f1[1] + ":3306/maccorp", true);
-                if (dbfil.getC() != null) {
-                    System.out.println("rc.soop.testarea.test.main(RAGG) " + f1[0]);
-                    
-                    String sql1 = "SELECT cod FROM sito_prenotazioni s WHERE s.timestamp LIKE '2023-01-28%'";
-                    
-                    try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql1)) {
-                        while (rs1.next()) {
-                            System.out.println("rc.soop.testarea.test.main() " + rs1.getString(1));
-                        }
-                    }
-//                                }
-//                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
-
-//                        String sql = "SELECT cod FROM aggiornamenti_mod WHERE fg_stato='1' AND cod LIKE '230128%'";
-////                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' ";
-//                        try {
-//                            try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql)) {
-//                                while (rs1.next()) {
-//                                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' WHERE cod='" + rs1.getString(1) + "'";
-//                                    try ( Statement st2 = dbfil.getC().createStatement()) {
-//                                        st2.executeUpdate(update);
-//                                    }
-//                                }
-//                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
-////                        if (st1.executeLargeUpdate(update) > 0) {
-////                            System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
-////                        } else {
-////                            System.out.println("rc.soop.testarea.test.main(KOOO2) " + f1[0]);
-////                        }
-//                            }
-//                        } catch (Exception e) {
-//                            System.out.println("rc.soop.testarea.test.main(KOOO3) " + f1[0] + " -- " + Util.estraiEccezione(e));
+//            Db db = new Db(host_PROD, false);
+//            ArrayList<String[]> ip = db.getIpFiliale();
+//            db.closeDB();
+//            
+//            for (String[] f1 : ip) {
+//
+////                if (dafare.contains(f1[0])) {
+////            System.out.println("rc.soop.testarea.test.main() "+f1[0]);
+////            System.out.println("rc.soop.testarea.test.main() "+f1[1]);
+//                Db dbfil = new Db("//" + f1[1] + ":3306/maccorp", true);
+//                if (dbfil.getC() != null) {
+//                    System.out.println("rc.soop.testarea.test.main(RAGG) " + f1[0]);
+//                    
+//                    String sql1 = "SELECT cod FROM sito_prenotazioni s WHERE s.timestamp LIKE '2023-01-28%'";
+//                    
+//                    try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql1)) {
+//                        while (rs1.next()) {
+//                            System.out.println("rc.soop.testarea.test.main() " + rs1.getString(1));
 //                        }
-                    dbfil.closeDB();
-                } else {
-                    System.out.println("rc.soop.testarea.test.main(KOOO1) " + f1[0]);
-                }
+//                    }
+////                                }
+////                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+//
+////                        String sql = "SELECT cod FROM aggiornamenti_mod WHERE fg_stato='1' AND cod LIKE '230128%'";
+//////                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' ";
+////                        try {
+////                            try ( Statement st1 = dbfil.getC().createStatement();  ResultSet rs1 = st1.executeQuery(sql)) {
+////                                while (rs1.next()) {
+////                                    String update = "UPDATE aggiornamenti_mod SET fg_stato='0' WHERE cod='" + rs1.getString(1) + "'";
+////                                    try ( Statement st2 = dbfil.getC().createStatement()) {
+////                                        st2.executeUpdate(update);
+////                                    }
+////                                }
+////                                System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+//////                        if (st1.executeLargeUpdate(update) > 0) {
+//////                            System.out.println("rc.soop.testarea.test.main(OKKK) " + f1[0]);
+//////                        } else {
+//////                            System.out.println("rc.soop.testarea.test.main(KOOO2) " + f1[0]);
+//////                        }
+////                            }
+////                        } catch (Exception e) {
+////                            System.out.println("rc.soop.testarea.test.main(KOOO3) " + f1[0] + " -- " + Util.estraiEccezione(e));
+////                        }
+//                    dbfil.closeDB();
 //                } else {
-//                    System.out.println("rc.soop.testarea.test.main(GIA' FATTA) " + f1[0]);
+//                    System.out.println("rc.soop.testarea.test.main(KOOO1) " + f1[0]);
 //                }
-            }
-
+////                } else {
+////                    System.out.println("rc.soop.testarea.test.main(GIA' FATTA) " + f1[0]);
+////                }
+//            }
 //            String datecreation1 = new DateTime().toString("yyyyMMddHHmmss");
 //            String datecreation2 = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
 //            System.out.println("rc.soop.testarea.test.main() "+datecreation1);

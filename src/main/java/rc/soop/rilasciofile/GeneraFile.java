@@ -5,23 +5,13 @@
  */
 package rc.soop.rilasciofile;
 
-import rc.soop.sftp.SftpConnection;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpException;
 import rc.soop.esolver.Branch;
 import rc.soop.esolver.NC_category;
 import static rc.soop.esolver.Util.patternnormdate_filter;
 import static rc.soop.esolver.Util.patternsql;
 import rc.soop.qlik.LoggerNew;
-import static rc.soop.sftp.SftpMaccorp.se_ip;
-import static rc.soop.sftp.SftpMaccorp.se_port;
-import static rc.soop.sftp.SftpMaccorp.se_pwd;
-import static rc.soop.sftp.SftpMaccorp.se_user;
-import static rc.soop.rilasciofile.Utility.isDirectory;
 import static rc.soop.rilasciofile.Utility.patternmonthsql;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.logging.Level;

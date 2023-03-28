@@ -51,11 +51,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFFont;
+import static org.apache.poi.hssf.usermodel.HSSFFont.FONT_ARIAL;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFPicture;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.BorderStyle;
+import static org.apache.poi.ss.usermodel.BorderStyle.THICK;
+import static org.apache.poi.ss.usermodel.BorderStyle.THIN;
+import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
+import static org.apache.poi.ss.usermodel.CellType.STRING;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -134,7 +140,7 @@ public class Excel {
                 cell0.setCellStyle(style2);
                 sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 7));
                 cell0.setCellValue("OPEN/CLOSE List");
-                
+
                 XSSFCellStyle cellStylenum = (XSSFCellStyle) wb.createCellStyle();
                 XSSFDataFormat hssfDataFormat = (XSSFDataFormat) wb.createDataFormat();
                 cellStylenum.setDataFormat(hssfDataFormat.getFormat("#,#.00"));
@@ -4033,10 +4039,531 @@ public class Excel {
     public static String create_changeacc1(File outputfile, ArrayList<DailyChange> output, DatabaseCons db) {
 
         try {
+
+            //InputStream is = new FileInputStream(new File("C:\\Maccorp\\Report1 CDC T.xlsx"));
+//            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(Engine.getConf("path.rep1")));
             String formatdataCell = "#,#.00";
-            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1")));
+            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1.2023")));
             XSSFWorkbook wb = new XSSFWorkbook(is);
             // Sheet sheet = wb.createSheet("RC");
+            Sheet sheet = wb.getSheetAt(0);
+
+            XSSFCellStyle cellStylenum = (XSSFCellStyle) wb.createCellStyle();
+            XSSFDataFormat hssfDataFormat = (XSSFDataFormat) wb.createDataFormat();
+            cellStylenum.setDataFormat(hssfDataFormat.getFormat(formatdataCell));
+            cellStylenum.setBorderBottom(THIN);
+            cellStylenum.setBorderTop(THIN);
+            cellStylenum.setBorderRight(THIN);
+            cellStylenum.setBorderLeft(THIN);
+
+            XSSFCellStyle cellStyleint = (XSSFCellStyle) wb.createCellStyle();
+            cellStyleint.setDataFormat(hssfDataFormat.getFormat(formatdataCelINT));
+            cellStyleint.setBorderBottom(THIN);
+            cellStyleint.setBorderTop(THIN);
+            cellStyleint.setBorderRight(THIN);
+            cellStyleint.setBorderLeft(THIN);
+
+            double getVOLUMEAC = 0.00;
+            double getVOLUMECA = 0.00;
+            double getVOLUMETC = 0.00;
+            double getTRANSAC = 0.00;
+            double getTRANSCA = 0.00;
+            double getTRANSTC = 0.00;
+            double getCOMMAC = 0.00;
+            double getCOMMCA = 0.00;
+            double getCOMMTC = 0.00;
+
+            double getSPREADAC = 0.00;
+            double getSPREADCA = 0.00;
+            double getSPREADBR = 0.00;
+            double getSPREADBA = 0.00;
+            int getTOTTRANSACQ = 0;
+            double getTOTVOLACQ = 0.00;
+            double getTOTGMACQ = 0.00;
+            double getPERCACQ = 0.00;
+            double getVOLUMEVENDOFF = 0.00;
+            double getVOLUMEONL = 0.00;
+            double getVOLUMERIVA = 0.00;
+
+            int getTRANSVENDOFF = 0;
+            int getTRANSONL = 0;
+            int getTRANSRIVA = 0;
+
+            double getCOMMVENDOFF = 0.00;
+            double getCOMMONL = 0.00;
+            double getCOMMRIVA = 0.00;
+            double getSPREADVEND = 0.00;
+            double getTOTVOLVEN = 0.00;
+
+            int getTOTTRANSVEN = 0;
+
+            double getTOTGMVEN = 0.00;
+            double getPERCVEN = 0.00;
+            double getTOTVOL = 0.00;
+
+            int getTOTTRANS = 0;
+
+            double getTOTGM = 0.0;
+            double getPERCVEND = 0.0;
+            double getCOP = 0.0;
+            double getTOBANKCOP = 0.0;
+            double getFRBANKCOP = 0.0;
+            double getTOBRCOP = 0.0;
+            double getFRBRCOP = 0.0;
+            double getOCERRCOP = 0.0;
+            double getFX = 0.0;
+
+            double getTOBANKFX = 0.0;
+            double getFRBANKFX = 0.0;
+            double getTOBRFX = 0.0;
+            double getFRBRFX = 0.0;
+            double getOCERRFX = 0.0;
+
+            int st = 4;
+            int lastindex = 0;
+            for (int i = 0; i < output.size(); i++) {
+                DailyChange dc = output.get(i);
+                lastindex = st + i;
+                Row row = getRow(sheet, lastindex);
+                Cell c1 = getCell(row, 1);
+                c1.setCellValue(dc.getFiliale());
+
+                c1 = getCell(row, 2);
+                c1.setCellValue(dc.getDescr());
+
+                c1 = getCell(row, 3);
+                c1.setCellValue(dc.getData());
+                c1 = getCell(row, 4, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMEAC()));
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 5, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMECA()));
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 6, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMETC()));
+
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 7, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSAC()));
+
+                c1.setCellStyle(cellStyleint);
+
+                c1 = getCell(row, 8, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSCA()));
+
+                c1.setCellStyle(cellStyleint);
+
+                c1 = getCell(row, 9, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSTC()));
+                c1.setCellStyle(cellStyleint);
+
+                c1 = getCell(row, 10, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMAC()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 11, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMCA()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 12, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMTC()));
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 13, NUMERIC);
+                c1.setCellValue(fd(dc.getSPREADAC()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 14, NUMERIC);
+                c1.setCellValue(fd(dc.getSPREADCA()));
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 15, NUMERIC);
+                c1.setCellValue(fd(dc.getSPREADBR()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 16, NUMERIC);
+                c1.setCellValue(fd(dc.getSPREADBA()));
+                c1.setCellStyle(cellStylenum);
+
+                c1 = getCell(row, 17, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTOTTRANSACQ()));
+                c1.setCellStyle(cellStyleint);
+
+                c1 = getCell(row, 18, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTVOLACQ()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 19, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTGMACQ()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 20, NUMERIC);
+                c1.setCellValue(fd(dc.getPERCACQ()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 21, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMEVENDOFF()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 22, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMEONL()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 23, NUMERIC);
+                c1.setCellValue(fd(dc.getVOLUMERIVA()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 24, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSVENDOFF()));
+                c1.setCellStyle(cellStyleint);
+                c1 = getCell(row, 25, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSONL()));
+                c1.setCellStyle(cellStyleint);
+                c1 = getCell(row, 26, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTRANSRIVA()));
+                c1.setCellStyle(cellStyleint);
+                c1 = getCell(row, 27, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMVENDOFF()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 28, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMONL()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 29, NUMERIC);
+                c1.setCellValue(fd(dc.getCOMMRIVA()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 30, NUMERIC);
+                c1.setCellValue(fd(dc.getSPREADVEND()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 31, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTVOLVEN()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 32, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTOTTRANSVEN()));
+                c1.setCellStyle(cellStyleint);
+                c1 = getCell(row, 33, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTGMVEN()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 34, NUMERIC);
+                c1.setCellValue(fd(dc.getPERCVEN()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 35, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTVOL()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 36, NUMERIC);
+                c1.setCellValue(parseIntR(dc.getTOTTRANS()));
+                c1.setCellStyle(cellStyleint);
+                c1 = getCell(row, 37, NUMERIC);
+                c1.setCellValue(fd(dc.getTOTGM()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 38, NUMERIC);
+                c1.setCellValue(fd(dc.getPERCVEND()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 39, NUMERIC);
+                c1.setCellValue(fd(dc.getCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 40, NUMERIC);
+                c1.setCellValue(fd(dc.getTOBANKCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 41, NUMERIC);
+                c1.setCellValue(fd(dc.getFRBANKCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 42, NUMERIC);
+                c1.setCellValue(fd(dc.getTOBRCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 43, NUMERIC);
+                c1.setCellValue(fd(dc.getFRBRCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 44, NUMERIC);
+                c1.setCellValue(fd(dc.getOCERRCOP()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 45, NUMERIC);
+                c1.setCellValue(fd(dc.getFX()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 46, NUMERIC);
+                c1.setCellValue(fd(dc.getTOBANKFX()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 47, NUMERIC);
+                c1.setCellValue(fd(dc.getFRBANKFX()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 48, NUMERIC);
+                c1.setCellValue(fd(dc.getTOBRFX()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 49, NUMERIC);
+                c1.setCellValue(fd(dc.getFRBRFX()));
+                c1.setCellStyle(cellStylenum);
+                c1 = getCell(row, 50, NUMERIC);
+                c1.setCellValue(fd(dc.getOCERRFX()));
+                c1.setCellStyle(cellStylenum);
+
+                getVOLUMEAC += fd(dc.getVOLUMEAC());
+                getVOLUMECA += fd(dc.getVOLUMECA());
+                getVOLUMETC += fd(dc.getVOLUMETC());
+                getTRANSAC += parseIntR(dc.getTRANSAC());
+                getTRANSCA += parseIntR(dc.getTRANSCA());
+                getTRANSTC += parseIntR(dc.getTRANSTC());
+                getCOMMAC += fd(dc.getCOMMAC());
+                getCOMMCA += fd(dc.getCOMMCA());
+                getCOMMTC += fd(dc.getCOMMTC());
+
+                getSPREADAC += fd(dc.getSPREADAC());
+                getSPREADCA += fd(dc.getSPREADCA());
+
+                getSPREADBR += fd(dc.getSPREADBR());
+                getSPREADBA += fd(dc.getSPREADBA());
+                getTOTTRANSACQ += parseIntR(dc.getTOTTRANSACQ());
+                getTOTVOLACQ += fd(dc.getTOTVOLACQ());
+                getTOTGMACQ += fd(dc.getTOTGMACQ());
+                getPERCACQ += fd(dc.getPERCACQ());
+                getVOLUMEVENDOFF += fd(dc.getVOLUMEVENDOFF());
+                getVOLUMEONL += fd(dc.getVOLUMEONL());
+                getVOLUMERIVA += fd(dc.getVOLUMERIVA());
+                getTRANSVENDOFF += parseIntR(dc.getTRANSVENDOFF());
+                getTRANSONL += parseIntR(dc.getTRANSONL());
+                getTRANSRIVA += parseIntR(dc.getTRANSRIVA());
+                getCOMMVENDOFF += fd(dc.getCOMMVENDOFF());
+                getCOMMONL += fd(dc.getCOMMONL());
+                getCOMMRIVA += fd(dc.getCOMMRIVA());
+                getSPREADVEND += fd(dc.getSPREADVEND());
+                getTOTVOLVEN += fd(dc.getTOTVOLVEN());
+                getTOTTRANSVEN += parseIntR(dc.getTOTTRANSVEN());
+                getTOTGMVEN += fd(dc.getTOTGMVEN());
+                getPERCVEN += fd(dc.getPERCVEN());
+                getTOTVOL += fd(dc.getTOTVOL());
+                getTOTTRANS += parseIntR(dc.getTOTTRANS());
+                getTOTGM += fd(dc.getTOTGM());
+                getPERCVEND += fd(dc.getPERCVEND());
+                getCOP += fd(dc.getCOP());
+                getTOBANKCOP += fd(dc.getTOBANKCOP());
+                getFRBANKCOP += fd(dc.getFRBANKCOP());
+                getTOBRCOP += fd(dc.getTOBRCOP());
+                getFRBRCOP += fd(dc.getFRBRCOP());
+                getOCERRCOP += fd(dc.getOCERRCOP());
+                getFX += fd(dc.getFX());
+                getTOBANKFX += fd(dc.getTOBANKFX());
+                getFRBANKFX += fd(dc.getFRBANKFX());
+                getTOBRFX += fd(dc.getTOBRFX());
+                getFRBRFX += fd(dc.getFRBRFX());
+                getOCERRFX += fd(dc.getOCERRFX());
+
+            }
+
+            XSSFFont font = (XSSFFont) wb.createFont();
+            font.setFontName(FONT_ARIAL);
+            font.setFontHeightInPoints((short) 11);
+            font.setBold(true);
+
+            XSSFCellStyle cellStyleblanktot = (XSSFCellStyle) wb.createCellStyle();
+            cellStyleblanktot.setBorderRight(THIN);
+            cellStyleblanktot.setBorderBottom(THICK);
+
+            cellStyleblanktot.setBorderTop(THICK);
+            cellStyleblanktot.setBorderLeft(THIN);
+            cellStyleblanktot.setFont(font);
+
+            XSSFCellStyle cellStylenumtot = (XSSFCellStyle) wb.createCellStyle();
+            cellStylenumtot.setDataFormat(hssfDataFormat.getFormat(formatdataCell));
+            cellStylenumtot.setBorderRight(THIN);
+            cellStylenumtot.setBorderBottom(THICK);
+            cellStylenumtot.setBorderTop(THICK);
+            cellStylenumtot.setBorderLeft(THIN);
+            cellStylenumtot.setFont(font);
+
+            XSSFCellStyle cellStyleinttot = (XSSFCellStyle) wb.createCellStyle();
+            cellStyleinttot.setDataFormat(hssfDataFormat.getFormat(formatdataCelINT));
+            cellStyleinttot.setBorderRight(THIN);
+            cellStyleinttot.setBorderBottom(THICK);
+            cellStyleinttot.setBorderTop(THICK);
+            cellStyleinttot.setBorderLeft(THIN);
+            cellStyleinttot.setFont(font);
+
+            Row row = getRow(sheet, lastindex + 3);
+            Cell c1 = getCell(row, 1);
+            c1.setCellStyle(cellStyleblanktot);
+            c1.setCellValue("");
+            c1 = getCell(row, 2);
+            c1.setCellStyle(cellStyleblanktot);
+            c1.setCellValue("TOTALE");
+            c1 = getCell(row, 3);
+            c1.setCellStyle(cellStyleblanktot);
+            c1.setCellValue("");
+            c1 = getCell(row, 4, NUMERIC);
+            c1.setCellValue(getVOLUMEAC);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 5, NUMERIC);
+            c1.setCellValue(getVOLUMECA);
+            c1.setCellStyle(cellStylenumtot);
+
+            c1 = getCell(row, 6, NUMERIC);
+            c1.setCellValue(getVOLUMETC);
+            c1.setCellStyle(cellStylenumtot);
+
+            c1 = getCell(row, 7, NUMERIC);
+            c1.setCellValue(getTRANSAC);
+            c1.setCellStyle(cellStyleinttot);
+
+            c1 = getCell(row, 8, NUMERIC);
+            c1.setCellValue(getTRANSCA);
+            c1.setCellStyle(cellStyleinttot);
+
+            c1 = getCell(row, 9, NUMERIC);
+            c1.setCellValue(getTRANSTC);
+            c1.setCellStyle(cellStyleinttot);
+
+            c1 = getCell(row, 10, NUMERIC);
+            c1.setCellValue(getCOMMAC);
+            c1.setCellStyle(cellStylenumtot);
+
+            c1 = getCell(row, 11, NUMERIC);
+            c1.setCellValue(getCOMMCA);
+            c1.setCellStyle(cellStylenumtot);
+
+            c1 = getCell(row, 12, NUMERIC);
+            c1.setCellValue(getCOMMTC);
+            c1.setCellStyle(cellStylenumtot);
+
+            //NEW
+            c1 = getCell(row, 13, NUMERIC);
+            c1.setCellValue(getSPREADAC);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 14, NUMERIC);
+            c1.setCellValue(getSPREADCA);
+            c1.setCellStyle(cellStylenumtot);
+            //NEW
+
+            c1 = getCell(row, 15, NUMERIC);
+            c1.setCellValue(getSPREADBR);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 16, NUMERIC);
+            c1.setCellValue(getSPREADBA);
+            c1.setCellStyle(cellStylenumtot);
+
+            c1 = getCell(row, 17, NUMERIC);
+            c1.setCellValue(getTOTTRANSACQ);
+            c1.setCellStyle(cellStyleinttot);
+
+            c1 = getCell(row, 18, NUMERIC);
+            c1.setCellValue(getTOTVOLACQ);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 19, NUMERIC);
+            c1.setCellValue(getTOTGMACQ);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 20, NUMERIC);
+            c1.setCellValue(divisione_controllozero(getPERCACQ, output.size()));
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 21, NUMERIC);
+            c1.setCellValue(getVOLUMEVENDOFF);
+
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 22, NUMERIC);
+            c1.setCellValue(getVOLUMEONL);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 23, NUMERIC);
+            c1.setCellValue(getVOLUMERIVA);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 24, NUMERIC);
+            c1.setCellValue(getTRANSVENDOFF);
+            c1.setCellStyle(cellStyleinttot);
+            c1 = getCell(row, 25, NUMERIC);
+            c1.setCellValue(getTRANSONL);
+            c1.setCellStyle(cellStyleinttot);
+            c1 = getCell(row, 26, NUMERIC);
+            c1.setCellValue(getTRANSRIVA);
+            c1.setCellStyle(cellStyleinttot);
+            c1 = getCell(row, 27, NUMERIC);
+            c1.setCellValue(getCOMMVENDOFF);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 28, NUMERIC);
+            c1.setCellValue(getCOMMONL);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 29, NUMERIC);
+            c1.setCellValue(getCOMMRIVA);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 30, NUMERIC);
+            c1.setCellValue(getSPREADVEND);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 31, NUMERIC);
+            c1.setCellValue(getTOTVOLVEN);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 32, NUMERIC);
+            c1.setCellValue(getTOTTRANSVEN);
+            c1.setCellStyle(cellStyleinttot);
+            c1 = getCell(row, 33, NUMERIC);
+            c1.setCellValue(getTOTGMVEN);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 34, NUMERIC);
+            c1.setCellValue(divisione_controllozero(getPERCVEN, output.size()));
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 35, NUMERIC);
+            c1.setCellValue(getTOTVOL);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 36, NUMERIC);
+            c1.setCellValue(getTOTTRANS);
+            c1.setCellStyle(cellStyleinttot);
+            c1 = getCell(row, 37, NUMERIC);
+            c1.setCellValue(getTOTGM);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 38, NUMERIC);
+            c1.setCellValue(divisione_controllozero(getPERCVEND, output.size()));
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 39, NUMERIC);
+            c1.setCellValue(getCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 40, NUMERIC);
+            c1.setCellValue(getTOBANKCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 41, NUMERIC);
+            c1.setCellValue(getFRBANKCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 42, NUMERIC);
+            c1.setCellValue(getTOBRCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 43, NUMERIC);
+            c1.setCellValue(getFRBRCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 44, NUMERIC);
+            c1.setCellValue(getOCERRCOP);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 45, NUMERIC);
+            c1.setCellValue(getFX);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 46, NUMERIC);
+            c1.setCellValue(getTOBANKFX);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 47, NUMERIC);
+            c1.setCellValue(getFRBANKFX);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 48, NUMERIC);
+            c1.setCellValue(getTOBRFX);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 49, NUMERIC);
+            c1.setCellValue(getFRBRFX);
+            c1.setCellStyle(cellStylenumtot);
+            c1 = getCell(row, 50, NUMERIC);
+            c1.setCellValue(getOCERRFX);
+            c1.setCellStyle(cellStylenumtot);
+
+            for (int r = 0; r < 51; r++) {
+                sheet.autoSizeColumn(r);
+            }
+
+            try {
+                try (FileOutputStream fileOut = new FileOutputStream(outputfile)) {
+                    wb.write(fileOut);
+                }
+                is.close();
+                wb.close();
+
+                String base64 = new String(Base64.encodeBase64(FileUtils.readFileToByteArray(outputfile)));
+                return base64;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } catch (Exception ex) {
+                ex.printStackTrace();
+        }
+
+        return null;
+    }
+    
+    public static String create_changeacc1OLD(File outputfile, ArrayList<DailyChange> output, DatabaseCons db) {
+
+        try {
+            String formatdataCell = "#,#.00";
+            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1.2023")));
+            XSSFWorkbook wb = new XSSFWorkbook(is);
             Sheet sheet = wb.getSheetAt(0);
 
             XSSFCellStyle cellStylenum = (XSSFCellStyle) wb.createCellStyle();

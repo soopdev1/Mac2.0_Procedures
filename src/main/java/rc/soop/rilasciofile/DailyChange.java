@@ -10,14 +10,14 @@ package rc.soop.rilasciofile;
  * @author rcosco
  */
 public class DailyChange {
-    
-    String filiale,descr,data,VOLUMEAC,VOLUMECA,VOLUMETC,TRANSAC,TRANSCA,TRANSTC,COMMAC,COMMCA,COMMTC,SPREADBR,SPREADBA;
-    String TOTTRANSACQ,TOTVOLACQ,TOTGMACQ,PERCACQ;
-    String VOLUMEVENDOFF,VOLUMEONL,VOLUMERIVA,TRANSVENDOFF,TRANSONL,TRANSRIVA,COMMVENDOFF,COMMONL,COMMRIVA,SPREADVEND;
-    String TOTTRANSVEN,TOTVOLVEN,TOTGMVEN,PERCVEN;
-    String TOTVOL,TOTTRANS,TOTGM,PERCVEND;
-    String COP,TOBANKCOP,FRBANKCOP,TOBRCOP,FRBRCOP,OCERRCOP;
-    String FX,TOBANKFX,FRBANKFX,TOBRFX,FRBRFX,OCERRFX;
+
+    String filiale, descr, data, VOLUMEAC, VOLUMECA, VOLUMETC, TRANSAC, TRANSCA, TRANSTC, COMMAC, COMMCA, COMMTC, SPREADBR, SPREADBA, SPREADAC, SPREADCA;
+    String TOTTRANSACQ, TOTVOLACQ, TOTGMACQ, PERCACQ;
+    String VOLUMEVENDOFF, VOLUMEONL, VOLUMERIVA, TRANSVENDOFF, TRANSONL, TRANSRIVA, COMMVENDOFF, COMMONL, COMMRIVA, SPREADVEND;
+    String TOTTRANSVEN, TOTVOLVEN, TOTGMVEN, PERCVEN;
+    String TOTVOL, TOTTRANS, TOTGM, PERCVEND;
+    String COP, TOBANKCOP, FRBANKCOP, TOBRCOP, FRBRCOP, OCERRCOP;
+    String FX, TOBANKFX, FRBANKFX, TOBRFX, FRBRFX, OCERRFX;
 
     public DailyChange() {
     }
@@ -56,6 +56,22 @@ public class DailyChange {
 
     public String getVOLUMECA() {
         return VOLUMECA;
+    }
+
+    public String getSPREADAC() {
+        return SPREADAC;
+    }
+
+    public void setSPREADAC(String SPREADAC) {
+        this.SPREADAC = SPREADAC;
+    }
+
+    public String getSPREADCA() {
+        return SPREADCA;
+    }
+
+    public void setSPREADCA(String SPREADCA) {
+        this.SPREADCA = SPREADCA;
     }
 
     public void setVOLUMECA(String VOLUMECA) {
@@ -405,10 +421,5 @@ public class DailyChange {
     public void setOCERRFX(String OCERRFX) {
         this.OCERRFX = OCERRFX;
     }
-    
-    
-    
-    
 
-    
 }

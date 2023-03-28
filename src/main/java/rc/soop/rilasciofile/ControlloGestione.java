@@ -1860,8 +1860,20 @@ public class ControlloGestione {
                         dc1.setCOMMTC("");//verificare
                         dc1.setTRANSAC((dv.getNoTransPurch()));
                         dc1.setTRANSCA((dv.getNoTransCC()));
-                        dc1.setCOMMAC((dv.getPurchProfit()));
-                        dc1.setCOMMCA((dv.getCashAdProfit()));
+                        
+                        
+                        //OLD    
+//                        dc1.setCOMMAC((dv.getPurchProfit()));
+//                        dc1.setCOMMCA((dv.getCashAdProfit()));
+                        //NEW
+                        dc1.setCOMMAC(dv.getPurchComm());
+                        dc1.setSPREADAC(dv.getPurchSpread());
+                        
+                        dc1.setCOMMCA(dv.getCashAdComm());
+                        dc1.setSPREADCA(dv.getCashAdSpread());
+                        
+                        
+                        
                         dc1.setSPREADBR((dv.getBraSalesSpread()));
                         dc1.setSPREADBA((dv.getBaSalesSpread()));
                         dc1.setTOTTRANSACQ((roundDoubleandFormat(fd(dv.getNoTransPurch()) + fd(dv.getNoTransCC()), 0)));
