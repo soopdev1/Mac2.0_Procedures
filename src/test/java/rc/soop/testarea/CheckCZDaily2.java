@@ -23,11 +23,11 @@ public class CheckCZDaily2 {
 
     public static void main(String[] args) {
 
-        String fil_cod = "312";
-        DateTime start = new DateTime(2021, 12, 31, 0, 0);
-        DateTime end = new DateTime(2023, 1, 1, 0, 0);
+        String fil_cod = "307";
+        DateTime start = new DateTime(2023, 3, 18, 0, 0);
+        DateTime end = new DateTime(2023, 3, 29, 0, 0);
 
-//        Db_Master db = new Db_Master(true, "192.168.9.23"); 454770.00
+//        Db_Master db = new Db_Master(true, "192.168.9.19");
         Db_Master db = new Db_Master(true, false);
 
         while (start.isBefore(end)) {
@@ -55,16 +55,16 @@ public class CheckCZDaily2 {
 
                             double n_cv = q_ok * fd(od.getMedioacq());
                             
-//                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
+                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
 //                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0) +
 //                                    "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "'";
                             
                             String upd2 = "UPDATE office_sp_valori SET quantity='" + roundDoubleandFormat(q_ok, 2) + "',controv='"
                                     + roundDoubleandFormat(n_cv, 2) + "' WHERE cod='" + sp.getCodice() + "' AND currency='" + valuta + "'";
                             try {
-//                                try (Statement st1 = db.getC().createStatement()) {
-//                                    st1.executeUpdate(upd1);
-//                                }
+                                try (Statement st1 = db.getC().createStatement()) {
+                                    st1.executeUpdate(upd1);
+                                }
                                 try (Statement st2 = db.getC().createStatement()) {
                                     st2.executeUpdate(upd2);
                                 }

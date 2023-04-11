@@ -6,10 +6,9 @@
 package rc.soop.testarea;
 
 import java.io.File;
-import java.io.IOException;
-import static rc.soop.aggiornamenti.Mactest.updateSQL;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import static rc.soop.aggiornamenti.Mactest.updateSQL;
 
 /**
  *
@@ -19,16 +18,17 @@ public class Update {
 
     public static void main(String[] args) {
 
-
-//        File old1 = new File("C:\\Users\\rcosco\\Desktop\\nuovomoduloprofilatura.pdf");
-        
-        File new1 = new File("C:\\Users\\rcosco\\Desktop\\KYC Maccorp ITA_07_02_19_NEW.pdf");
-        
-        
+        File new1 = new File("C:\\mnt\\mac\\temp\\KYC_v2023.pdf");
         
         try {
-            
-            updateSQL("UPDATE conf SET des = '" + Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) + "' where id ='path.profcl';", false);
+
+//            updateSQL("UPDATE conf SET des = '" + 
+//                    Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) 
+//                    + "' where id ='path.profcl';", false);
+
+            updateSQL("UPDATE conf SET des = '" + 
+                    Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) 
+                    + "' where id ='path.profcl';", false);
             
 //            String profcl = Base64.encodeBase64String(FileUtils.readFileToByteArray(new1));
 //            Db db1 = new Db(host_TEST, false);
@@ -40,7 +40,8 @@ public class Update {
 //            String dt_val = Utility.formatStringtoStringDate(dtoper, patternsqldate, patternnormdate);
 //            db1.insertValue_agg(ps1, null, null, dt_val, "setaser", false);
 //            db1.closeDB();
-        } catch (IOException ex) {
+
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         

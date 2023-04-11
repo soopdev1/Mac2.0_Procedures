@@ -2152,7 +2152,7 @@ public class DatabaseCons {
                         setNoTransPurch++;
 
                         ResultSet rsval = this.c.createStatement().executeQuery(
-                                "SELECT supporto,net,total,tot_com,roundvalue,pos FROM ch_transaction_valori WHERE cod_tr = '"
+                                "SELECT supporto,net,total,tot_com,roundvalue,pos,spread FROM ch_transaction_valori WHERE cod_tr = '"
                                 + rs.getString("tr1.cod") + "'");
 
                         while (rsval.next()) {
@@ -2679,11 +2679,10 @@ public class DatabaseCons {
                 }
 
                 Office_sp o = list_query_last_officesp(fil[0], datad2);
-//                if (o != null) {
+                if (o != null) {
 //                    double[] d1 = list_dettagliotransazioni(fil, o.getData(), datad2, valutalocale);
-                setFx = fd(o.getTotal_fx()) //                            + d1[1]
-                        ;
-//                }
+                    setFx = fd(o.getTotal_fx());
+                }
 
                 String oper = get_national_office().getChangetype();
                 boolean dividi = oper.equals("/");

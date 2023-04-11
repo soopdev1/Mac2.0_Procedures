@@ -24,12 +24,12 @@ public class CheckCZDaily3 {
 
     public static void main(String[] args) {
 
-        String fil_cod = "321";
-        DateTime start = new DateTime(2021, 12, 31, 0, 0);
-        DateTime end = new DateTime(2023, 1, 1, 0, 0);
+        String fil_cod = "307";
+        DateTime start = new DateTime(2023, 3, 19, 0, 0);
+        DateTime end = new DateTime(2023, 3, 29, 0, 0);
 
-//        Db_Master db = new Db_Master(true, "192.168.9.56");
-        Db_Master db = new Db_Master(true, false);
+        Db_Master db = new Db_Master(true, "192.168.9.19");
+//        Db_Master db = new Db_Master(true, false);
 
         while (start.isBefore(end)) {
             String stdate = start.toString(patternsql) + " 23:59:59";
@@ -60,7 +60,6 @@ public class CheckCZDaily3 {
 //                } catch (Exception e) {
 //                    e.printStackTrace();
 //                }
-
 //                            
 //                System.out.println(sp.getData() + " rc.soop.testarea.CheckCZDaily3.main() " + sum1.get());
                 for (int i = 0; i < dati.size(); i++) {
@@ -74,10 +73,10 @@ public class CheckCZDaily3 {
                             String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0)
                                     + "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "' AND currency='CZK'";
                             try {
-                                try (Statement st1 = db.getC().createStatement()) {
+                                try ( Statement st1 = db.getC().createStatement()) {
                                     st1.executeUpdate(upd1);
                                 }
-                                try (Statement st2 = db.getC().createStatement()) {
+                                try ( Statement st2 = db.getC().createStatement()) {
                                     st2.executeUpdate(upd2);
                                 }
 
@@ -89,8 +88,7 @@ public class CheckCZDaily3 {
                             }
 
                         }
-                    } else 
-                    if (eur) {
+                    } else if (eur) {
                         OfficeStockPrice_value od = last.stream().filter(f1 -> f1.getCurrency().equals("EUR")).findAny().orElse(null);
                         if (od != null) {
 
@@ -120,10 +118,10 @@ public class CheckCZDaily3 {
                                     + "' WHERE cod='" + sp.getCodice() + "' AND currency = 'EUR'";
 //                            
                             try {
-                                try (Statement st1 = db.getC().createStatement()) {
+                                try ( Statement st1 = db.getC().createStatement()) {
                                     st1.executeUpdate(upd1);
                                 }
-                                try (Statement st2 = db.getC().createStatement()) {
+                                try ( Statement st2 = db.getC().createStatement()) {
                                     st2.executeUpdate(upd2);
                                 }
 

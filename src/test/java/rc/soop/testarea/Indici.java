@@ -9,7 +9,6 @@ import rc.soop.aggiornamenti.Utility;
 import rc.soop.aggiornamenti.Db;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;

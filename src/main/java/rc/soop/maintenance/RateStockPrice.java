@@ -21,7 +21,9 @@ import static rc.soop.start.Utility.rb;
  * @author rcosco
  */
 public class RateStockPrice {
-
+//    public static void main(String[] args) {
+//        engine("IT");
+//    }
     public static void engine(String nazione) {
 
         String nameprod = "maccorpita";
@@ -119,7 +121,11 @@ public class RateStockPrice {
             for (int i = 0; i < ip.size(); i++) {
                 String[] f1 = ip.get(i);
                 String fil = f1[0];
-                if (fil.equals("043") || fil.equals("079") || fil.equals("306") || fil.equals("307") || fil.equals("305")) {
+                if (fil.equals("043") 
+                        || fil.equals("079") 
+                        || fil.equals("306") 
+                        || fil.equals("307") 
+                        || fil.equals("305")) {
                     Db dbfil = new Db("//" + f1[1] + ":3306/maccorp", true);
                     if (dbfil.getC() != null) {
                         String sql1 = "SELECT cod_value,date FROM stock WHERE total <>'0.00' "
@@ -215,15 +221,16 @@ public class RateStockPrice {
         try {
             Db dbP = new Db(PROD, false);
             String sql1 = "select * from " + nameprod + ".rate WHERE data NOT IN (SELECT DISTINCT(data) FROM " + nametest + ".rate)";
-            Statement st = dbP.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            ResultSet rs = st.executeQuery(sql1);
-            while (rs.next()) {
-                String ins = "INSERT INTO " + nametest + ".rate VALUES ('" + rs.getString(1) + "','" + rs.getString(2) + "','" + rs.getString(3) + "','" + rs.getString(4) + "')";
-                System.out.println(ins);
-                st.execute(ins);
+            try (Statement st = dbP.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = st.executeQuery(sql1)) {
+                while (rs.next()) {
+                    String ins = "INSERT INTO " + nametest + ".rate VALUES ('" + rs.getString(1) + "','"
+                            + rs.getString(2) + "','" + rs.getString(3) + "','" + rs.getString(4) + "')";
+                    System.out.println(ins);
+                    try (Statement st2 = dbP.getC().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                        st2.execute(ins);
+                    }
+                }
             }
-            rs.close();
-            st.close();
             dbP.closeDB();
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -237,7 +244,7 @@ public class RateStockPrice {
             Map<String, String> listarate = new HashMap<>();
 
             System.out.println("mactest.InsertRateStockPrice.all() " + host);
-            DateTime start = new DateTime(2020, 12, 30, 0, 0);
+            DateTime start = new DateTime(2023, 2, 15, 0, 0);
             DateTime today = new DateTime().withMillisOfDay(0);
 
             while (start.isBefore(today) || start.isEqual(today)) {
