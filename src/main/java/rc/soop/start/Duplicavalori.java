@@ -32,7 +32,7 @@ public class Duplicavalori {
 
 //        listafiliali.remove("000");
         ArrayList<String> listafiliali = new ArrayList<>();
-        listafiliali.add("900");
+        listafiliali.add("204");
 //        listafiliali.add("198");
 //        listafiliali.add("322");
 //        listafiliali.add("319");
