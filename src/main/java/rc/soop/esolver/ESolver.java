@@ -168,7 +168,6 @@ public class ESolver {
 //        System.out.println(type + " esolver.ESolver.tofrombank_fattura(N) " + net);
 //        System.out.println(type + " esolver.ESolver.tofrombank_fattura(S) " + spread);
 //        System.out.println(type + " esolver.ESolver.tofrombank_fattura(I) " + importo);
-
         String valueSpread = "";
         String valueSpreadNeg = "";
         boolean insertspread = (spread != null) && (newSpread) && (fd(spread) != 0.00);
@@ -180,35 +179,49 @@ public class ESolver {
             }
         }
 
-        if (type.equals("FBL") || type.equals("FBE")) {
-            if (locale) {
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + codice_filiale + separator + separator + importo + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
-            } else {
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + importo + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
-            }
-        } else if (type.equals("TBL") || type.equals("TBE")) {
-            if (locale) {
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + codice_filiale + separator + separator + separator + importo + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-            } else {
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-                writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + separator + importo + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-            }
+        System.out.println("A " + type);
+        System.out.println("B " + insertspread);
+        System.out.println("C " + valueSpread);
+        System.out.println("D " + valueSpreadNeg);
+        System.out.println("E " + fd(spread));
 
-        } else if (type.equals("N_TBE")) {
-            writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-            if (insertspread) {
-                writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + codice_spread + separator + separator + separator + valueSpreadNeg + separator + valueSpread + separator + codice_filiale + separator + "Spread To bank - " + descrizione_filiale);
-            }
-            writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + separator + net + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
-        } else if (type.equals("N_FBE")) {
-            writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + net + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
-            if (insertspread) {
-                writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + codice_spread + separator + separator + separator + valueSpreadNeg + separator + valueSpread + separator + codice_filiale + separator + "Spread From bank - " + descrizione_filiale);
-            }
-            writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+        switch (type) {
+            case "FBL":
+            case "FBE":
+                if (locale) {
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + codice_filiale + separator + separator + importo + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                } else {
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + importo + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                }
+                break;
+            case "TBL":
+            case "TBE":
+                if (locale) {
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + codice_filiale + separator + separator + separator + importo + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                } else {
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                    writer.println(tag_GEN + separator + type + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + separator + importo + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                }
+                break;
+            case "N_TBE":
+                writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + importo + separator + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                if (insertspread) {
+                    writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + codice_spread + separator + separator + separator + valueSpreadNeg + separator + valueSpread + separator + codice_filiale + separator + "Spread To bank - " + descrizione_filiale);
+                }
+                writer.println(tag_GEN + separator + "TBE" + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + separator + net + separator + codice_filiale + separator + "To bank - " + descrizione_filiale);
+                break;
+            case "N_FBE":
+                writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + conto_esolver + separator + separator + separator + net + separator + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                if (insertspread) {
+                    writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + codice_spread + separator + separator + separator + valueSpreadNeg + separator + valueSpread + separator + codice_filiale + separator + "Spread From bank - " + descrizione_filiale);
+                }
+                writer.println(tag_GEN + separator + "FBE" + separator + anno + separator + data + separator + n_reg + separator + cod_banca_lungo + separator + cod_banca_corto + separator + separator + separator + importo + separator + codice_filiale + separator + "From bank - " + descrizione_filiale);
+                break;
+            default:
+                break;
         }
 
     }
@@ -1370,7 +1383,7 @@ public class ESolver {
                                 nreg++;
 
                             }
-                            
+
                             if (va2 != null) {
                                 double total1 = fd(valori[3]) * fd(vat1.getPrice2());
                                 double imposta1 = calcolaIva(total1, fd(va2.getAliquota()));
@@ -1868,6 +1881,7 @@ public class ESolver {
                     }
                     String[] val = {to_ba.get(x), roundDoubleandFormat(importo_val_loc, 2), roundDoubleandFormat(importo_val_est, 2), roundDoubleandFormat(importo_spread, 2)};
                     to_ba_value.add(val);
+
                 }
                 for (int i = 0; i < to_ba_value.size(); i++) {
                     String valore[] = to_ba_value.get(i);
@@ -2425,12 +2439,18 @@ public class ESolver {
         return null;
     }
 
-    public static void rilascia() {
+////    public static void main(String[] args) {
+////        DateTime dt = new DateTime(2023, 4, 14, 0, 0);
+////        rilascia(dt);
+////    }
 
-        Db_Master db = new Db_Master();
-        DateTime dt = db.getNowDT().minusDays(1);
-//        DateTime dt = new DateTime(2022, 4, 6, 0, 0);
-        db.closeDB();
+    public static void rilascia(DateTime dt) {
+
+        if (dt == null) {
+            Db_Master db = new Db_Master();
+            dt = db.getNowDT().minusDays(1);
+            db.closeDB();
+        }
 
         String from = dt.toString(patternnormdate_filter);
         String anno = dt.toString(patternyear);
@@ -2486,12 +2506,9 @@ public class ESolver {
         ESolver es = new ESolver();
         for (int i = 0; i < branch.size(); i++) {
 
-//            if (!branch.get(i).getCod().equals("109") //                    //                    && !branch.get(i).getCod().equals("117") 
-//                    //                    //                    && !branch.get(i).getCod().equals("195")
-//                    //                    //                    && !branch.get(i).getCod().equals("112")
-//                    ) {
-//                continue;
-//            }
+            if (!branch.get(i).getCod().equals("172")){
+                continue;
+            }
             Branch b1 = branch.get(i);
 
             File base64_1 = es.FILEP1(path, from, anno, list_esolver_ch, list_esolver_nc, list_esolver_refund,

@@ -101,7 +101,7 @@ public class MainSelector {
 
         switch (scelta) {
             case 1: //  ESOLVER
-                rilascia();
+                rilascia(null);
                 break;
             case 2: //  ATLANTE
                 rilasciaAtlante(true);

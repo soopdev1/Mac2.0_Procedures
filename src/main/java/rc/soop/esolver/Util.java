@@ -721,7 +721,7 @@ public class Util {
     }
 
     public static boolean rilasciaFileEsolver(File file) {
-
+        
         try {
             String se_user = rb.getString("ftp.user");
             String se_pwd = rb.getString("ftp.pass");
