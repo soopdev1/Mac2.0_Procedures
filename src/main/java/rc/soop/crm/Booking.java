@@ -39,12 +39,25 @@ public class Booking {
         this.cl_tipologia = cl_tipologia;
 
         this.canale = canale;
-        if (canale.equals("1") || canale.equals("01")) {
-            this.canale = "Website";
-        } else if (canale.equals("5") || canale.equals("05")) {
-            this.canale = "Green Number";
-        } else if (canale.equals("6") || canale.equals("06")) {
-            this.canale = "Web - Payment on site";
+        switch (canale) {
+            case "1":
+            case "01":
+                this.canale = "Website";
+                break;
+            case "5":
+            case "05":
+                this.canale = "Green Number";
+                break;
+            case "6":
+            case "06":
+                this.canale = "Web - Payment on site";
+                break;
+            case "7":
+            case "07":
+                this.canale = "Welcome Travel";
+                break;
+            default:
+                break;
         }
 
         this.agevolazioni = agevolazioni;

@@ -35,18 +35,17 @@ public class Mactest {
 
     public static void main(String[] args) {
         
-        VerificaAggiornamenti.verifica_Aggiornamenti22();
+//        VerificaAggiornamenti.verifica_Aggiornamenti22();
 //        VerificaAggiornamenti.ultimo_Aggiornamento22();
         
 ////        agg(null);
-        
 
-//        updateSQLTEST("INSERT INTO conf VALUES ('sito.edit.2022','https://test.forexchange.it/wp-json/api/ext/edit-booking')", true);
-//        updateSQL("INSERT INTO conf VALUES ('sito.edit.2022','https://forexchange.it/api/ext/editbooking')", true);
-//        updateSQL("UPDATE conf SET des='https://www.forexchange.it/wp-json/api/ext/edit-booking' WHERE id='sito.edit.2022';", false);
+    //1    
+    //    updateSQL("ALTER TABLE `sito_prenotazioni` CHANGE COLUMN `pan` `pan` VARCHAR(100) NOT NULL DEFAULT '-' COLLATE 'latin1_swedish_ci' AFTER `cl_indirizzinazione`", false);
+    //2
+//        updateSQLTEST("INSERT INTO conf VALUES ('sito.editwt.2023','https://b2badmintest.forexchange.it/booking/ext/edit-booking')", false);
+//        updateSQL("INSERT INTO conf VALUES ('sito.editwt.2023','https://b2badmin.forexchange.it/booking/ext/edit-booking')", false);
 
-        
-//        updateSQLTEST("ALTER TABLE `codici_sblocco` CHANGE COLUMN `codice` `codice` VARCHAR(20) NOT NULL DEFAULT '0000000000' COLLATE 'latin1_swedish_ci' FIRST", false);
 //        updateSQLCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", false);
 //        updateSQLTESTCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", true);
      

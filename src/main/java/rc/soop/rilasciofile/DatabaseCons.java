@@ -4130,13 +4130,12 @@ public class DatabaseCons {
         return out;
     }
 
-    public ArrayList<NC_category> list_nc_category_enabled() {
+    public ArrayList<NC_category> list_nc_category() {
         ArrayList<NC_category> out = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM nc_tipologia WHERE annullato = ? AND filiale = ? order by gruppo_nc";
+            String sql = "SELECT * FROM nc_tipologia WHERE filiale = ? order by gruppo_nc";
             PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            ps.setString(1, "0");
-            ps.setString(2, "000");
+            ps.setString(1, "000");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 NC_category nc1 = new NC_category();
@@ -4168,13 +4167,12 @@ public class DatabaseCons {
         return out;
     }
 
-    public ArrayList<NC_causal> list_nc_causal_enabled_freetax() {
+    public ArrayList<NC_causal> list_nc_causal_freetax() {
         ArrayList<NC_causal> out = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM nc_causali WHERE annullato = ? AND fg_tipo_transazione_nc = ? order by causale_nc";
+            String sql = "SELECT * FROM nc_causali WHERE fg_tipo_transazione_nc = ? order by causale_nc";
             PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            ps.setString(1, "0");
-            ps.setString(2, "3");
+            ps.setString(1, "3");
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 NC_causal nc1 = new NC_causal();
@@ -4268,8 +4266,8 @@ public class DatabaseCons {
             ArrayList<String[]> bank = list_bank_pos_enabled();
             ArrayList<String[]> bank2 = list_bank();
             ArrayList<String[]> history_BB = history_BB();
-            ArrayList<NC_category> listcat = list_nc_category_enabled();
-            ArrayList<NC_causal> listcaus = list_nc_causal_enabled_freetax();
+            ArrayList<NC_category> listcat = list_nc_category();
+            ArrayList<NC_causal> listcaus = list_nc_causal_freetax();
 
             String sqlet = "SELECT * FROM et_change e, et_change_valori ev WHERE ev.cod=e.cod and e.filiale='" + b1.getCod() + "' ";
             if (datad1 != null) {

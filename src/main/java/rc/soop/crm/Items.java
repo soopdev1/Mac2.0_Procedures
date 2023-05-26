@@ -69,13 +69,6 @@ public class Items {
         return out;
     }
 
-    public static List<Items> all_Sales_type() {
-        List<Items> out = new ArrayList<>();
-        out.add(new Items("01", "Website", "Website"));
-        out.add(new Items("05", "Green Number", "Green Number"));
-        return out;
-    }
-
     public static List<Items> all_Status_NEW(String selezionato) {
         List<Items> out = new ArrayList<>();
         if (selezionato.equals("0")) {

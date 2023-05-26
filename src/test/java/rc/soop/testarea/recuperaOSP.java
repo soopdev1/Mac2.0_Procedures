@@ -1,3 +1,5 @@
+package rc.soop.testarea;
+
 //
 //import com.google.common.util.concurrent.AtomicDouble;
 //import com.itextpdf.text.BaseColor;

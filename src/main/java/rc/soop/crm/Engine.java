@@ -37,7 +37,7 @@ public class Engine {
             ResultSet rs = db.getC().createStatement().executeQuery("SELECT cod,dt_ritiro,stato,stato_crm,dt_ritiro,filiale"
                     + " FROM sito_prenotazioni WHERE "
                     + "stato_crm IN ('2','3','4')"
-//                    + "stato='0'"
+                    //                    + "stato='0'"
                     + " AND canale LIKE '%5' AND dt_ritiro = DATE_ADD(curdate(), INTERVAL " + days + " DAY)");
             while (rs.next()) {
                 Booking_Date bd1 = new Booking_Date(rs.getString("cod"), rs.getString("dt_ritiro"),
@@ -86,9 +86,9 @@ public class Engine {
                 DateTime end = b1.getDt1().plusDays(days);
 
                 if (today.isAfter(end) || today.isEqual(end)) {
-                    
+
                     log.info("EXPIRED - NON SI POSSONO PIU' TRANSARE");
-                    
+
                     String stato = "8";
                     String statoCRM = "8";
 
@@ -96,6 +96,31 @@ public class Engine {
                         log.info("CANALE SITO");
                         String json = getJSON(b0);
                         ApiResponse resp = Action.POSTRequestEDIT(json, b1.getCod());
+
+                        if (resp != null) {
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.isResult());
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.getMessage());
+                            if (resp.isResult() && resp.isStatus()) {
+                                Database db0 = new Database();
+                                boolean es1 = db0.update_status_sito(b1.getCod(), stato, statoCRM, b1.getFiliale());
+                                db0.closeDB();
+
+                                if (es1) {
+                                    log.info("CAMBIO STATO AVVENUTO");
+                                } else {
+                                    log.severe("ERRORE NEL CAMBIO STATO");
+                                }
+
+                            } else {
+                                log.log(Level.SEVERE, "RESPONSE ERROR: {0}", resp.getMessage());
+                            }
+                        } else {
+                            log.severe("RESPONSE NULL");
+                        }
+                    } else if (b0.getCanale().startsWith("Wel")) {
+                        log.info("CANALE SITO WELCOME TRAVEL");
+                        String json = getJSON(b0);
+                        ApiResponse resp = Action.POSTRequestEDIT_WT(json, b1.getCod());
 
                         if (resp != null) {
                             log.log(Level.INFO, "RESPONSE : {0}", resp.isResult());
@@ -157,6 +182,28 @@ public class Engine {
                             log.severe("RESPONSE NULL");
                         }
 
+                    } else if (b0.getCanale().startsWith("Wel")) {
+                        log.info("CANALE SITO WELCOME TRAVEL");
+                        String json = getJSON(b0);
+                        ApiResponse resp = Action.POSTRequestEDIT_WT(json, b1.getCod());
+                        if (resp != null) {
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.isResult());
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.getMessage());
+                            if (resp.isResult() && resp.isStatus()) {
+                                Database db0 = new Database();
+                                boolean es1 = db0.update_status_sito(b1.getCod(), stato, statoCRM, b1.getFiliale());
+                                db0.closeDB();
+                                if (es1) {
+                                    log.info("CAMBIO STATO AVVENUTO");
+                                } else {
+                                    log.severe("ERRORE NEL CAMBIO STATO");
+                                }
+                            } else {
+                                log.log(Level.SEVERE, "RESPONSE ERROR: {0}", resp.getMessage());
+                            }
+                        } else {
+                            log.severe("RESPONSE NULL");
+                        }
                     } else {
                         log.info("CANALE CRM");
 
@@ -181,11 +228,12 @@ public class Engine {
 
     }
 
-    public static void refresh_branch() {        
+    @SuppressWarnings("empty-statement")
+    public static void refresh_branch() {
         Database dbmac = new Database();
         List<Items> all = dbmac.list_Branch_Active();
         dbmac.closeDB();
-        
+
         Crm_Db crm = new Crm_Db();
         List<String> web = crm.list_Branch_Website().stream().map(p -> p.getCod()).collect(Collectors.toList());;
         all.forEach(br1 -> {
@@ -195,13 +243,13 @@ public class Engine {
         });
         crm.closeDB();
     }
-    
+
     public static void updateSpreadSito() {
         Database dbm0 = new Database();
         dbm0.updateSpreadSito();
         dbm0.closeDB();
     }
-    
+
 //    public static void main(String[] args) {
 //
 //        String cmd;
@@ -230,5 +278,4 @@ public class Engine {
 //        //  TEST NUOVE API
 //        //  test_getbooking("139EIWX7DU");
 //    }
-
 }

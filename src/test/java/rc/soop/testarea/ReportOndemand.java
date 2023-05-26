@@ -1,3 +1,5 @@
+package rc.soop.testarea;
+
 
 import static rc.soop.esolver.Util.patternsql;
 import rc.soop.rilasciofile.Ch_transaction;

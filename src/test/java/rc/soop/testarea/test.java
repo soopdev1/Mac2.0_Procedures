@@ -54,26 +54,51 @@ public class test {
             gf.setIs_UK(false);
             gf.setIs_CZ(false);
             DatabaseCons db = new DatabaseCons(gf);
-            String path = db.getPath("temp");
+            ArrayList<Branch> allenabledbr = db.list_branch();
+            ArrayList<String> br1 = db.list_branchcode_completeAFTER311217();
+//         
             DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-            DateTime ieri = new DateTime(2023, 3, 3, 0, 0);
+            DateTime ieri = new DateTime().minusDays(1);
             String datecreation = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
 //        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue();
 //        System.out.println("com.fl.upload.GeneraFile.rilasciafile() "+);
 //            String mesemysql = iniziomese.toString(patternmonthsql);
-            ArrayList<Branch> allenabledbr = db.list_branch();
-            ArrayList<String> br1 = db.list_branchcode_completeAFTER311217();
+//
 //            String meseriferimento = iniziomese.monthOfYear().getAsText(Locale.ITALY).toUpperCase();
 //            String annoriferimento = iniziomese.year().getAsText(Locale.ITALY).toUpperCase();
 
             String data1 = iniziomese.toString(patternsql);
             String data2 = ieri.toString(patternsql);
 
-            String nomereport = "MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 DA " + data1 + " A " + data2 + "_" + datecreation + ".xlsx";
-            File Output = new File(path + nomereport);
-            String base64 = ControlloGestione.management_change_accounting1(Output, br1,
-                    iniziomese, ieri, allenabledbr, db);
+            String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 DA " + data1 + " A " + data2 + "_" + datecreation + ".xlsx";
 
+            File Output = new File("C:\\mnt\\temp\\" + nomereport);
+            String base64 = ControlloGestione.management_change_n1(Output, br1, data1, data2, true, allenabledbr, db);
+
+//            String nomereport = "CASHIER OPENCLOSE ERRORS DA " + data1 + " A " + data2 + "_" + datecreation + ".xlsx";
+//            File Output = new File("C:\\mnt\\temp\\" + nomereport);
+//            String base64 = ControlloGestione.C_OpenCloseError(Output, br1, data1, data2, allenabledbr, db);
+            System.out.println("rc.soop.testarea.test.main() " + Output.getPath());
+
+//            String path = db.getPath("temp");
+//            DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+//            DateTime ieri = new DateTime(2023, 3, 3, 0, 0);
+//            String datecreation = new DateTime().withZone((DateTimeZone.forID("Europe/Rome"))).toString("yyyyMMddHHmmss");
+////        DateTime iniziomese = new DateTime().minusDays(1).dayOfMonth().withMinimumValue();
+////        System.out.println("com.fl.upload.GeneraFile.rilasciafile() "+);
+////            String mesemysql = iniziomese.toString(patternmonthsql);
+//            ArrayList<Branch> allenabledbr = db.list_branch();
+//            ArrayList<String> br1 = db.list_branchcode_completeAFTER311217();
+////            String meseriferimento = iniziomese.monthOfYear().getAsText(Locale.ITALY).toUpperCase();
+////            String annoriferimento = iniziomese.year().getAsText(Locale.ITALY).toUpperCase();
+//
+//            String data1 = iniziomese.toString(patternsql);
+//            String data2 = ieri.toString(patternsql);
+//
+//            String nomereport = "MANAGEMENT CONTROL - REPORT CHANGE ACCOUNTING N1 DA " + data1 + " A " + data2 + "_" + datecreation + ".xlsx";
+//            File Output = new File(path + nomereport);
+//            String base64 = ControlloGestione.management_change_accounting1(Output, br1,
+//                    iniziomese, ieri, allenabledbr, db);
             db.closeDB();
             System.out.println("rc.soop.testarea.test.main() " + Output.getPath());
 //            List<String> dafare = new ArrayList<>();

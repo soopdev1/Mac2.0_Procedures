@@ -1,3 +1,5 @@
+package rc.soop.testarea;
+
 
 import static rc.soop.gs.Client.invia2022;
 import rc.soop.gs.DatiInvio;

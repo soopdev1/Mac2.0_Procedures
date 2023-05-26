@@ -1,3 +1,5 @@
+package rc.soop.testarea;
+
 
 import rc.soop.esolver.Branch;
 import static rc.soop.esolver.Util.patternsql;
