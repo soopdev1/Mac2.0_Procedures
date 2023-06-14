@@ -2506,9 +2506,9 @@ public class ESolver {
         ESolver es = new ESolver();
         for (int i = 0; i < branch.size(); i++) {
 
-            if (!branch.get(i).getCod().equals("172")){
-                continue;
-            }
+//            if (!branch.get(i).getCod().equals("172")){
+//                continue;
+//            }
             Branch b1 = branch.get(i);
 
             File base64_1 = es.FILEP1(path, from, anno, list_esolver_ch, list_esolver_nc, list_esolver_refund,

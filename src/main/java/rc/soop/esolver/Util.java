@@ -596,8 +596,8 @@ public class Util {
             froms.setPersonal("Noreply Mac 2.0");
             message.setFrom(froms);
 
-            for (int x = 0; x < dest.length; x++) {
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(dest[x]));
+            for (String dest1 : dest) {
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(dest1));
             }
 
             message.setRecipient(Message.RecipientType.CC, new InternetAddress("mac2.0@smartoop.it"));
@@ -720,9 +720,10 @@ public class Util {
 
     }
 
-    public static boolean rilasciaFileEsolver(File file) {
-        
+    public static boolean rilasciaFileEsolverFTP(File file) {
+
         try {
+            log.warning("FTP RILASCIO");
             String se_user = rb.getString("ftp.user");
             String se_pwd = rb.getString("ftp.pass");
             String se_ip = rb.getString("ftp.ip");
@@ -740,7 +741,7 @@ public class Util {
                 } catch (Exception e) {
                     log.log(Level.SEVERE, "rilasciaFileEsolverFTP UPLOAD {0}", estraiEccezione(e));
                     return false;
-               }
+                }
                 ftpClient.disconnect();
                 return true;
             } else {
@@ -752,17 +753,28 @@ public class Util {
         return false;
     }
 
-    public static boolean rilasciaFileEsolverOLD(File ing) {
+    public static boolean rilasciaFileEsolver(File ing) {
         try {
+            if (rb.getString("protocol").equalsIgnoreCase("SFTP")) {
+                return rilasciaFileEsolverSFTP(ing);
+            }
+        } catch (Exception e) {
+        }
+        return rilasciaFileEsolverFTP(ing);
+    }
+
+    public static boolean rilasciaFileEsolverSFTP(File ing) {
+        try {
+            log.warning("SFTP RILASCIO");
             ChannelSftp es1 = SftpConnection.connect(
-                    "admin",
-                    "c4l4m4r0",
-                    "192.168.1.253",
-                    22,
+                    rb.getString("sftp.user"),
+                    rb.getString("sftp.pass"),
+                    rb.getString("sftp.ip"),
+                    Util.parseIntR(rb.getString("sftp.port")),
                     log
             );
             if (es1 != null && es1.isConnected()) {
-                es1.cd("/mnt/array1/Esolver/");
+                es1.cd(rb.getString("sftp.path"));
                 try ( InputStream is = new FileInputStream(ing)) {
                     es1.put(is, ing.getName());
                 }

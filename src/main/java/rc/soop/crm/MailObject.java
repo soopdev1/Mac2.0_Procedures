@@ -17,7 +17,6 @@ import static rc.soop.crm.Action.log;
 import static rc.soop.crm.Action.pat2;
 import static rc.soop.crm.Action.pat4;
 import static rc.soop.crm.Action.pat7;
-import static rc.soop.crm.CRM_batch.rb;
 import static rc.soop.crm.Items.all_CUR;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +24,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import javax.mail.Message;
 import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -35,6 +35,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import static rc.soop.esolver.Util.rb;
 
 /**
  *
@@ -51,13 +52,19 @@ public class MailObject {
     }
 
     public static boolean sendMailHtml(String[] dest, String[] cc, String oggetto, String testo) {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", rb.getString("mail.smtp"));
-        props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
-        props.put("mail.smtp.ssl.trust", "*");
-        props.put("mail.smtp.auth", "true");
-        Session session = Session.getInstance(props);
         try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", rb.getString("mail.smtp"));
+            props.put("mail.smtp.socketFactory.port", rb.getString("mail.smtp.port"));
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
+            Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(rb.getString("mail.sender"), rb.getString("mail.pass"));
+                }
+            });
             Message message = new MimeMessage(session);
             InternetAddress froms = new InternetAddress(rb.getString("mail.sender"));
             froms.setPersonal(rb.getString("mail.personal"));
@@ -74,7 +81,7 @@ public class MailObject {
             mbp1.setContent(testo, "text/html");
             mp.addBodyPart(mbp1);
             message.setContent(mp);
-            Transport.send(message, rb.getString("mail.sender"), rb.getString("mail.pass"));
+            Transport.send(message);
             return true;
         } catch (Exception ex) {
             log.log(Level.SEVERE, "sendMailHtml: {0}", ExceptionUtils.getStackTrace(ex));
@@ -84,13 +91,20 @@ public class MailObject {
     }
 
     public static boolean sendMailHtml(String dest, String oggetto, String testo) {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", rb.getString("mail.smtp"));
-        props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
-        props.put("mail.smtp.ssl.trust", "*");
-        props.put("mail.smtp.auth", "true");
-        Session session = Session.getInstance(props);
         try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", rb.getString("mail.smtp"));
+            props.put("mail.smtp.socketFactory.port", rb.getString("mail.smtp.port"));
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
+            Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(rb.getString("mail.sender"), rb.getString("mail.pass"));
+                }
+            });
+
             Message message = new MimeMessage(session);
             InternetAddress froms = new InternetAddress(rb.getString("mail.sender"));
             froms.setPersonal(rb.getString("mail.personal"));
@@ -102,7 +116,7 @@ public class MailObject {
             mbp1.setContent(testo, "text/html");
             mp.addBodyPart(mbp1);
             message.setContent(mp);
-            Transport.send(message, rb.getString("mail.sender"), rb.getString("mail.pass"));
+            Transport.send(message);
             return true;
         } catch (Exception ex) {
             log.log(Level.SEVERE, "sendMailHtml: {0}", ExceptionUtils.getStackTrace(ex));
@@ -190,7 +204,7 @@ public class MailObject {
             FileUtils.writeByteArrayToFile(temp, Base64.decodeBase64(mail.getValue()));
 
             String content = Files.asCharSource(temp, StandardCharsets.UTF_8).read();
-            
+
             content = StringUtils.replaceAll(content, "\\{\\{DESC_PRENOTAZIONE\\}\\}", "Prenotazione n.");
             content = StringUtils.replaceAll(content, "\\{\\{ID PRENOTAZIONE\\}\\}", mo.getIDPRENOTAZIONE());
             content = StringUtils.replaceAll(content, "\\{\\{TESTO INTRO\\}\\}", mo.getINTRO());
