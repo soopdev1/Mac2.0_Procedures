@@ -52,6 +52,7 @@ public class Check {
                     comune, provincia, tipologia, controllo, tran, nations, curlist, allbr, tipodoc, path + name1);
             
             File out1 = og1.getFile();          
+        
             if (out1 == null) {
                 //INVIARE MAIL ERRORE
                 System.err.println("ERRORE : "+og1.getErrore());
@@ -59,6 +60,7 @@ public class Check {
                 System.out.println("OK "+og1.getFile());
             }
         }
+        
         System.out.println("com.fl.upload.GeneraFile.main(END) " + new DateTime());
         
     }

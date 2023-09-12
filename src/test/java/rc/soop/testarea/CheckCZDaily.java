@@ -25,12 +25,12 @@ public class CheckCZDaily {
 
     public static void main(String[] args) {
         String fil_cod = "307";
-        DateTime start = new DateTime(2021, 12, 31, 0, 0);
-        DateTime end = new DateTime(2022, 1, 27, 0, 0);
+        DateTime start = new DateTime(2023, 8, 13, 0, 0);
+        DateTime end = new DateTime(2023, 8, 31, 0, 0);
 
 //        DateTime end = new DateTime().withMillisOfDay(0);
-//        Db_Master db = new Db_Master(true, "192.168.9.19");
-        Db_Master db = new Db_Master(true, false);
+        Db_Master db = new Db_Master(true, "192.168.9.19");
+//        Db_Master db = new Db_Master(true, false);
 
         while (start.isBefore(end)) {
             String stdate = start.toString(patternsql) + " 23:59:59";

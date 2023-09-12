@@ -378,7 +378,7 @@ public class Db_Master {
                 sql = sql + " AND filiale ='" + branching + "'";
             }
             sql = sql + " ORDER BY data";
-
+//            System.out.println("rc.soop.esolver.Db_Master.list_esolver_ocerr() "+sql);
             ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(sql);
             while (rs.next()) {
                 Openclose oc = new Openclose(rs.getString(1), rs.getString(2), StringUtils.leftPad(rs.getString(3), 15, "0"),
@@ -390,7 +390,7 @@ public class Db_Master {
                 oc.setStock_tr(rs.getString("stock_tr"));
                 out.add(oc);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             log.log(Level.SEVERE, "{0}: {1}", new Object[]{ex.getStackTrace()[0].getMethodName(), ex.getMessage()});
         }
         return out;
@@ -1074,6 +1074,7 @@ public class Db_Master {
                     + " FROM oc_errors WHERE cod = ? ORDER BY tipo,valuta,kind,gruppo_nc,carta_credito";
             PreparedStatement ps = this.c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, cod_oc);
+//            System.out.println("rc.soop.esolver.Db_Master.list_oc_errors() "+ps.toString());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String[] o1 = {rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),

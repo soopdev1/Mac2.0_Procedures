@@ -24,8 +24,8 @@ public class CheckCZDaily2 {
     public static void main(String[] args) {
 
         String fil_cod = "307";
-        DateTime start = new DateTime(2023, 3, 18, 0, 0);
-        DateTime end = new DateTime(2023, 3, 29, 0, 0);
+        DateTime start = new DateTime(2023, 8, 13, 0, 0);
+        DateTime end = new DateTime(2023, 8, 31, 0, 0);
 
 //        Db_Master db = new Db_Master(true, "192.168.9.19");
         Db_Master db = new Db_Master(true, false);

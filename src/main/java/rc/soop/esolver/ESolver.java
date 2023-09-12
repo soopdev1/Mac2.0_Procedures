@@ -1743,9 +1743,18 @@ public class ESolver {
                         ArrayList<String[]> list_oc_errors = list_oc_errors(oc_list.get(i).getCod());
                         for (int c = 0; c < list_oc_errors.size(); c++) {
                             String[] value = list_oc_errors.get(c);
+                            
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[1]);
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[2]);
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[11]);
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[13]);
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[7]);
+//                            System.out.println("rc.soop.esolver.ESolver.FILEP1() "+value[8]);
                             if (value[1].equals("CH") && value[2].equals(valuta_locale)) {
-                                String valore = getValueDiff(value[11], value[13], value[7], value[8], dividi);
-                                String diff = formatDoubleforMysql(valore);
+//                                String valore = getValueDiff(value[11], value[13], value[7], value[8], dividi);
+//                                String diff = formatDoubleforMysql(valore);
+                                    String diff = value[7];
+//                                System.out.println("rc.soop.esolver.ESolver.FILEP1(----) "+diff);
                                 if (fd(diff) > 0) {
                                     errori_cassa_pos = errori_cassa_pos + parseDoubleR(diff);
                                 } else {
@@ -2439,10 +2448,10 @@ public class ESolver {
         return null;
     }
 
-////    public static void main(String[] args) {
-////        DateTime dt = new DateTime(2023, 4, 14, 0, 0);
-////        rilascia(dt);
-////    }
+    public static void main(String[] args) {
+        DateTime dt = new DateTime(2023, 7, 21, 0, 0);
+        rilascia(dt);
+    }
 
     public static void rilascia(DateTime dt) {
 
@@ -2506,9 +2515,10 @@ public class ESolver {
         ESolver es = new ESolver();
         for (int i = 0; i < branch.size(); i++) {
 
-//            if (!branch.get(i).getCod().equals("172")){
+//            if (!branch.get(i).getCod().equals("111")){
 //                continue;
 //            }
+//            
             Branch b1 = branch.get(i);
 
             File base64_1 = es.FILEP1(path, from, anno, list_esolver_ch, list_esolver_nc, list_esolver_refund,

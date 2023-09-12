@@ -200,21 +200,23 @@ public class ReloadingDati {
 //
 //        fase3(null);
 
-        DateTime start = new DateTime(2022, 12, 1, 0, 0).withMillisOfDay(0);
+        DateTime start = new DateTime(2023, 9, 1, 0, 0).withMillisOfDay(0);
 //        fase3(start);
 //
         List<String> lista = new ArrayList<>();
-        lista.add("306");
-        lista.add("307");
-        lista.add("312");
-        lista.add("321");
-////        lista.add("172");
+//        lista.add("306");
+//        lista.add("307");
+//        lista.add("312");
+//        lista.add("321");
+//////        lista.add("172");
 ////        lista.add("190");
 ////        lista.add("195");
 ////        lista.add("048");
 ////        lista.add("063");
 ////        lista.add("090");
-////        lista.add("168");
+//        lista.add("019");
+        lista.add("057");
+//        lista.add("188");
 ////        lista.add("172");
 ////        lista.add("188");
 ////        lista.add("195");
