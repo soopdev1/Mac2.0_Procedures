@@ -256,6 +256,53 @@ public class Action {
 //        }
 //        return output;
 //    }
+    public static ApiResponse POSTRequestEDIT_CB(String json, String idprenotazione) {
+        try {
+            Crm_Db db = new Crm_Db();
+            URL obj;
+            if (test) {
+                obj = new URL(db.get_Settings("ECT").getValue());
+            } else {
+                obj = new URL(db.get_Settings("ECP").getValue());
+            }
+            db.closeDB();
+            log.info("POSTRequestEDIT CHEBANCA) " + obj.toString());
+            HttpURLConnection postConnection = (HttpURLConnection) obj.openConnection();
+            postConnection.setRequestMethod("POST");
+            postConnection.setRequestProperty("userId", "a1bcdefgh");
+            postConnection.setRequestProperty("Content-Type", "application/json");
+            postConnection.setDoOutput(true);
+            try ( OutputStream os = postConnection.getOutputStream()) {
+                os.write(json.getBytes());
+                os.flush();
+            }
+            int responseCode = postConnection.getResponseCode();
+            log.info("POSTRequestEDIT CHEBANCA) (RESPONSE CODE) " + responseCode);
+            if (responseCode == 200) {
+                StringBuilder response;
+                try ( //success
+                         BufferedReader in = new BufferedReader(new InputStreamReader(
+                                postConnection.getInputStream()))) {
+                    String inputLine;
+                    response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                }
+
+                log.log(Level.INFO, "RESPONSE : {0}", response.toString());
+                Gson g = new Gson();
+                return g.fromJson(response.toString(), ApiResponse.class);
+            }
+            log.info("POSTRequestEDIT CHEBANCA) RESPONSE ERROR: " + postConnection.getResponseCode());
+            log.info("POSTRequestEDIT CHEBANCA) RESPONSE ERROR: " + postConnection.getResponseMessage());
+            mailerror_Cliente(idprenotazione);
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "RESPONSE ERROR: {0}", ExceptionUtils.getStackTrace(ex));
+            mailerror_Cliente(idprenotazione);
+        }
+        return null;
+    }
     public static ApiResponse POSTRequestEDIT_WT(String json, String idprenotazione) {
         try {
             Crm_Db db = new Crm_Db();

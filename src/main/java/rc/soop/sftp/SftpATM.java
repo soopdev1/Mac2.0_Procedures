@@ -82,12 +82,6 @@ public class SftpATM {
             while (rs.next()) {
                 String TASSOBCE = rs.getString(2);
                 double TASSODICAMBIO = fd(TASSOBCE) * (100.0D + this.spread) / 100.0D;
-//                double Costidiservizio = fd(TASSOBCE) * (this.costiservizio) / 100.0D;
-//                double referenceontop = fd(TASSOBCE) * (this.reference) / 100.0D;
-//                System.out.println("BCE " + fd(TASSOBCE));
-//                System.out.println("Costidiservizio " + roundDoubleandFormat(Costidiservizio, 8));
-//                System.out.println("reference " + roundDoubleandFormat(referenceontop, 8));
-//                System.out.println("FINAL " + roundDoubleandFormat(TASSODICAMBIO, 8));
                 Tassi t1 = new Tassi(rs.getString(1),
                         TASSOBCE,
                         roundDoubleandFormat(this.costiservizio, 2),
@@ -96,16 +90,6 @@ public class SftpATM {
                         roundDoubleandFormat(TASSODICAMBIO, 8),
                         this.commission);
                 lista.add(t1);
-//                lista.add(new Tassi(
-//                        rs.getString(1), 
-//                        roundDoubleandFormat(tot_st, 8), 
-//                        this.commission));
-//                lista.add(new Tassi(
-//                        rs.getString(1),
-//                        rs.getString(2),
-//                        
-//                        roundDoubleandFormat(TASSODICAMBIO, 8), 
-//                        this.commission));
             }
             dbmac.closeDB();
         } catch (SQLException e) {
@@ -153,7 +137,7 @@ public class SftpATM {
 //
 //                myExcelBook.write(new FileOutputStream(output));
 //                myExcelBook.close();
-            } catch (IOException e) { // if any exception occurs it will catch
+            } catch (Exception e) { // if any exception occurs it will catch
                 output = null;
                 this.logger.log.log(Level.SEVERE, "ERRORE SFTP ERROR: {0}", e.getMessage());
             }

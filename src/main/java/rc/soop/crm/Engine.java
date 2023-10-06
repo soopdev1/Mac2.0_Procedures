@@ -204,6 +204,28 @@ public class Engine {
                         } else {
                             log.severe("RESPONSE NULL");
                         }
+                    } else if (b0.getCanale().startsWith("Che")) {
+                        log.info("CANALE SITO CHE BANCA");
+                        String json = getJSON(b0);
+                        ApiResponse resp = Action.POSTRequestEDIT_CB(json, b1.getCod());
+                        if (resp != null) {
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.isResult());
+                            log.log(Level.INFO, "RESPONSE : {0}", resp.getMessage());
+                            if (resp.isResult() && resp.isStatus()) {
+                                Database db0 = new Database();
+                                boolean es1 = db0.update_status_sito(b1.getCod(), stato, statoCRM, b1.getFiliale());
+                                db0.closeDB();
+                                if (es1) {
+                                    log.info("CAMBIO STATO AVVENUTO");
+                                } else {
+                                    log.severe("ERRORE NEL CAMBIO STATO");
+                                }
+                            } else {
+                                log.log(Level.SEVERE, "RESPONSE ERROR: {0}", resp.getMessage());
+                            }
+                        } else {
+                            log.severe("RESPONSE NULL");
+                        }
                     } else {
                         log.info("CANALE CRM");
 

@@ -7,6 +7,7 @@ package rc.soop.rilasciofile;
 
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.AtomicDouble;
+import static java.lang.Thread.currentThread;
 import rc.soop.esolver.Branch;
 import rc.soop.esolver.NC_category;
 import rc.soop.esolver.Users;
@@ -50,6 +51,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import static java.sql.ResultSet.CONCUR_UPDATABLE;
+import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,9 +62,11 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.leftPad;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import rc.soop.crm.Booking;
 import static rc.soop.start.Utility.rb;
 
 /**
@@ -4252,6 +4257,46 @@ public class DatabaseCons {
         return out;
     }
 
+    public ArrayList<String[]> list_internetbooking() {
+        ArrayList<String[]> out = new ArrayList<>();
+        try {
+            String sql = "SELECT internet_booking,de_internet_booking FROM internetbooking order by internet_booking";
+            PreparedStatement ps = this.c.prepareStatement(sql, TYPE_SCROLL_INSENSITIVE, CONCUR_UPDATABLE);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] o1 = {leftPad(rs.getString(1), 2, "0"), visualizzaStringaMySQL(rs.getString(2))};
+                out.add(o1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return out;
+    }
+
+    public List<Booking> getDetailBooking() {
+
+        List<Booking> out = new ArrayList<>();
+
+        try {
+            String sql = "SELECT cod,cod_tr,pan,canale FROM sito_prenotazioni WHERE cod_tr <>'-'";
+//            String sql = "SELECT cod,cod_tr,pan FROM sito_prenotazioni WHERE cod_tr <>'-' AND pan LIKE '%$%'";
+            try (PreparedStatement ps = this.c.prepareStatement(sql, TYPE_SCROLL_INSENSITIVE, CONCUR_UPDATABLE); ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Booking b = new Booking();
+                    b.setCod(rs.getString(1));
+                    b.setCod_tr(rs.getString(2));
+                    b.setPan(rs.getString(3));
+                    b.setCanale(rs.getString(4));
+                    out.add(b);
+                }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return out;
+    }
+
     public ArrayList<DailyChange_CG> list_DailyChange_CG(Branch b1, String datad1, String datad2, boolean deleted) {
         ArrayList<DailyChange_CG> out = new ArrayList<>();
         try {
@@ -4268,6 +4313,9 @@ public class DatabaseCons {
             ArrayList<String[]> history_BB = history_BB();
             ArrayList<NC_category> listcat = list_nc_category();
             ArrayList<NC_causal> listcaus = list_nc_causal_freetax();
+            ArrayList<String[]> ib = list_internetbooking();
+            List<Booking> listbook = getDetailBooking();
+            double cb_comm = fd(getConf("chebanca.commission"));
 
             String sqlet = "SELECT * FROM et_change e, et_change_valori ev WHERE ev.cod=e.cod and e.filiale='" + b1.getCod() + "' ";
             if (datad1 != null) {
@@ -4374,6 +4422,11 @@ public class DatabaseCons {
                 d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA("");
 
                 d1.setCODICESBLOCCO("");
+                d1.setAGCODE("");
+                d1.setAGNUMBER("");
+                d1.setCODICEINTERNETBOOKING("");
+                d1.setIBCHAN("");
+                d1.setCBCOMM("");
                 out.add(d1);
 
             }
@@ -4525,18 +4578,50 @@ public class DatabaseCons {
                     }
                     d1.setVENDITABUYBACK("");
                 }
-
+                
+                d1.setAGCODE("");
+                d1.setAGNUMBER("");
+                d1.setCODICEINTERNETBOOKING("");
+                d1.setIBCHAN("");
+                d1.setCBCOMM("");
+                
                 if (rs.getString("tr1.intbook").equals("1")) {
-                    String[] ib = internetbooking_ch(rs.getString("tr1.cod"));
-                    if (ib != null) {
-                        d1.setCODICEINTERNETBOOKING(ib[1].toUpperCase());
-                    } else {
-                        d1.setCODICEINTERNETBOOKING("");
+                    try {
+                        String cotr = rs.getString("tr1.cod");
+                        if (listbook.stream().anyMatch(b00 -> b00.getCod_tr().equals(cotr))) {
+                            Booking b0 = listbook.stream().filter(b00 -> b00.getCod_tr().equals(cotr)).findAny().get();
+                            d1.setCODICEINTERNETBOOKING(b0.getCod());
+                            d1.setIBCHAN(formatAL(b0.getCanale(), ib, 1));
+                            if (b0.getCanale().contains("4")) {
+                                double cb_sp_com = fd(d1.getSPREADVEND()) * cb_comm;
+                                d1.setCBCOMM(String.valueOf(roundDouble(cb_sp_com, 2)));
+                            }
+                            if (b0.getPan().contains("$")) {
+                                List<String> lb11 = Splitter.on("$").splitToList(b0.getPan());
+                                if (lb11.size() == 2) {
+                                    d1.setAGCODE(lb11.get(0));
+                                    d1.setAGNUMBER(lb11.get(1));
+                                }
+                            }
+                        } else {
+                            String[] ib1 = internetbooking_ch(rs.getString("tr1.cod"));
+                            if (ib1 != null) {
+                                d1.setIBCHAN(formatAL(ib1[0], ib, 1));
+                                if (ib1[0].contains("4")) {
+                                    double cb_sp_com = fd(d1.getSPREADVEND()) * cb_comm;
+                                    d1.setCBCOMM(String.valueOf(roundDouble(cb_sp_com, 2)));
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+
+//                    
+//                    
                     d1.setMOTIVOPERRIDUZIONEDELLACOMM("Internet Booking");
                     d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA("Internet Booking");
                 } else {
-                    d1.setCODICEINTERNETBOOKING("");
                     d1.setMOTIVOPERRIDUZIONEDELLACOMM(formatAL(rs.getString("tr2.low_com_ju"), array_undermincommjustify, 1));
                     d1.setMOTIVOPERRIDUZIONEDELLACOMMFISSA(formatAL(rs.getString("tr2.kind_fix_comm"), array_kindcommissionefissa, 1));
                 }

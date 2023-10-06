@@ -31,8 +31,8 @@ public class rcmc01_2019 {
         ArrayList<Branch> allenabledbr = db.list_branch();
         
 
-        String data1 = new DateTime(2019, 7, 1, 0, 0).toString(patternsql);
-        String data2 = new DateTime(2019, 7, 31, 23, 59).toString(patternsql);
+        String data1 = new DateTime(2023, 10, 1, 0, 0).toString(patternsql);
+        String data2 = new DateTime(2023, 10, 1, 23, 59).toString(patternsql);
 
         String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 DA " + data1 + " A " + data2 + ".xlsx";
         File Output = new File(path + nomereport);
@@ -41,4 +41,5 @@ public class rcmc01_2019 {
         System.out.println(Output.getPath());
 
     }
+    
 }

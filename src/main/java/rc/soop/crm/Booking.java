@@ -18,6 +18,8 @@ public class Booking {
             cl_telefono, cl_tipologia, canale, agevolazioni, serviziagg, stato, cod_tr, stato_crm;
     String dt_ritiro, dt_tr, timestamp;
 
+      String pan;
+
     public Booking() {
     }
 
@@ -44,6 +46,9 @@ public class Booking {
             case "01":
                 this.canale = "Website";
                 break;
+            case "4":
+            case "04":
+                this.canale = "Chebanca";
             case "5":
             case "05":
                 this.canale = "Green Number";
@@ -70,6 +75,14 @@ public class Booking {
         this.stato_crm = stato_crm;
     }
 
+    public String getPan() {
+        return pan;
+    }
+
+    public void setPan(String pan) {
+        this.pan = pan;
+    }
+    
     public String getCod() {
         return cod;
     }

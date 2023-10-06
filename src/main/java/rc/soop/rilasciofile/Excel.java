@@ -60,7 +60,6 @@ import org.apache.poi.ss.usermodel.BorderStyle;
 import static org.apache.poi.ss.usermodel.BorderStyle.THICK;
 import static org.apache.poi.ss.usermodel.BorderStyle.THIN;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
-import static org.apache.poi.ss.usermodel.CellType.STRING;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -3301,7 +3300,7 @@ public class Excel {
         String formatdataCell = "#,#.00";
         String formatdataCellRATE = "#,#.00000000";
         try {
-            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1cdc")));
+            InputStream is = new ByteArrayInputStream(Base64.decodeBase64(db.getConf("path.rep1cdc.23")));
             XSSFWorkbook wb = new XSSFWorkbook(is);
             XSSFCellStyle cellStylenum = wb.createCellStyle();
             XSSFDataFormat hssfDataFormat = wb.createDataFormat();
@@ -3473,9 +3472,33 @@ public class Excel {
                 c1 = getCell(row, 40);
                 c1.setCellValue(dc.getLOYALTYCODE());
                 c1.setCellStyle(cellStyle);
+                
+                
+                c1 = getCell(row, 41);
+                c1.setCellValue(dc.getAGCODE());
+                c1.setCellStyle(cellStyle);
+                c1 = getCell(row, 42);
+                c1.setCellValue(dc.getAGNUMBER());
+                c1.setCellStyle(cellStyle);
+                
+                c1 = getCell(row, 43);
+                c1.setCellValue(dc.getIBCHAN());
+                c1.setCellStyle(cellStyle);
+                
+                if (dc.getCBCOMM().trim().equals("")) {
+                    c1 = getCell(row, 44);
+                    c1.setCellValue("");
+                } else {
+                    c1 = getCell(row, 44, NUMERIC);
+                    c1.setCellValue(fd(dc.getCBCOMM()));
+                    c1.setCellStyle(cellStylenum);
+                }
+                
+                
+                
             }
 
-            for (int r = 0; r < 41; r++) {
+            for (int r = 0; r < 45; r++) {
                 sheet.autoSizeColumn(r);
             }
 
