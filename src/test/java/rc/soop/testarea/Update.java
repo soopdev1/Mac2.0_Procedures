@@ -18,7 +18,7 @@ public class Update {
 
     public static void main(String[] args) {
 
-        File new1 = new File("C:\\mnt\\mac\\temp\\KYC_v2023.pdf");
+//        File new1 = new File("C:\\mnt\\mac\\temp\\KYC_v2023.pdf");
         
         try {
 
@@ -26,9 +26,9 @@ public class Update {
 //                    Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) 
 //                    + "' where id ='path.profcl';", false);
 
-            updateSQL("UPDATE conf SET des = '" + 
-                    Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) 
-                    + "' where id ='path.profcl';", false);
+//            updateSQL("UPDATE conf SET des = '" + 
+//                    Base64.encodeBase64String(FileUtils.readFileToByteArray(new1)) 
+//                    + "' where id ='path.profcl';", false);
             
 //            String profcl = Base64.encodeBase64String(FileUtils.readFileToByteArray(new1));
 //            Db db1 = new Db(host_TEST, false);

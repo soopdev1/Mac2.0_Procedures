@@ -72,13 +72,13 @@ public class MainSelector {
         try {
             scelta = Integer.parseInt(args[0]);
         } catch (Exception e) {
-            scelta = 11;
+            scelta = 5;
         }
 
         try {
             repvalue = args[1];
         } catch (Exception e) {
-            repvalue = "NO";
+            repvalue = "MCO1CZ";
         }
 
         try {

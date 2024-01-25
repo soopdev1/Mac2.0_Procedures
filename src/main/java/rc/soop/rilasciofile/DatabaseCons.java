@@ -2708,7 +2708,8 @@ public class DatabaseCons {
                 double setFxClosureErrorDeclared = 0.0;
                 double setCashOnPremError = 0.0;
                 ResultSet rs10 = this.c.createStatement().executeQuery("SELECT valuta,kind,total_user,total_system,rate FROM oc_errors where filiale = '" + fil[0]
-                        + "' AND cod IN (SELECT cod FROM oc_lista where data like '" + datad1.substring(0, 10) + "%' AND errors='Y') AND tipo='CH' AND (kind='01' OR kind='02' OR kind='03')");
+                        + "' AND cod IN (SELECT cod FROM oc_lista WHERE data >= '" + datad1 + ":00' AND data <= '" + datad2 + ":59' AND errors='Y')"
+                        + " AND tipo='CH' AND (kind='01' OR kind='02' OR kind='03')");
                 while (rs10.next()) {
                     if (rs10.getString("valuta").equals(valutalocale) && rs10.getString("kind").equals("01")) {
                         double eurerr = fd(rs10.getString("total_user")) - fd(rs10.getString("total_system"));
@@ -4578,13 +4579,13 @@ public class DatabaseCons {
                     }
                     d1.setVENDITABUYBACK("");
                 }
-                
+
                 d1.setAGCODE("");
                 d1.setAGNUMBER("");
                 d1.setCODICEINTERNETBOOKING("");
                 d1.setIBCHAN("");
                 d1.setCBCOMM("");
-                
+
                 if (rs.getString("tr1.intbook").equals("1")) {
                     try {
                         String cotr = rs.getString("tr1.cod");

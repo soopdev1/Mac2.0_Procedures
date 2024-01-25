@@ -41,10 +41,12 @@ public class Mactest {
 ////        agg(null);
 
     //1    
-    //    updateSQL("ALTER TABLE `sito_prenotazioni` CHANGE COLUMN `pan` `pan` VARCHAR(100) NOT NULL DEFAULT '-' COLLATE 'latin1_swedish_ci' AFTER `cl_indirizzinazione`", false);
+//    updateSQL("ALTER TABLE `sito_servizi_agg` ADD COLUMN `buysell` ENUM('B','S','A') NOT NULL DEFAULT 'S' AFTER `attivo`;", false);
+//    updateSQL("ALTER TABLE `sito_agevolazioni_varie` ADD COLUMN `buysell` ENUM('B','S','A') NOT NULL DEFAULT 'S' AFTER `coupon`;", true);
     //2
+
 //        updateSQLTEST("INSERT INTO conf VALUES ('sito.editwt.2023','https://b2badmintest.forexchange.it/booking/ext/edit-booking')", false);
-//        updateSQL("INSERT INTO conf VALUES ('sito.editwt.2023','https://b2badmin.forexchange.it/booking/ext/edit-booking')", false);
+        updateSQL("INSERT INTO conf VALUES ('sito.editcb.2023','https://api.forexchange.com/tools/api/ext/edit-booking')", true);
 
 //        updateSQLCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", false);
 //        updateSQLTESTCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", true);

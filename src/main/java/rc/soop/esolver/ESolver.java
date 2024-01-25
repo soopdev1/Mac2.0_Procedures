@@ -1356,6 +1356,7 @@ public class ESolver {
                             } else {
                                 va2 = get_vat(vat1.getVatcode2(), vat);
                             }
+                            
                             VATcode va1 = get_vat(vat1.getVatcode1(), vat);
 
                             if (va1 != null) {
@@ -1410,6 +1411,7 @@ public class ESolver {
                                 nreg++;
                             }
                         } else {
+                            
                             VATcode va1 = get_vat(nc0.getConto_coge_02(), vat);
                             if (va1 != null) {
                                 double total1 = fd(valori[2]);
@@ -1467,7 +1469,7 @@ public class ESolver {
                         }
                     }
 
-                    VATcode va1 = get_vat("22", vat);
+                    VATcode va1 = get_vat("22", vat); // 
 
                     double valueiva = fd(va1.getAliquota());
                     double d1 = calcolaIva(fee, valueiva);

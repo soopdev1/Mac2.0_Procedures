@@ -69,7 +69,7 @@ public class MacCORA {
         db.closeDB();
         DateTime dtSTART1 = new DateTime().minusMonths(1);
         String from1 = dtSTART1.toString(pattermonthnorm);
-        log.warning("MENSILE: " + from1);
+        log.log(Level.WARNING, "MENSILE: {0}", from1);
         DateTimeFormatter formatter = DateTimeFormat.forPattern(patternsql);
         File out1 = null;
         String rif = formatStringtoStringDate_null(from1, pattermonthnorm, patternmonthsql);

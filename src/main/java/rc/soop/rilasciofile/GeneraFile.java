@@ -467,6 +467,31 @@ public class GeneraFile {
                 }
                 break;
             }
+            case "MCO1CZ": {
+                // MANAGEMENT CONTROL CZ - REPORT MANAGEMENT CONTROL - DA INIZIO MESE A IERI     //COMPLETO
+                gf.setIs_IT(false);
+                gf.setIs_UK(false);
+                gf.setIs_CZ(true);
+                db.closeDB();
+                db = new DatabaseCons(gf);
+                br1 = db.list_branchcode_completeAFTER311217();
+                allenabledbr = db.list_branch();
+                
+                String nomereport = "MANAGEMENT CONTROL CZ - REPORT MANAGEMENT CONTROL N1 DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
+                File Output = new File(path + nomereport);
+                String base64 = ControlloGestione.management_change_n1(Output, br1, data1, data2, true, allenabledbr, db);
+                if (base64 != null) {
+                    boolean es = rilasciasftp(Output, meseriferimento + "/MANAGEMENT CONTROL CZ", annoriferimento, gf);
+                    if (es) {
+                        gf.logger.log.log(Level.WARNING, "FILE RILASCIATO CON SUCCESSO: {0}", Output.getPath());
+                    } else {
+                        gf.logger.log.log(Level.SEVERE, "ERRORE RILASCIO FILE: {0}", Output.getPath());
+                    }
+                } else {
+                    gf.logger.log.log(Level.SEVERE, "ERRORE RILASCIO FILE: {0}", Output.getPath());
+                }
+                break;
+            }
             case "MCO2": {
                 // MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL - DA INIZIO MESE A IERI     // NO DELETE
                 String nomereport = "MANAGEMENT CONTROL - REPORT MANAGEMENT CONTROL N1 - NO DELETE OPERATIONS DA " + data1 + " A " + data2 + "_"+datecreation+".xlsx";
