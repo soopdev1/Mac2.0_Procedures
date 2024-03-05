@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +24,8 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
+import static rc.soop.aggiornamenti.Utility.formatStringtoStringDate;
+import static rc.soop.aggiornamenti.Utility.patternsqldate;
 
 /**
  *
@@ -33,6 +36,54 @@ public class VerificaAggiornamenti {
     public static final int limitAGG = 5000;
     public static final int limitMINUTES = 30;
 
+    public static void verificaSpreadKO() {
+        List<String> errorspread = new ArrayList<>();
+
+        Db db = new Db(host_PROD, false);
+        try {
+
+            String sql1 = "SELECT c.cod,c.filiale,c.id,c.tipotr,c.data,v.valuta FROM ch_transaction c, ch_transaction_valori v "
+                    + " WHERE c.cod=v.cod_tr AND v.spread LIKE '%KO%' AND c.data > '2024-01-01 00:00:00';";
+            try (ResultSet rs = db.getC().createStatement().executeQuery(sql1)) {
+                while (rs.next()) {
+                    String tipotr = rs.getString(4).equals("B") ? "BUY" : "SELL";
+                    String add = "FILIALE: " + rs.getString(2) + " - ID: " + rs.getString(3)
+                            + " - TIPO: " + tipotr + " - DATA: "
+                            + formatStringtoStringDate(rs.getString(5), patternsqldate, patternnormdate)
+                            + " - VALUTA: " + rs.getString(6);
+                    errorspread.add(add);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        String pathtemp = db.getPath("temp");
+        db.closeDB();
+        File txt;
+        String text;
+        if (errorspread.isEmpty()) {
+            text = "NESSUNA ANOMALIA CALCOLO SPREAD.";
+            sendMail("VERIFICA ANOMALIE CALCOLO SPREAD", text, null);
+        } else {
+            text = "IN ALLEGATO I DETTAGLI DI UNA O PIU' TRANSAZIONI CON UN'ANOMALIA CALCOLO SPREAD.";
+            txt = new File(pathtemp + RandomStringUtils.randomAlphanumeric(50) + ".txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
+
+                for (String s1 : errorspread) {
+                    writer.write(s1);
+                    writer.newLine();
+                }
+                writer.flush();
+                sendMail("VERIFICA ANOMALIE CALCOLO SPREAD", text, txt);
+                txt.deleteOnExit();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+    }
+
     public static void ultimo_Aggiornamento22() {
         Db db = new Db(host_PROD, false);
         try {
@@ -42,13 +93,13 @@ public class VerificaAggiornamenti {
                     + RandomStringUtils.randomAlphanumeric(50) + ".txt");
 
             AtomicInteger content;
-            try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 content = new AtomicInteger(0);
                 String sql1 = "SELECT dt_start,filiale,SUBDATE(NOW(), INTERVAL 30 MINUTE) "
                         + "FROM aggiornamenti_mod_verifica WHERE filiale = '000' "
                         + "AND date_start > SUBDATE(NOW(), INTERVAL " + limitMINUTES + " MINUTE) LIMIT 1";
 
-                try ( ResultSet rs = db.getC().createStatement().executeQuery(sql1)) {
+                try (ResultSet rs = db.getC().createStatement().executeQuery(sql1)) {
                     if (rs.next()) {
                         System.out.println("ULTIMO AGGIORNAMENTO: " + rs.getString(2) + " - " + rs.getString(1) + " NOW: " + dt_now.toString(patternnormdate));
                     } else {
@@ -62,7 +113,7 @@ public class VerificaAggiornamenti {
                         + "FROM aggiornamenti_mod_verifica WHERE filiale <> '000' "
                         + "AND date_start > SUBDATE(NOW(), INTERVAL " + limitMINUTES + " MINUTE) LIMIT 1";
 
-                try ( ResultSet rs2 = db.getC().createStatement().executeQuery(sql2)) {
+                try (ResultSet rs2 = db.getC().createStatement().executeQuery(sql2)) {
                     if (rs2.next()) {
                         System.out.println("ULTIMO AGGIORNAMENTO: " + rs2.getString(2) + " - " + rs2.getString(1) + " NOW: " + dt_now.toString(patternnormdate));
                     } else {
@@ -92,7 +143,7 @@ public class VerificaAggiornamenti {
             File txt = new File(db.getPath("temp")
                     + RandomStringUtils.randomAlphanumeric(50) + ".txt");
             AtomicInteger content;
-            try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 content = new AtomicInteger(0);
                 DateTime dt_now = new DateTime();
                 if (rs.next()) {
@@ -154,9 +205,9 @@ public class VerificaAggiornamenti {
             File txt = new File(db.getPath("temp")
                     + randomAlphanumeric(50) + ".txt");
             AtomicInteger index = new AtomicInteger(0);
-            try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 String sql1 = "SELECT b.cod FROM branch b WHERE b.fg_annullato='0' AND b.cod NOT IN " + el1;
-                try ( ResultSet rs1 = db.getC().createStatement().executeQuery(sql1)) {
+                try (ResultSet rs1 = db.getC().createStatement().executeQuery(sql1)) {
                     while (rs1.next()) {
                         StatusBranch sb1 = new StatusBranch();
 
@@ -171,7 +222,7 @@ public class VerificaAggiornamenti {
                         String sql2 = "SELECT count(cod) FROM aggiornamenti_mod WHERE fg_stato='0' AND filiale = '" + fildest
                                 + "' AND now()>STR_TO_DATE(dt_start, '%d/%m/%Y %H:%i:%s')";
 
-                        try ( ResultSet rs2 = db.getC().createStatement().executeQuery(sql2)) {
+                        try (ResultSet rs2 = db.getC().createStatement().executeQuery(sql2)) {
                             if (rs2.next()) {
                                 sb1.setAggto(rs2.getInt(1));
                             }
@@ -181,7 +232,7 @@ public class VerificaAggiornamenti {
                             Db dbfil = new Db("//" + sb1.getIp() + ":3306/maccorp", true);
                             if (dbfil.getC() != null) {
                                 String sql3 = "SELECT count(cod) FROM aggiornamenti_mod Where fg_stato='0'";
-                                try ( ResultSet rs3 = dbfil.getC().createStatement().executeQuery(sql3)) {
+                                try (ResultSet rs3 = dbfil.getC().createStatement().executeQuery(sql3)) {
                                     if (rs3.next()) {
                                         sb1.setAggfrom(rs3.getInt(1));
                                     }
@@ -230,7 +281,7 @@ public class VerificaAggiornamenti {
             List<StatusBranch> complete = agg(null);
             File txt = new File(db.getPath("temp")
                     + RandomStringUtils.randomAlphanumeric(50) + ".txt");
-            try ( BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(txt))) {
                 complete.forEach(agg -> {
                     if (agg.getAggfrom() >= limitAGG || agg.getAggto() >= limitAGG) {
                         if (!filialidanoncontrollare.contains(agg.getCod())) {

@@ -6,7 +6,7 @@
 package rc.soop.aggiornamenti;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
@@ -15,7 +15,6 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
@@ -40,7 +39,8 @@ public class Utility {
     public static final String patternsqldate = "yyyy-MM-dd HH:mm:ss";
     public static final String patternsql = "yyyy-MM-dd";
     public static final String patternnormdate_filter = "dd/MM/yyyy";
-
+    public static final SimpleDateFormat sdf_ita = new SimpleDateFormat(patternnormdate);
+    
     public static String generaId(int length) {
         String random = RandomStringUtils.randomAlphanumeric(length - 15).trim();
         return new DateTime().toString("yyMMddHHmmssSSS") + random;
@@ -124,6 +124,48 @@ public class Utility {
         return null;
     }
 
+    public static boolean sendMail(String subject, String text, File attach) {
+        ResourceBundle rb = ResourceBundle.getBundle("esolver.conf");
+        Properties props = new Properties();
+        props.put("mail.smtp.host", rb.getString("mail.smtp"));
+        props.put("mail.smtp.socketFactory.port", rb.getString("mail.smtp.port"));
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.port", rb.getString("mail.smtp.port"));
+        Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(rb.getString("mail.sender"), rb.getString("mail.pass"));
+            }
+        });
+        try {
+            Message message = new MimeMessage(session);
+            InternetAddress froms = new InternetAddress(rb.getString("mail.sender"));
+            froms.setPersonal("Noreply Mac2.0");
+            message.setFrom(froms);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("mac2.0@smartoop.it"));
+            message.setRecipients(Message.RecipientType.CC, InternetAddress.parse("support@maccorp.it"));
+            message.setSubject(subject);
+            Multipart mp = new MimeMultipart();
+            MimeBodyPart mbp1 = new MimeBodyPart();
+            mbp1.setContent(text, "text/html");
+            mp.addBodyPart(mbp1);
+            if (attach != null) {
+                MimeBodyPart mbp2 = new MimeBodyPart();
+                DataSource source = new FileDataSource(attach);
+                mbp2.setDataHandler(new DataHandler(source));
+                mbp2.setFileName("attach.txt");
+                mp.addBodyPart(mbp2);
+            }
+            message.setContent(mp);
+            Transport.send(message);
+            return true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+    
     public static boolean sendMail(File fileDaAllegare) {
         ResourceBundle rb = ResourceBundle.getBundle("esolver.conf");
         Properties props = new Properties();

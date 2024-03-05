@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import static rc.soop.oam.OAM.creaFile;
 import org.apache.commons.lang3.RandomStringUtils;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import org.joda.time.DateTime;
 
 /**
@@ -47,7 +48,7 @@ public class Check {
             ArrayList<Ch_transaction> tran = db.list_transaction_oam(anno, mese);
             db.closeDB();
 
-            String name1 = "OAM_CHECK_" + anno + mese + RandomStringUtils.randomAlphanumeric(15).trim().toLowerCase() + ".txt";
+            String name1 = "OAM_CHECK_" + anno + mese + randomAlphanumeric(15).trim().toLowerCase() + ".txt";
             oggettoFile og1 = creaFile(progressivo, codicetrasm, anno, mese, "0", cfpi, denom,
                     comune, provincia, tipologia, controllo, tran, nations, curlist, allbr, tipodoc, path + name1);
             

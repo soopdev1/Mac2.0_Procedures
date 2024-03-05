@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import static rc.soop.aggiornamenti.VerificaAggiornamenti.ultimo_Aggiornamento22;
+import static rc.soop.aggiornamenti.VerificaAggiornamenti.verificaSpreadKO;
 import static rc.soop.aggiornamenti.VerificaAggiornamenti.verifica_Aggiornamenti22;
 import static rc.soop.crm.Engine.recap_greenNumber;
 import static rc.soop.crm.Engine.refresh_branch;
@@ -72,7 +73,7 @@ public class MainSelector {
         try {
             scelta = Integer.parseInt(args[0]);
         } catch (Exception e) {
-            scelta = 5;
+            scelta = 34;
         }
 
         try {
@@ -258,6 +259,9 @@ public class MainSelector {
             case 33: //SFTP SIA/NEXI
                 new SftpSIA().sftpsia(true);
                 break;
+            case 34: //VERIFICA SPREAD KO
+                verificaSpreadKO();
+                break;
             case 44: { //AGGIORNA FILIALI    
                 Logger log1 = createLog("Mac2.0_AGG_" + metodo + "_" + filiale, rb.getString("path.log"), pattern4);
                 log1.warning("START...");
@@ -304,12 +308,11 @@ public class MainSelector {
                 break;
             }
             case 55: { //GENERA FILE ONDEMAND              
-                System.out.println("rc.soop.main.MainSelector.main(1) "+datastart);
-                System.out.println("rc.soop.main.MainSelector.main(2) "+dataend);
+                System.out.println("rc.soop.main.MainSelector.main(1) " + datastart);
+                System.out.println("rc.soop.main.MainSelector.main(2) " + dataend);
                 DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
                 DateTime iniziomese = dtf.parseDateTime(datastart);
                 DateTime ieri = dtf.parseDateTime(dataend);
-
                 GeneraFile gf2 = new GeneraFile();
                 gf2.rilasciafile(gf2, repvalue, iniziomese, ieri);
                 break;

@@ -24,12 +24,12 @@ import static rc.soop.riallinea.Util.roundDoubleandFormat;
 public class CheckCZDaily {
 
     public static void main(String[] args) {
-        String fil_cod = "307";
-        DateTime start = new DateTime(2023, 8, 13, 0, 0);
-        DateTime end = new DateTime(2023, 8, 31, 0, 0);
+        String fil_cod = "321";
+        DateTime start = new DateTime(2024, 2, 1, 0, 0);
+        DateTime end = new DateTime(2024, 2, 22, 0, 0);
 
 //        DateTime end = new DateTime().withMillisOfDay(0);
-        Db_Master db = new Db_Master(true, "192.168.9.19");
+        Db_Master db = new Db_Master(true, "192.168.9.56");
 //        Db_Master db = new Db_Master(true, false);
 
         while (start.isBefore(end)) {

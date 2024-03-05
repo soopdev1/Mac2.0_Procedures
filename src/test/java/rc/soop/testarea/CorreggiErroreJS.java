@@ -46,7 +46,7 @@ public class CorreggiErroreJS {
 //        elencocodici.add("057230902185249278T6MYmiP");
 //        elencocodici.add("0572309020941464791CUSjGs");
 //        elencocodici.add("057230902172336089jxAgCkk");
-        elencocodici.add("063230903151522871BDEQRDm");
+        elencocodici.add("034240203165618715QvfHH26");
         
         
         Db_Master db1 = new Db_Master();

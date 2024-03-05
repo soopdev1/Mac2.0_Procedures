@@ -200,7 +200,7 @@ public class ReloadingDati {
 //
 //        fase3(null);
 
-        DateTime start = new DateTime(2023, 11, 1, 0, 0).withMillisOfDay(0);
+        DateTime start = new DateTime(2024, 2, 1, 0, 0).withMillisOfDay(0);
 //        fase3(start);
 //
         List<String> lista = new ArrayList<>();
@@ -215,7 +215,7 @@ public class ReloadingDati {
 ////        lista.add("063");
 ////        lista.add("090");
 //        lista.add("019");
-        lista.add("049");
+        lista.add("034");
 //        lista.add("188");
 ////        lista.add("172");
 ////        lista.add("188");

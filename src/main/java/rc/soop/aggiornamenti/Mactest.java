@@ -34,24 +34,19 @@ import static rc.soop.start.Utility.rb;
 public class Mactest {
 
     public static void main(String[] args) {
-        
+
 //        VerificaAggiornamenti.verifica_Aggiornamenti22();
 //        VerificaAggiornamenti.ultimo_Aggiornamento22();
-        
 ////        agg(null);
-
-    //1    
+        //1    
 //    updateSQL("ALTER TABLE `sito_servizi_agg` ADD COLUMN `buysell` ENUM('B','S','A') NOT NULL DEFAULT 'S' AFTER `attivo`;", false);
 //    updateSQL("ALTER TABLE `sito_agevolazioni_varie` ADD COLUMN `buysell` ENUM('B','S','A') NOT NULL DEFAULT 'S' AFTER `coupon`;", true);
-    //2
-
+        //2
 //        updateSQLTEST("INSERT INTO conf VALUES ('sito.editwt.2023','https://b2badmintest.forexchange.it/booking/ext/edit-booking')", false);
-        updateSQL("INSERT INTO conf VALUES ('sito.editcb.2023','https://api.forexchange.com/tools/api/ext/edit-booking')", true);
+//        updateSQL("INSERT INTO pages VALUES ('web_tran_buy.jsp','0123')", false);
 
 //        updateSQLCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", false);
 //        updateSQLTESTCZ("ALTER TABLE `selectlevelrate` ADD COLUMN `percent` VARCHAR(10) NOT NULL DEFAULT '0.00' AFTER `descrizione`;", true);
-     
-        
 //        try {
 //            Db db = new Db(host_TEST, false);
 //            ResultSet rs = db.getC().createStatement().executeQuery("show create table unlockrate_justify");
@@ -375,7 +370,6 @@ public class Mactest {
 //        }
 //
 //    }
-
     private static void excelsetPSWOLTA() {
         ArrayList<String[]> complete = new ArrayList<>();
         try {
@@ -430,7 +424,7 @@ public class Mactest {
 
     public static final String host_TEST = rb.getString("db.ip") + "/maccorp";
     public static final String host_PROD = rb.getString("db.ip") + "/maccorpita";
-    
+
     public static final String host_PROD_CZ = rb.getString("db.ip") + "/maccorpczprod";
     public static final String host_TEST_CZ = rb.getString("db.ip") + "/maccorpcz";
 

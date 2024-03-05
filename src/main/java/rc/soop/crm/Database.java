@@ -305,7 +305,8 @@ public class Database {
     public List<Booking_Date> list_total_booking() {
         List<Booking_Date> total = new ArrayList<>();
         try {
-            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM sito_prenotazioni WHERE stato='0' OR stato = '3' ORDER BY dt_ritiro");
+            ResultSet rs = this.c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(
+                    "SELECT * FROM sito_prenotazioni WHERE stato='0' OR stato = '3' ORDER BY dt_ritiro");
             while (rs.next()) {
                 Booking_Date bd1 = new Booking_Date(rs.getString("cod"), rs.getString("dt_ritiro"), rs.getString("stato"),
                         rs.getString("stato_crm"), formatter_N.parseDateTime(rs.getString("dt_ritiro")), rs.getString("filiale"));

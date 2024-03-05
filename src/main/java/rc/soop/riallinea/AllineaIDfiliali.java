@@ -180,7 +180,8 @@ public class AllineaIDfiliali {
     }
 
     public static void main(String[] args) {
-        ripristinaIDtransazioniNOChange("172", "192.168.128.5", false);
+//        ripristinaIDtransazioniChange("161", "192.168.112.2", false);
+        ripristinaIDtransazioniNOChange("051", "192.168.243.5", false);
 ////        ripristinaIDETChange("115", "192.168.35.2", false);
     }
 

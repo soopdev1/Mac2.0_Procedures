@@ -23,12 +23,13 @@ import static rc.soop.riallinea.Util.patternsql;
 public class CheckCZDaily3 {
 
     public static void main(String[] args) {
+//
+//        String fil_cod = "321";
+        String fil_cod = "322";
+        DateTime start = new DateTime(2024, 2, 1, 0, 0);
+        DateTime end = new DateTime(2024, 2, 22, 0, 0);
 
-        String fil_cod = "307";
-        DateTime start = new DateTime(2023, 8, 29, 0, 0);
-        DateTime end = new DateTime(2023, 9, 1, 0, 0);
-
-        Db_Master db = new Db_Master(true, "192.168.9.19");
+        Db_Master db = new Db_Master(true, "192.168.9.57");
 //        Db_Master db = new Db_Master(true, false);
 
         while (start.isBefore(end)) {
@@ -63,60 +64,16 @@ public class CheckCZDaily3 {
 //                            
 //                System.out.println(sp.getData() + " rc.soop.testarea.CheckCZDaily3.main() " + sum1.get());
                 for (int i = 0; i < dati.size(); i++) {
-                    boolean czk = dati.get(i).getCurrency().equals("CZK");
-//                    boolean eur = dati.get(i).getCurrency().equals("EUR");
-                    if (czk) {
-                        OfficeStockPrice_value od = last.stream().filter(f1 -> f1.getCurrency().equals("CZK")).findAny().orElse(null);
-                        if (od != null) {
-
-                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
-                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0)
-                                    + "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "' AND currency='CZK'";
-                            try {
-                                try ( Statement st1 = db.getC().createStatement()) {
-                                    st1.executeUpdate(upd1);
-                                }
-                                try ( Statement st2 = db.getC().createStatement()) {
-                                    st2.executeUpdate(upd2);
-                                }
-
-                                System.out.println(stdate + " (CZK BSI) " + dati.get(i).getDati().get(0) + " OSP1 " + sp.getTotal_cod() + " OSP2 "
-                                        + od.getQtaSenzaFormattazione() + "--" + od.getControvalore());
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-//                    } else if (eur) {
-//                        OfficeStockPrice_value od = last.stream().filter(f1 -> f1.getCurrency().equals("EUR")).findAny().orElse(null);
+//                    boolean czk = dati.get(i).getCurrency().equals("CZK");
+                    boolean eur = dati.get(i).getCurrency().equals("EUR");
+                    if (false) {
+//                    if (czk) {
+//                        OfficeStockPrice_value od = last.stream().filter(f1 -> f1.getCurrency().equals("CZK")).findAny().orElse(null);
 //                        if (od != null) {
 //
-////                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
-////                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0) + "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "'";
-////                            try {
-////                                try (Statement st1 = db.getC().createStatement()) {
-////                                    st1.executeUpdate(upd1);
-////                                }
-////                                try (Statement st2 = db.getC().createStatement()) {
-////                                    st2.executeUpdate(upd2);
-////                                }
-//                            double q_ok = fd(String.valueOf(dati.get(i).getDati().get(0)));
-//                            double rate = fd(od.getMedioacq());
-//
-//                            double controv_originale = fd(od.getControvalore());
-//                            double controv_nuovo = Util.roundDouble(q_ok * rate, 2);
-//                            double diff = controv_nuovo - controv_originale;
-//
-//                            double totalfx_or = fd(sp.getTotal_fx());
-//                            double totalfx_new = totalfx_or + diff;
-//
-//                            String upd1 = "UPDATE office_sp SET total_FX='" + Util.roundDoubleandFormat(totalfx_new, 2)
-//                                    + "' WHERE codice='" + sp.getCodice() + "'";
+//                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
 //                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0)
-//                                    + "',controv='" + Util.roundDoubleandFormat(controv_nuovo, 2)
-//                                    + "' WHERE cod='" + sp.getCodice() + "' AND currency = 'EUR'";
-////                            
+//                                    + "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "' AND currency='CZK'";
 //                            try {
 //                                try ( Statement st1 = db.getC().createStatement()) {
 //                                    st1.executeUpdate(upd1);
@@ -125,22 +82,67 @@ public class CheckCZDaily3 {
 //                                    st2.executeUpdate(upd2);
 //                                }
 //
-//                                System.out.println(stdate + " (EUR) "
-//                                        + q_ok
-//                                        + " OSP1 "
-//                                        + totalfx_or
-//                                        + " DIVENTA " + Util.roundDoubleandFormat(totalfx_new, 2)
-//                                        + " OSP2 "
-//                                        + od.getQtaSenzaFormattazione()
-//                                        + " -- " + Util.roundDoubleandFormat(controv_originale, 2)
-//                                        + " -- " + Util.roundDoubleandFormat(controv_nuovo, 2)
-//                                        + " -- DA AGGIUNGERE AL TOTAL FX " + Util.roundDoubleandFormat(diff, 2)
-//                                );
+//                                System.out.println(stdate + " (CZK BSI) " + dati.get(i).getDati().get(0) + " OSP1 " + sp.getTotal_cod() + " OSP2 "
+//                                        + od.getQtaSenzaFormattazione() + "--" + od.getControvalore());
 //
 //                            } catch (Exception e) {
 //                                e.printStackTrace();
 //                            }
+//
 //                        }
+                    } else if (eur) {
+                        OfficeStockPrice_value od = last.stream().filter(f1 -> f1.getCurrency().equals("EUR")).findAny().orElse(null);
+                        if (od != null) {
+
+//                            String upd1 = "UPDATE office_sp SET total_cod='" + dati.get(i).getDati().get(0) + "' WHERE codice='" + sp.getCodice() + "'";
+//                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0) + "',controv='" + dati.get(i).getDati().get(0) + "' WHERE cod='" + sp.getCodice() + "'";
+//                            try {
+//                                try (Statement st1 = db.getC().createStatement()) {
+//                                    st1.executeUpdate(upd1);
+//                                }
+//                                try (Statement st2 = db.getC().createStatement()) {
+//                                    st2.executeUpdate(upd2);
+//                                }
+                            double q_ok = fd(String.valueOf(dati.get(i).getDati().get(0)));
+                            double rate = fd(od.getMedioacq());
+
+                            double controv_originale = fd(od.getControvalore());
+                            double controv_nuovo = Util.roundDouble(q_ok * rate, 2);
+                            double diff = controv_nuovo - controv_originale;
+
+                            double totalfx_or = fd(sp.getTotal_fx());
+                            double totalfx_new = totalfx_or + diff;
+
+                            String upd1 = "UPDATE office_sp SET total_FX='" + Util.roundDoubleandFormat(totalfx_new, 2)
+                                    + "' WHERE codice='" + sp.getCodice() + "'";
+                            String upd2 = "UPDATE office_sp_valori SET quantity='" + dati.get(i).getDati().get(0)
+                                    + "',controv='" + Util.roundDoubleandFormat(controv_nuovo, 2)
+                                    + "' WHERE cod='" + sp.getCodice() + "' AND currency = 'EUR'";
+//                            
+                            try {
+                                try ( Statement st1 = db.getC().createStatement()) {
+                                    st1.executeUpdate(upd1);
+                                }
+                                try ( Statement st2 = db.getC().createStatement()) {
+                                    st2.executeUpdate(upd2);
+                                }
+
+                                System.out.println(stdate + " (EUR) "
+                                        + q_ok
+                                        + " OSP1 "
+                                        + totalfx_or
+                                        + " DIVENTA " + Util.roundDoubleandFormat(totalfx_new, 2)
+                                        + " OSP2 "
+                                        + od.getQtaSenzaFormattazione()
+                                        + " -- " + Util.roundDoubleandFormat(controv_originale, 2)
+                                        + " -- " + Util.roundDoubleandFormat(controv_nuovo, 2)
+                                        + " -- DA AGGIUNGERE AL TOTAL FX " + Util.roundDoubleandFormat(diff, 2)
+                                );
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
             }
